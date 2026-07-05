@@ -9,6 +9,7 @@ import { budgetSlice } from "./budget";
 import { debtSlice } from "./debt";
 import { savingsGoalSlice } from "./savingsGoal";
 import { recurringSlice } from "./recurring";
+import { notificationSlice } from "./notification";
 
 const rootReducer = combineReducers({
   global: globalSlice.reducer,
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   debt: debtSlice.reducer,
   savingsGoal: savingsGoalSlice.reducer,
   recurring: recurringSlice.reducer,
+  notification: notificationSlice.reducer,
 });
 
 export const store = configureStore({

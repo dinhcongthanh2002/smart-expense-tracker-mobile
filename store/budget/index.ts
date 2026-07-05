@@ -67,6 +67,32 @@ export const budgetDelete = createAsyncThunk(
   },
 );
 
+export const budgetShare = createAsyncThunk(
+  "Budget/share",
+  async ({ id, userName }: { id: string; userName: string }, { rejectWithValue }) => {
+    try {
+      const res = await API.post(`${BUDGET}/${id}/share`, { userName });
+      if (res.message) notify.success(res.message);
+      return res;
+    } catch (e) {
+      return rejectWithValue((e as ApiError).message);
+    }
+  },
+);
+
+export const budgetUnshare = createAsyncThunk(
+  "Budget/unshare",
+  async ({ id, userId }: { id: string; userId: string }, { rejectWithValue }) => {
+    try {
+      const res = await API.post(`${BUDGET}/${id}/unshare`, { userId });
+      if (res.message) notify.success(res.message);
+      return res;
+    } catch (e) {
+      return rejectWithValue((e as ApiError).message);
+    }
+  },
+);
+
 interface BudgetState {
   pagination?: Pagination<BudgetViewModel>;
   progress: BudgetProgressViewModel[];
@@ -146,5 +172,7 @@ export const BudgetFacade = () => {
     post: (values: BudgetUpsertModel) => dispatch(budgetPost({ values })),
     put: (id: string, limitAmount: number) => dispatch(budgetPut({ id, limitAmount })),
     delete: (id: string) => dispatch(budgetDelete({ id })),
+    share: (id: string, userName: string) => dispatch(budgetShare({ id, userName })),
+    unshare: (id: string, userId: string) => dispatch(budgetUnshare({ id, userId })),
   };
 };

@@ -64,5 +64,14 @@ export async function clearAuthStorage(): Promise<void> {
     secureDelete(STORAGE_KEYS.accessToken),
     secureDelete(STORAGE_KEYS.refreshToken),
     AsyncStorage.removeItem(STORAGE_KEYS.user),
+    AsyncStorage.removeItem(STORAGE_KEYS.biometric),
   ]);
+}
+
+export async function setBiometricEnabled(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(STORAGE_KEYS.biometric, enabled ? "1" : "0");
+}
+
+export async function getBiometricEnabled(): Promise<boolean> {
+  return (await AsyncStorage.getItem(STORAGE_KEYS.biometric)) === "1";
 }

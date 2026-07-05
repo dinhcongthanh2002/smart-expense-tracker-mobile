@@ -1,5 +1,6 @@
-import { useCallback } from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { PieChart } from "react-native-gifted-charts";
@@ -8,10 +9,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/ui/Screen";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { MonthCalendarReport } from "@/components/MonthCalendarReport";
 import { TransactionRow, RowDivider } from "@/components/TransactionRow";
 import { StatisticFacade } from "@/store/statistic";
 import { TransactionFacade } from "@/store/transaction";
 import { GlobalFacade } from "@/store/global";
+import { NotificationFacade } from "@/store/notification";
 import { formatCurrency, formatCompact, startOfMonthISO, endOfMonthISO } from "@/lib/format";
 import { colorForIndex } from "@/lib/ui-helpers";
 import { colors, gradients } from "@/theme/colors";
@@ -29,10 +32,27 @@ export default function DashboardScreen() {
   const { getStatistic, dashboard, isLoading } = StatisticFacade();
   const tx = TransactionFacade();
   const { user } = GlobalFacade();
+  const noti = NotificationFacade();
+  const [hideBalance, setHideBalance] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem("hideBalance").then((v) => setHideBalance(v === "1"));
+  }, []);
+
+  const toggleHide = () => {
+    const next = !hideBalance;
+    setHideBalance(next);
+    AsyncStorage.setItem("hideBalance", next ? "1" : "0");
+  };
+
+  const money = (v?: number) =>
+    hideBalance ? "******" : formatCurrency(v ?? 0);
+  const compact = (v?: number) => (hideBalance ? "***" : formatCompact(v ?? 0));
 
   const refresh = useCallback(() => {
     getStatistic({ startDate: startOfMonthISO(), endDate: endOfMonthISO() });
     tx.get({ page: 1, size: 5, sort: "-transactionDate" });
+    noti.getUnreadCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -67,9 +87,20 @@ export default function DashboardScreen() {
               {user?.userModel?.name ?? "Bạn"}
             </Text>
           </View>
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/20">
-            <Ionicons name="person" size={24} color={colors.primary} />
-          </View>
+          <Pressable
+            onPress={() => router.push("/notifications")}
+            hitSlop={8}
+            className="h-12 w-12 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
+          >
+            <Ionicons name="notifications" size={22} color={colors.primary} />
+            {noti.unreadCount > 0 ? (
+              <View className="absolute right-1.5 top-1.5 h-4 min-w-4 items-center justify-center rounded-full bg-expense px-1">
+                <Text className="text-[10px] font-bold text-white">
+                  {noti.unreadCount > 9 ? "9+" : noti.unreadCount}
+                </Text>
+              </View>
+            ) : null}
+          </Pressable>
         </View>
 
         {/* Balance card */}
@@ -80,9 +111,22 @@ export default function DashboardScreen() {
             end={{ x: 1, y: 1 }}
             style={{ padding: 20 }}
           >
-            <Text className="text-sm text-white/80">Số dư tháng này</Text>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm text-white/80">Số dư tháng này</Text>
+              <Pressable
+                onPress={toggleHide}
+                hitSlop={10}
+                className="h-8 w-8 items-center justify-center rounded-full bg-white/15 active:opacity-70"
+              >
+                <Ionicons
+                  name={hideBalance ? "eye-off-outline" : "eye-outline"}
+                  size={18}
+                  color="#fff"
+                />
+              </Pressable>
+            </View>
             <Text className="mt-1 text-4xl font-bold text-white">
-              {formatCurrency(dashboard?.balance ?? 0)}
+              {money(dashboard?.balance)}
             </Text>
 
             <View className="mt-5 flex-row">
@@ -93,7 +137,7 @@ export default function DashboardScreen() {
                 <View>
                   <Text className="text-xs text-white/70">Thu nhập</Text>
                   <Text className="text-base font-semibold text-white">
-                    {formatCurrency(dashboard?.totalIncome ?? 0)}
+                    {money(dashboard?.totalIncome)}
                   </Text>
                 </View>
               </View>
@@ -104,7 +148,7 @@ export default function DashboardScreen() {
                 <View>
                   <Text className="text-xs text-white/70">Chi tiêu</Text>
                   <Text className="text-base font-semibold text-white">
-                    {formatCurrency(dashboard?.totalExpense ?? 0)}
+                    {money(dashboard?.totalExpense)}
                   </Text>
                 </View>
               </View>
@@ -129,7 +173,7 @@ export default function DashboardScreen() {
                   <View className="items-center">
                     <Text className="text-xs text-muted">Tổng chi</Text>
                     <Text className="text-sm font-bold text-ink">
-                      {formatCompact(dashboard?.totalExpense ?? 0)}
+                      {compact(dashboard?.totalExpense)}
                     </Text>
                   </View>
                 )}
@@ -157,6 +201,9 @@ export default function DashboardScreen() {
             </View>
           </GlassCard>
         )}
+
+        {/* Calendar report */}
+        <MonthCalendarReport hidden={hideBalance} />
 
         {/* Recent transactions */}
         <View className="mb-3 mt-6 flex-row items-center justify-between">

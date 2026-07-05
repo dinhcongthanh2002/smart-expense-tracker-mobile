@@ -6,15 +6,21 @@ import { notify } from "@/lib/notify";
 import {
   bootstrapToken,
   clearAuthStorage,
+  getBiometricEnabled,
   getUser,
   setAuthTokens,
   setUser,
 } from "@/lib/secure-storage";
 import type { Gender } from "@/models/enums";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
-import type { UserViewModel } from "@/store/user/model";
+import type {
+  AttachmentViewModel,
+  UserProfileUpdateModel,
+  UserViewModel,
+} from "@/store/user/model";
 
 const AUTH = routerLinks("Auth");
+const USER = routerLinks("User");
 
 export interface Auth {
   userId?: string;
@@ -77,6 +83,9 @@ interface GlobalState {
   errorMessage?: string;
   /** last email used (register/forgot) so verify screens can prefill. */
   pendingEmail?: string;
+  /** A saved session gated behind biometric unlock. */
+  biometricLocked: boolean;
+  pendingAuth: Auth | null;
 }
 
 const initialState: GlobalState = {
@@ -84,6 +93,8 @@ const initialState: GlobalState = {
   isAuthenticating: true,
   isSubmitting: false,
   status: EStatusGlobal.idle,
+  biometricLocked: false,
+  pendingAuth: null,
 };
 
 // --- Thunks ----------------------------------------------------------------
@@ -91,9 +102,13 @@ const initialState: GlobalState = {
 /** Restore session from secure storage on app launch. */
 export const bootstrap = createAsyncThunk("Auth/bootstrap", async () => {
   const token = await bootstrapToken();
-  if (!token) return null;
+  if (!token) return { auth: null, biometricEnabled: false };
   const userModel = await getUser();
-  return { tokenString: token, userModel } as Auth;
+  const biometricEnabled = await getBiometricEnabled();
+  return {
+    auth: { tokenString: token, userModel } as Auth,
+    biometricEnabled,
+  };
 });
 
 export const login = createAsyncThunk(
@@ -193,6 +208,42 @@ export const profile = createAsyncThunk("Auth/profile", async () => {
   return res.data ?? null;
 });
 
+/** Update the current user's profile (name, phone, email, birthdate, gender). */
+export const updateProfile = createAsyncThunk(
+  "Auth/updateProfile",
+  async (
+    { id, values }: { id: string; values: UserProfileUpdateModel },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await API.put<UserViewModel>(`${USER}/${id}/profile`, values);
+      if (res.data) await setUser(res.data);
+      if (res.message) notify.success(res.message);
+      return res.data ?? null;
+    } catch (e) {
+      return rejectWithValue((e as ApiError).message);
+    }
+  },
+);
+
+/** Update the current user's avatar (attachment already uploaded to /upload/file). */
+export const updateAvatar = createAsyncThunk(
+  "Auth/updateAvatar",
+  async (
+    { id, attachment }: { id: string; attachment: AttachmentViewModel },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await API.put<UserViewModel>(`${USER}/${id}/avatar`, attachment);
+      if (res.data) await setUser(res.data);
+      if (res.message) notify.success(res.message);
+      return res.data ?? null;
+    } catch (e) {
+      return rejectWithValue((e as ApiError).message);
+    }
+  },
+);
+
 export const logout = createAsyncThunk("Auth/logout", async () => {
   try {
     await API.post(`${AUTH}/logout`, {}, { isMobileDevice: "true" });
@@ -214,6 +265,11 @@ const slice = createSlice({
     updateUserModel: (state, { payload }: PayloadAction<UserViewModel>) => {
       if (state.user) state.user.userModel = payload;
     },
+    unlockBiometric: (state) => {
+      state.user = state.pendingAuth;
+      state.pendingAuth = null;
+      state.biometricLocked = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -222,8 +278,16 @@ const slice = createSlice({
       })
       .addCase(bootstrap.fulfilled, (s, { payload }) => {
         s.isAuthenticating = false;
-        s.user = payload;
         s.status = EStatusGlobal.bootstrapDone;
+        if (payload.auth && payload.biometricEnabled) {
+          s.pendingAuth = payload.auth;
+          s.biometricLocked = true;
+          s.user = null;
+        } else {
+          s.user = payload.auth;
+          s.biometricLocked = false;
+          s.pendingAuth = null;
+        }
       })
       .addCase(bootstrap.rejected, (s) => {
         s.isAuthenticating = false;
@@ -238,6 +302,8 @@ const slice = createSlice({
       .addCase(login.fulfilled, (s, { payload }) => {
         s.isSubmitting = false;
         s.user = payload;
+        s.biometricLocked = false;
+        s.pendingAuth = null;
         s.status = EStatusGlobal.loginFulfilled;
       })
       .addCase(login.rejected, (s, { payload }) => {
@@ -280,8 +346,26 @@ const slice = createSlice({
         if (payload) s.user = payload;
         s.status = EStatusGlobal.profileFulfilled;
       })
+      .addCase(updateProfile.pending, (s) => {
+        s.isSubmitting = true;
+        s.errorMessage = undefined;
+      })
+      .addCase(updateProfile.fulfilled, (s, { payload }) => {
+        s.isSubmitting = false;
+        if (payload && s.user) s.user.userModel = payload;
+        s.status = EStatusGlobal.profileFulfilled;
+      })
+      .addCase(updateProfile.rejected, (s, { payload }) => {
+        s.isSubmitting = false;
+        s.errorMessage = payload as string;
+      })
+      .addCase(updateAvatar.fulfilled, (s, { payload }) => {
+        if (payload && s.user) s.user.userModel = payload;
+      })
       .addCase(logout.fulfilled, (s) => {
         s.user = null;
+        s.biometricLocked = false;
+        s.pendingAuth = null;
         s.status = EStatusGlobal.logoutFulfilled;
       });
   },
@@ -303,9 +387,14 @@ export const GlobalFacade = () => {
     forgotPassword: (email: string) => dispatch(forgotPassword({ email })),
     resetPassword: (values: ResetPasswordModel) => dispatch(resetPassword(values)),
     profile: () => dispatch(profile()),
+    updateProfile: (id: string, values: UserProfileUpdateModel) =>
+      dispatch(updateProfile({ id, values })),
+    updateAvatar: (id: string, attachment: AttachmentViewModel) =>
+      dispatch(updateAvatar({ id, attachment })),
     logout: () => dispatch(logout()),
     bootstrap: () => dispatch(bootstrap()),
     set: (payload: Partial<GlobalState>) => dispatch(slice.actions.set(payload)),
     updateUserModel: (u: UserViewModel) => dispatch(slice.actions.updateUserModel(u)),
+    unlockBiometric: () => dispatch(slice.actions.unlockBiometric()),
   };
 };

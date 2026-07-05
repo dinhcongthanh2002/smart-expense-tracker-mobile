@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   refreshToken: "refreshToken",
   user: "user",
   language: "i18nextLng",
+  biometric: "biometricEnabled",
 } as const;
 
 export const DEFAULT_LANGUAGE = "vi";

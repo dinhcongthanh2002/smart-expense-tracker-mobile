@@ -1,12 +1,25 @@
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Button } from "@/components/ui/Button";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { BudgetFacade } from "@/store/budget";
+import type { BudgetViewModel } from "@/store/budget/model";
 import { formatCurrency } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
@@ -18,10 +31,48 @@ function progressColor(percent: number) {
 
 export default function BudgetsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const budget = BudgetFacade();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
+  const [shareTarget, setShareTarget] = useState<BudgetViewModel | null>(null);
+  const [shareUserName, setShareUserName] = useState("");
+  const [unsharingId, setUnsharingId] = useState<string | null>(null);
+
+  const openShare = (b: BudgetViewModel) => {
+    setShareUserName("");
+    setShareTarget(b);
+  };
+  const closeShare = () => {
+    setShareTarget(null);
+    setShareUserName("");
+    setUnsharingId(null);
+  };
+
+  const doUnshare = async (userId: string) => {
+    if (!shareTarget?.id) return;
+    setUnsharingId(userId);
+    try {
+      await budget.unshare(shareTarget.id, userId).unwrap();
+      load(month, year);
+    } catch {
+      // toast surfaced by API layer
+    } finally {
+      setUnsharingId(null);
+    }
+  };
+
+  const doShare = async () => {
+    if (!shareTarget?.id || !shareUserName.trim()) return;
+    try {
+      await budget.share(shareTarget.id, shareUserName.trim()).unwrap();
+      closeShare();
+      load(month, year);
+    } catch {
+      // toast surfaced by API layer
+    }
+  };
 
   const load = useCallback(
     (m: number, y: number) => {
@@ -54,6 +105,10 @@ export default function BudgetsScreen() {
   };
 
   const budgets = budget.pagination?.content ?? [];
+  const liveTarget = shareTarget
+    ? budgets.find((b) => b.id === shareTarget.id) ?? shareTarget
+    : null;
+  const sharedIds = liveTarget?.sharedWithUserIds ?? [];
   const items = useMemo(
     () =>
       budgets.map((b) => {
@@ -124,6 +179,7 @@ export default function BudgetsScreen() {
         ) : (
           items.map(({ b, spent, limit, percent, remaining }) => {
             const barColor = progressColor(percent);
+            const shared = b.sharedWithUserIds?.length ?? 0;
             const over = remaining < 0;
             return (
               <Pressable
@@ -142,13 +198,34 @@ export default function BudgetsScreen() {
                       <Text className="text-base font-semibold text-ink" numberOfLines={1}>
                         {b.category?.name ?? "Danh mục"}
                       </Text>
-                      <Text className="mt-0.5 text-xs text-muted">
-                        {formatCurrency(spent)} / {formatCurrency(limit)}
-                      </Text>
+                      <View className="mt-0.5 flex-row items-center gap-2">
+                        <Text className="text-xs text-muted">
+                          {formatCurrency(spent)} / {formatCurrency(limit)}
+                        </Text>
+                        {shared > 0 ? (
+                          <View className="flex-row items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5">
+                            <Ionicons name="people" size={11} color={colors.primarySoft} />
+                            <Text className="text-[10px] font-medium text-primarySoft">
+                              {shared}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
                     </View>
                     <Text className="text-sm font-bold" style={{ color: barColor }}>
                       {percent}%
                     </Text>
+                    <Pressable
+                      onPress={() => openShare(b)}
+                      hitSlop={8}
+                      className="ml-2 h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] active:opacity-70"
+                    >
+                      <Ionicons
+                        name="share-social-outline"
+                        size={16}
+                        color={colors.primarySoft}
+                      />
+                    </Pressable>
                   </View>
 
                   {/* progress bar */}
@@ -173,6 +250,104 @@ export default function BudgetsScreen() {
           })
         )}
       </ScrollView>
+
+      {/* share sheet */}
+      <Modal
+        visible={!!shareTarget}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={closeShare}
+      >
+        <View className="flex-1">
+          <Pressable className="flex-1 bg-black/60" onPress={closeShare} />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <View
+              style={{ paddingBottom: insets.bottom + 16 }}
+              className="rounded-t-3xl bg-surface px-5 pb-4"
+            >
+              <View className="items-center pb-2 pt-3">
+                <View className="h-1.5 w-10 rounded-full bg-white/20" />
+              </View>
+              <View className="flex-row items-center justify-between pt-1">
+                <Text className="text-lg font-bold text-ink">Chia sẻ ngân sách</Text>
+                <Pressable onPress={closeShare} hitSlop={10}>
+                  <Ionicons name="close" size={24} color={colors.muted} />
+                </Pressable>
+              </View>
+              <Text className="mt-2 text-sm text-muted">
+                Nhập tên đăng nhập của người bạn muốn chia sẻ ngân sách{" "}
+                <Text className="font-semibold text-ink">
+                  {shareTarget?.category?.name}
+                </Text>
+                . Họ sẽ xem được ngân sách và tiến độ chi tiêu của bạn.
+              </Text>
+              <GlassSurface radius={16} className="mt-4">
+                <View className="h-14 flex-row items-center px-4">
+                  <Ionicons name="person-outline" size={18} color={colors.muted} />
+                  <TextInput
+                    value={shareUserName}
+                    onChangeText={setShareUserName}
+                    placeholder="Tên đăng nhập"
+                    placeholderTextColor={colors.muted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    selectionColor={colors.primary}
+                    className="ml-2 flex-1 text-base text-ink"
+                    onSubmitEditing={doShare}
+                    returnKeyType="done"
+                  />
+                </View>
+              </GlassSurface>
+
+              {sharedIds.length > 0 ? (
+                <View className="mt-5">
+                  <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                    Đang chia sẻ với ({sharedIds.length})
+                  </Text>
+                  <ScrollView
+                    style={{ maxHeight: 180 }}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerClassName="gap-2"
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {sharedIds.map((uid) => (
+                      <View
+                        key={uid}
+                        className="flex-row items-center gap-3 rounded-2xl bg-white/[0.06] px-3 py-2.5"
+                      >
+                        <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/20">
+                          <Ionicons name="person" size={16} color={colors.primary} />
+                        </View>
+                        <Text className="flex-1 text-sm text-ink" numberOfLines={1}>
+                          Người dùng ••{uid.slice(-6)}
+                        </Text>
+                        {unsharingId === uid ? (
+                          <ActivityIndicator size="small" color={colors.muted} />
+                        ) : (
+                          <Pressable
+                            onPress={() => doUnshare(uid)}
+                            hitSlop={8}
+                            className="h-8 w-8 items-center justify-center rounded-full bg-expense/15 active:opacity-70"
+                          >
+                            <Ionicons name="close" size={16} color={colors.expense} />
+                          </Pressable>
+                        )}
+                      </View>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : null}
+
+              <View className="mt-4">
+                <Button title="Chia sẻ" onPress={doShare} loading={budget.isSubmitting} />
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </Screen>
   );
 }

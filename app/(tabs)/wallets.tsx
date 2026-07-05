@@ -1,5 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,10 +17,12 @@ import { colors, gradients } from "@/theme/colors";
 function WalletRow({
   wallet,
   index,
+  hidden,
   onPress,
 }: {
   wallet: WalletViewModel;
   index: number;
+  hidden: boolean;
   onPress: () => void;
 }) {
   const meta = WALLET_TYPE_META[wallet.type];
@@ -49,7 +52,7 @@ function WalletRow({
           </Text>
         </View>
         <Text className="text-base font-bold text-ink">
-          {formatCurrency(wallet.currentBalance, wallet.currency)}
+          {hidden ? "******" : formatCurrency(wallet.currentBalance, wallet.currency)}
         </Text>
       </GlassSurface>
     </Pressable>
@@ -59,10 +62,22 @@ function WalletRow({
 export default function WalletsScreen() {
   const router = useRouter();
   const wallet = WalletFacade();
+  const [hideBalance, setHideBalance] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem("hideBalance").then((v) => setHideBalance(v === "1"));
+  }, []);
+
+  const toggleHide = () => {
+    const next = !hideBalance;
+    setHideBalance(next);
+    AsyncStorage.setItem("hideBalance", next ? "1" : "0");
+  };
 
   useFocusEffect(
     useCallback(() => {
       wallet.get({ page: 1, size: 100 });
+      AsyncStorage.getItem("hideBalance").then((v) => setHideBalance(v === "1"));
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
@@ -96,9 +111,22 @@ export default function WalletsScreen() {
             end={{ x: 1, y: 1 }}
             style={{ padding: 20 }}
           >
-            <Text className="text-sm text-white/80">Tổng số dư ({baseCurrency})</Text>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm text-white/80">Tổng số dư ({baseCurrency})</Text>
+              <Pressable
+                onPress={toggleHide}
+                hitSlop={10}
+                className="h-8 w-8 items-center justify-center rounded-full bg-white/15 active:opacity-70"
+              >
+                <Ionicons
+                  name={hideBalance ? "eye-off-outline" : "eye-outline"}
+                  size={18}
+                  color="#fff"
+                />
+              </Pressable>
+            </View>
             <Text className="mt-1 text-4xl font-bold text-white">
-              {formatCurrency(total, baseCurrency)}
+              {hideBalance ? "******" : formatCurrency(total, baseCurrency)}
             </Text>
             <Text className="mt-1 text-xs text-white/70">
               {wallets.length} ví
@@ -123,6 +151,7 @@ export default function WalletsScreen() {
               key={w.id}
               wallet={w}
               index={i}
+              hidden={hideBalance}
               onPress={() => router.push({ pathname: "/wallet-form", params: { id: w.id! } })}
             />
           ))

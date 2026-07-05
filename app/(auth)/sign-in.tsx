@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -15,11 +15,33 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlobalFacade } from "@/store/global";
+import { authenticateBiometric, getBiometricLabel } from "@/lib/biometric";
 import { colors } from "@/theme/colors";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { login, isSubmitting } = GlobalFacade();
+  const { login, isSubmitting, biometricLocked, pendingAuth, unlockBiometric } =
+    GlobalFacade();
+  const [bioLabel, setBioLabel] = useState("Face ID");
+  const promptedRef = useRef(false);
+
+  const handleBiometric = async () => {
+    const ok = await authenticateBiometric("Đăng nhập vào Smart Expense");
+    if (ok) unlockBiometric();
+  };
+
+  useEffect(() => {
+    getBiometricLabel().then(setBioLabel);
+  }, []);
+
+  // Auto-prompt biometric once when arriving at a locked session.
+  useEffect(() => {
+    if (biometricLocked && !promptedRef.current) {
+      promptedRef.current = true;
+      handleBiometric();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [biometricLocked]);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -69,6 +91,25 @@ export default function SignInScreen() {
               Quản lý chi tiêu thông minh
             </Text>
           </View>
+
+          {biometricLocked ? (
+            <View className="mb-6 items-center">
+              <Text className="text-sm text-muted">Chào mừng trở lại</Text>
+              <Text className="mb-4 text-lg font-bold text-ink">
+                {pendingAuth?.userModel?.name ?? pendingAuth?.userModel?.email}
+              </Text>
+              <Pressable
+                onPress={handleBiometric}
+                className="h-24 w-24 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
+              >
+                <Ionicons name="finger-print" size={48} color={colors.primary} />
+              </Pressable>
+              <Text className="mt-3 text-base font-semibold text-primary">
+                Đăng nhập bằng {bioLabel}
+              </Text>
+              <Text className="mt-6 text-xs text-muted">— hoặc dùng mật khẩu —</Text>
+            </View>
+          ) : null}
 
           <GlassCard className="gap-4 p-5">
             <Input

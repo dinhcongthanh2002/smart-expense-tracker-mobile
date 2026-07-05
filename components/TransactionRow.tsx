@@ -14,9 +14,9 @@ export function TransactionRow({
   onPress?: () => void;
 }) {
   const meta = transactionTypeMeta(tx.type);
-  const title = tx.category?.name || tx.note || meta.label;
-  const subtitle =
-    tx.note && tx.category?.name ? tx.note : formatDate(tx.transactionDate);
+  const title = tx.category?.name || meta.label;
+  const date = formatDate(tx.transactionDate);
+  const subtitle = tx.note ? `${date} · ${tx.note}` : date;
 
   return (
     <Pressable

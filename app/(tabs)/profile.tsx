@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -6,6 +6,7 @@ import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { Button } from "@/components/ui/Button";
 import { GlobalFacade } from "@/store/global";
+import { resolveFileUrl } from "@/lib/upload";
 import { colors } from "@/theme/colors";
 
 function MenuRow({
@@ -55,6 +56,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = GlobalFacade();
   const u = user?.userModel;
+  const avatarUrl = resolveFileUrl(u?.avatar);
 
   return (
     <Screen className="px-5">
@@ -64,15 +66,25 @@ export default function ProfileScreen() {
       >
         <Text className="mb-5 mt-2 text-2xl font-bold text-ink">Cá nhân</Text>
 
-        <GlassSurface radius={28} className="items-center p-6">
-          <View className="h-24 w-24 items-center justify-center rounded-full bg-primary/20">
-            <Ionicons name="person" size={48} color={colors.primary} />
-          </View>
-          <Text className="mt-3 text-xl font-bold text-ink">
-            {u?.name ?? "Người dùng"}
-          </Text>
-          <Text className="text-sm text-muted">{u?.email}</Text>
-        </GlassSurface>
+        <Pressable onPress={() => router.push("/edit-profile")} className="active:opacity-80">
+          <GlassSurface radius={28} className="items-center p-6">
+            <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-primary/20">
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={{ width: 96, height: 96 }} />
+              ) : (
+                <Ionicons name="person" size={48} color={colors.primary} />
+              )}
+            </View>
+            <Text className="mt-3 text-xl font-bold text-ink">
+              {u?.name ?? "Người dùng"}
+            </Text>
+            <Text className="text-sm text-muted">{u?.email}</Text>
+            <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-white/[0.08] px-4 py-1.5">
+              <Ionicons name="create-outline" size={15} color={colors.primarySoft} />
+              <Text className="text-xs font-medium text-primarySoft">Chỉnh sửa hồ sơ</Text>
+            </View>
+          </GlassSurface>
+        </Pressable>
 
         <GlassSurface radius={24} className="px-5 py-2" style={{ marginTop: 20 }}>
           <Row icon="person-outline" label="Tên đăng nhập" value={u?.userName} />
@@ -89,6 +101,12 @@ export default function ProfileScreen() {
           Quản lý
         </Text>
         <GlassSurface radius={24} className="px-5 py-1">
+          <MenuRow
+            icon="notifications-outline"
+            label="Thông báo"
+            onPress={() => router.push("/notifications")}
+          />
+          <View className="border-t border-white/[0.05]" />
           <MenuRow
             icon="albums-outline"
             label="Quản lý danh mục"
@@ -111,6 +129,12 @@ export default function ProfileScreen() {
             icon="repeat-outline"
             label="Giao dịch định kỳ"
             onPress={() => router.push("/recurring")}
+          />
+          <View className="border-t border-white/[0.05]" />
+          <MenuRow
+            icon="settings-outline"
+            label="Cài đặt"
+            onPress={() => router.push("/settings")}
           />
         </GlassSurface>
 

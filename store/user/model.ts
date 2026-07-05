@@ -14,6 +14,15 @@ export interface AttachmentViewModel {
   fileType?: string;
 }
 
+export interface UserProfileUpdateModel {
+  name?: string;
+  phoneNumber?: string;
+  email?: string;
+  userName?: string;
+  birthdate?: string | null;
+  gender?: Gender;
+}
+
 export interface UserViewModel extends CommonEntity {
   userName?: string;
   name?: string;
