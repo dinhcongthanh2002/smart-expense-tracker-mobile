@@ -16,4 +16,10 @@ config.serializer.getPolyfills = (...args) => [
   require.resolve("./polyfills.js"),
 ];
 
+// lucide-react-native ships `.mjs` icon files; index that extension so Metro
+// can resolve them (shared icon set with the web admin via lucide-react).
+for (const ext of ["mjs", "cjs"]) {
+  if (!config.resolver.sourceExts.includes(ext)) config.resolver.sourceExts.push(ext);
+}
+
 module.exports = withNativeWind(config, { input: "./global.css" });

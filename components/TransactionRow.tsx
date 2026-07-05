@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { CategoryBadge } from "./CategoryBadge";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -6,14 +6,24 @@ import { transactionTypeMeta } from "@/lib/ui-helpers";
 import { colors } from "@/theme/colors";
 import type { TransactionViewModel } from "@/store/transaction/model";
 
-export function TransactionRow({ tx }: { tx: TransactionViewModel }) {
+export function TransactionRow({
+  tx,
+  onPress,
+}: {
+  tx: TransactionViewModel;
+  onPress?: () => void;
+}) {
   const meta = transactionTypeMeta(tx.type);
-  const title =
-    tx.category?.name || tx.note || meta.label;
-  const subtitle = tx.note && tx.category?.name ? tx.note : formatDate(tx.transactionDate);
+  const title = tx.category?.name || tx.note || meta.label;
+  const subtitle =
+    tx.note && tx.category?.name ? tx.note : formatDate(tx.transactionDate);
 
   return (
-    <View className="flex-row items-center gap-3 py-3">
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      className="flex-row items-center gap-3 py-3 active:opacity-60"
+    >
       <CategoryBadge
         icon={tx.category?.icon}
         color={tx.category?.color || meta.color}
@@ -26,14 +36,11 @@ export function TransactionRow({ tx }: { tx: TransactionViewModel }) {
           {subtitle}
         </Text>
       </View>
-      <Text
-        className="text-base font-bold"
-        style={{ color: meta.color }}
-      >
+      <Text className="text-base font-bold" style={{ color: meta.color }}>
         {meta.sign}
         {formatCurrency(tx.amount)}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 

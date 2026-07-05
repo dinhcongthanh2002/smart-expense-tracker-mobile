@@ -61,8 +61,20 @@ function RootNavigator() {
     >
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="categories" />
+      <Stack.Screen name="debts" />
+      <Stack.Screen name="debt-detail" />
+      <Stack.Screen name="goals" />
+      <Stack.Screen name="recurring" />
       <Stack.Screen name="transaction-form" options={{ presentation: "modal" }} />
       <Stack.Screen name="category-form" options={{ presentation: "modal" }} />
+      <Stack.Screen name="wallet-form" options={{ presentation: "modal" }} />
+      <Stack.Screen name="budget-form" options={{ presentation: "modal" }} />
+      <Stack.Screen name="debt-form" options={{ presentation: "modal" }} />
+      <Stack.Screen name="debt-pay" options={{ presentation: "modal" }} />
+      <Stack.Screen name="goal-form" options={{ presentation: "modal" }} />
+      <Stack.Screen name="goal-contribute" options={{ presentation: "modal" }} />
+      <Stack.Screen name="recurring-form" options={{ presentation: "modal" }} />
     </Stack>
   );
 }

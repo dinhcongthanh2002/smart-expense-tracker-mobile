@@ -1,23 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { CategoryBadge } from "@/components/CategoryBadge";
 import { CategoryFacade } from "@/store/category";
 import { TransactionType } from "@/models/enums";
 import { CATEGORY_FALLBACK_COLORS } from "@/lib/ui-helpers";
+import {
+  CATEGORY_ICON_NAMES,
+  DEFAULT_CATEGORY_ICON,
+  getCategoryIcon,
+} from "@/lib/category-icons";
 import { colors } from "@/theme/colors";
-
-const ICONS = [
-  "restaurant", "shopping_cart", "directions_car", "home", "local_hospital",
-  "school", "sports_esports", "flight", "fitness_center", "pets", "checkroom",
-  "local_cafe", "phone_iphone", "bolt", "card_giftcard", "savings",
-  "attach_money", "work", "payments", "receipt_long",
-];
 
 const TYPE_TABS = [
   { label: "Chi tiêu", value: TransactionType.Expense },
@@ -26,16 +25,24 @@ const TYPE_TABS = [
 
 export default function CategoryFormScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{
+    id?: string;
+    parentId?: string;
+    type?: string;
+  }>();
   const isEdit = !!params.id;
   const facade = CategoryFacade();
 
   const [name, setName] = useState("");
-  const [type, setType] = useState<TransactionType>(TransactionType.Expense);
-  const [icon, setIcon] = useState(ICONS[0]);
+  const [type, setType] = useState<TransactionType>(
+    params.type !== undefined ? (Number(params.type) as TransactionType) : TransactionType.Expense,
+  );
+  const [parentId, setParentId] = useState<string | undefined>(params.parentId);
+  const [icon, setIcon] = useState(DEFAULT_CATEGORY_ICON);
   const [color, setColor] = useState(CATEGORY_FALLBACK_COLORS[0]);
 
   useEffect(() => {
+    facade.get({ page: 1, size: 200 });
     if (params.id) facade.getById(params.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
@@ -46,20 +53,38 @@ export default function CategoryFormScreen() {
     if (isEdit && c && c.id === params.id) {
       setName(c.name ?? "");
       setType(c.type ?? TransactionType.Expense);
+      setParentId(c.parentId);
       if (c.icon) setIcon(c.icon);
       if (c.color) setColor(c.color);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facade.data]);
 
+  // Possible parents = top-level categories of this type (2-level only), not self.
+  const parentOptions = useMemo(() => {
+    const list = facade.pagination?.content ?? [];
+    return list.filter(
+      (c) => !c.parentId && c.type === type && c.id !== params.id,
+    );
+  }, [facade.pagination, type, params.id]);
+
+  const isChild = !!parentId;
+  const PreviewIcon = getCategoryIcon(icon);
+
   const onSave = async () => {
     if (!name.trim()) return;
-    const values = { name: name.trim(), type, icon, color };
+    const values = {
+      name: name.trim(),
+      type,
+      icon,
+      color,
+      parentId: parentId ?? null,
+    } as Record<string, unknown>;
     try {
       if (isEdit && params.id) {
-        await facade.put({ id: params.id, ...values }).unwrap();
+        await facade.put({ id: params.id, ...values } as never).unwrap();
       } else {
-        await facade.post(values).unwrap();
+        await facade.post(values as never).unwrap();
       }
       router.back();
     } catch {
@@ -84,7 +109,7 @@ export default function CategoryFormScreen() {
           <Text className="text-base text-muted">Huỷ</Text>
         </Pressable>
         <Text className="text-lg font-bold text-ink">
-          {isEdit ? "Sửa danh mục" : "Danh mục mới"}
+          {isEdit ? "Sửa danh mục" : isChild ? "Danh mục con" : "Danh mục mới"}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -106,11 +131,7 @@ export default function CategoryFormScreen() {
               justifyContent: "center",
             }}
           >
-            <MaterialIcons
-              name={icon as keyof typeof MaterialIcons.glyphMap}
-              size={40}
-              color={color}
-            />
+            <PreviewIcon color={color} size={40} strokeWidth={2} />
           </View>
         </View>
 
@@ -121,24 +142,76 @@ export default function CategoryFormScreen() {
           onChangeText={setName}
         />
 
-        {/* Type */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Loại</Text>
-        <GlassSurface radius={16} className="flex-row p-1">
-          {TYPE_TABS.map((t) => {
-            const active = type === t.value;
+        {/* Parent category */}
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
+          Danh mục cha (tuỳ chọn)
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-2 pr-4"
+        >
+          <Pressable
+            onPress={() => setParentId(undefined)}
+            className={`rounded-full border px-4 py-2.5 ${
+              !parentId ? "border-primary bg-primary/20" : "border-white/15"
+            }`}
+          >
+            <Text className={!parentId ? "font-semibold text-primary" : "text-muted"}>
+              — Cấp cha —
+            </Text>
+          </Pressable>
+          {parentOptions.map((p) => {
+            const active = parentId === p.id;
             return (
               <Pressable
-                key={t.value}
-                onPress={() => setType(t.value)}
-                className={`flex-1 items-center rounded-xl py-2.5 ${active ? "bg-primary" : ""}`}
+                key={p.id}
+                onPress={() => {
+                  setParentId(p.id);
+                  if (p.type !== undefined) setType(p.type);
+                }}
+                className={`flex-row items-center gap-2 rounded-full border px-3 py-2 ${
+                  active ? "border-primary bg-primary/20" : "border-white/15"
+                }`}
               >
-                <Text className={`font-semibold ${active ? "text-white" : "text-muted"}`}>
-                  {t.label}
+                <CategoryBadge icon={p.icon} color={p.color || colors.primary} size={26} />
+                <Text className={active ? "font-semibold text-ink" : "text-muted"}>
+                  {p.name}
                 </Text>
               </Pressable>
             );
           })}
-        </GlassSurface>
+        </ScrollView>
+
+        {/* Type — only when top-level (children inherit the parent's type) */}
+        {isChild ? (
+          <View className="mt-4 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-4 py-3">
+            <Ionicons name="git-branch-outline" size={18} color={colors.muted} />
+            <Text className="text-sm text-muted">
+              Danh mục con — loại kế thừa từ danh mục cha
+            </Text>
+          </View>
+        ) : (
+          <>
+            <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Loại</Text>
+            <GlassSurface radius={16} className="flex-row p-1">
+              {TYPE_TABS.map((t) => {
+                const active = type === t.value;
+                return (
+                  <Pressable
+                    key={t.value}
+                    onPress={() => setType(t.value)}
+                    className={`flex-1 items-center rounded-xl py-2.5 ${active ? "bg-primary" : ""}`}
+                  >
+                    <Text className={`font-semibold ${active ? "text-white" : "text-muted"}`}>
+                      {t.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </GlassSurface>
+          </>
+        )}
 
         {/* Color */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Màu sắc</Text>
@@ -163,8 +236,9 @@ export default function CategoryFormScreen() {
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Biểu tượng</Text>
         <GlassSurface radius={20} className="p-3">
           <View className="flex-row flex-wrap gap-3">
-            {ICONS.map((ic) => {
+            {CATEGORY_ICON_NAMES.map((ic) => {
               const active = icon === ic;
+              const Ic = getCategoryIcon(ic);
               return (
                 <Pressable
                   key={ic}
@@ -180,10 +254,10 @@ export default function CategoryFormScreen() {
                     borderColor: color,
                   }}
                 >
-                  <MaterialIcons
-                    name={ic as keyof typeof MaterialIcons.glyphMap}
-                    size={24}
+                  <Ic
                     color={active ? color : colors.muted}
+                    size={24}
+                    strokeWidth={2}
                   />
                 </Pressable>
               );
@@ -198,7 +272,7 @@ export default function CategoryFormScreen() {
             loading={facade.isSubmitting}
           />
           {isEdit && (
-            <Button title="Xoá danh mục" variant="ghost" onPress={onDelete} />
+            <Button title="Xoá danh mục" variant="danger" onPress={onDelete} />
           )}
         </View>
       </ScrollView>

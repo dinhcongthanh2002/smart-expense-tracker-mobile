@@ -4,12 +4,22 @@ import { globalSlice } from "./global";
 import { categorySlice } from "./category";
 import { transactionSlice } from "./transaction";
 import { statisticSlice } from "./statistic";
+import { walletSlice } from "./wallet";
+import { budgetSlice } from "./budget";
+import { debtSlice } from "./debt";
+import { savingsGoalSlice } from "./savingsGoal";
+import { recurringSlice } from "./recurring";
 
 const rootReducer = combineReducers({
   global: globalSlice.reducer,
   category: categorySlice.reducer,
   transaction: transactionSlice.reducer,
   statistic: statisticSlice.reducer,
+  wallet: walletSlice.reducer,
+  budget: budgetSlice.reducer,
+  debt: debtSlice.reducer,
+  savingsGoal: savingsGoalSlice.reducer,
+  recurring: recurringSlice.reducer,
 });
 
 export const store = configureStore({

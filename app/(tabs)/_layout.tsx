@@ -1,15 +1,22 @@
+import { Platform } from "react-native";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 
 import { colors } from "@/theme/colors";
 
+// iOS 15–25 UITabBar is transparent at the scroll edge, so give it a blur
+// material. iOS 26+ gets Liquid Glass automatically (leave blurEffect unset).
+const iosVersion =
+  Platform.OS === "ios" ? parseInt(String(Platform.Version), 10) || 0 : 0;
+const legacyBlurEffect =
+  Platform.OS === "ios" && iosVersion < 26 ? "systemChromeMaterialDark" : undefined;
+
 /**
- * Native iOS tab bar (real UITabBar). On iOS 26+ the system automatically
- * renders it with Liquid Glass — identical to Apple's own apps. We only set a
- * tint so the bar stays translucent and adopts the system glass material.
+ * Native iOS tab bar (real UITabBar). iOS 26+ renders it with Liquid Glass;
+ * older iOS gets a dark blur material so it isn't transparent.
  */
 export default function TabsLayout() {
   return (
-    <NativeTabs tintColor={colors.primary}>
+    <NativeTabs tintColor={colors.primary} blurEffect={legacyBlurEffect}>
       <NativeTabs.Trigger name="index">
         <Label>Tổng quan</Label>
         <Icon sf="chart.pie.fill" drawable="ic_dashboard" />
@@ -18,9 +25,13 @@ export default function TabsLayout() {
         <Label>Giao dịch</Label>
         <Icon sf="list.bullet.rectangle.fill" drawable="ic_list" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="categories">
-        <Label>Danh mục</Label>
-        <Icon sf="square.grid.2x2.fill" drawable="ic_grid" />
+      <NativeTabs.Trigger name="budgets">
+        <Label>Ngân sách</Label>
+        <Icon sf="chart.bar.fill" drawable="ic_budget" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="wallets">
+        <Label>Ví</Label>
+        <Icon sf="creditcard.fill" drawable="ic_wallet" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Label>Cá nhân</Label>

@@ -23,9 +23,19 @@ export default function SignInScreen() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ identifier?: string; password?: string }>({});
+
+  const validate = () => {
+    const e: { identifier?: string; password?: string } = {};
+    if (!identifier.trim()) e.identifier = "Vui lòng nhập tài khoản";
+    if (!password) e.password = "Vui lòng nhập mật khẩu";
+    else if (password.length < 6) e.password = "Mật khẩu tối thiểu 6 ký tự";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const onSubmit = async () => {
-    if (!identifier.trim() || !password) return;
+    if (!validate()) return;
     try {
       await login({ identifier: identifier.trim(), password, rememberMe: true }).unwrap();
       // Auth guard in the root navigator redirects to the tabs on success.
@@ -68,6 +78,7 @@ export default function SignInScreen() {
               autoCorrect={false}
               value={identifier}
               onChangeText={setIdentifier}
+              error={errors.identifier}
               leftIcon={
                 <Ionicons name="person-outline" size={20} color={colors.muted} />
               }
@@ -81,6 +92,7 @@ export default function SignInScreen() {
               onChangeText={setPassword}
               onSubmitEditing={onSubmit}
               returnKeyType="go"
+              error={errors.password}
               leftIcon={
                 <Ionicons name="lock-closed-outline" size={20} color={colors.muted} />
               }
@@ -94,6 +106,14 @@ export default function SignInScreen() {
                 </Pressable>
               }
             />
+
+            <Pressable
+              onPress={() => router.push("/(auth)/forgot-password")}
+              hitSlop={8}
+              className="-mt-1 self-end"
+            >
+              <Text className="text-sm font-medium text-primary">Quên mật khẩu?</Text>
+            </Pressable>
 
             <Button
               title="Đăng nhập"

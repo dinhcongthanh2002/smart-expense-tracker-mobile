@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
-import { TransactionRow, RowDivider } from "@/components/TransactionRow";
+import { SwipeableTransactionRow } from "@/components/SwipeableTransactionRow";
 import { TransactionFacade } from "@/store/transaction";
 import { TransactionType } from "@/models/enums";
 import type { QueryParams } from "@/models/api.model";
@@ -38,6 +38,15 @@ export default function TransactionsScreen() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filter]),
   );
+
+  const handleDelete = async (id: string) => {
+    try {
+      await tx.delete(id).unwrap();
+      load(filter);
+    } catch {
+      // toast surfaced by API layer
+    }
+  };
 
   const data = tx.pagination?.content ?? [];
   const total = tx.pagination?.totalElements ?? 0;
@@ -88,15 +97,19 @@ export default function TransactionsScreen() {
         contentContainerClassName="pb-28"
         refreshing={tx.isLoading}
         onRefresh={() => load(filter)}
-        ItemSeparatorComponent={RowDivider}
+        ItemSeparatorComponent={() => <View className="h-2.5" />}
         renderItem={({ item }) => (
-          <View className="px-1">
-            <TransactionRow tx={item} />
-          </View>
+          <SwipeableTransactionRow
+            tx={item}
+            onEdit={() =>
+              router.push({ pathname: "/transaction-form", params: { id: item.id! } })
+            }
+            onDelete={() => handleDelete(item.id!)}
+          />
         )}
         ListEmptyComponent={
           !tx.isLoading ? (
-            <GlassSurface radius={24} className="mt-8 items-center p-10">
+            <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 32 }}>
               <Ionicons name="receipt-outline" size={40} color={colors.muted} />
               <Text className="mt-3 text-muted">Chưa có giao dịch nào</Text>
             </GlassSurface>

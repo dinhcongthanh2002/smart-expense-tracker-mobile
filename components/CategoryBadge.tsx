@@ -1,6 +1,6 @@
 import { View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 
+import { getCategoryIcon } from "@/lib/category-icons";
 import { colors } from "@/theme/colors";
 
 interface CategoryBadgeProps {
@@ -10,14 +10,15 @@ interface CategoryBadgeProps {
 }
 
 /**
- * Circular category chip. The backend stores a Material Icons name in
- * Category.icon; we render it tinted by Category.color.
+ * Circular category chip. `icon` is a Lucide icon name (kebab-case) stored on
+ * Category.icon — the same names the web admin uses, so icons match everywhere.
  */
 export function CategoryBadge({
   icon,
   color = colors.primary,
   size = 44,
 }: CategoryBadgeProps) {
+  const Icon = getCategoryIcon(icon);
   return (
     <View
       style={{
@@ -29,11 +30,7 @@ export function CategoryBadge({
         justifyContent: "center",
       }}
     >
-      <MaterialIcons
-        name={(icon as keyof typeof MaterialIcons.glyphMap) || "category"}
-        size={size * 0.5}
-        color={color}
-      />
+      <Icon color={color} size={Math.round(size * 0.5)} strokeWidth={2} />
     </View>
   );
 }

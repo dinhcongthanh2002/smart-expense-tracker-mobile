@@ -33,6 +33,18 @@ export function formatDateTime(value?: string | Date): string {
   return formatDate(value, "DD/MM/YYYY HH:mm");
 }
 
+/** Group a digit string with thousand separators for money inputs (1.234.567). */
+export function groupThousands(value: string): string {
+  const clean = value.replace(/\D/g, "");
+  if (!clean) return "";
+  return Number(clean).toLocaleString("vi-VN");
+}
+
+/** Strip everything but digits (parse a formatted money input back to a number). */
+export function onlyDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
 export const startOfMonthISO = () =>
   dayjs().startOf("month").format("YYYY-MM-DDTHH:mm:ss");
 export const endOfMonthISO = () =>

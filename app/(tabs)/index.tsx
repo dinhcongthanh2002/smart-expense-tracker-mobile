@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { PieChart } from "react-native-gifted-charts";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +25,7 @@ function greeting(): string {
 }
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const { getStatistic, dashboard, isLoading } = StatisticFacade();
   const tx = TransactionFacade();
   const { user } = GlobalFacade();
@@ -113,7 +114,7 @@ export default function DashboardScreen() {
 
         {/* Spending by category */}
         {pieData.length > 0 && (
-          <GlassCard className="mt-5 p-5">
+          <GlassCard className="p-5" style={{ marginTop: 20 }}>
             <Text className="mb-4 text-lg font-bold text-ink">
               Chi tiêu theo danh mục
             </Text>
@@ -169,7 +170,12 @@ export default function DashboardScreen() {
           ) : (
             recent.map((item, i) => (
               <View key={item.id}>
-                <TransactionRow tx={item} />
+                <TransactionRow
+                  tx={item}
+                  onPress={() =>
+                    router.push({ pathname: "/transaction-form", params: { id: item.id! } })
+                  }
+                />
                 {i < recent.length - 1 && <RowDivider />}
               </View>
             ))
