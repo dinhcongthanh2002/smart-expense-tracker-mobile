@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -26,6 +26,7 @@ interface Props {
 
 /** A monthly calendar that reports daily income/expense on the dashboard. */
 export function MonthCalendarReport({ hidden }: Props) {
+  const router = useRouter();
   const stat = StatisticFacade();
   const today = new Date();
   const [month, setMonth] = useState(today.getMonth() + 1); // 1-12
@@ -154,7 +155,13 @@ export function MonthCalendarReport({ hidden }: Props) {
               return (
                 <Pressable
                   key={day}
-                  onPress={() => setSelectedDay(day)}
+                  onPress={() => {
+                    setSelectedDay(day);
+                    router.push({
+                      pathname: "/day-transactions",
+                      params: { date: `${year}-${pad2(month)}-${pad2(day)}` },
+                    });
+                  }}
                   className="h-12 flex-1 items-center justify-center active:opacity-60"
                 >
                   <View

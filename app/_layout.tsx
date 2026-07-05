@@ -68,6 +68,7 @@ function RootNavigator() {
       <Stack.Screen name="recurring" />
       <Stack.Screen name="settings" />
       <Stack.Screen name="notifications" />
+      <Stack.Screen name="day-transactions" />
       <Stack.Screen name="transaction-form" options={{ presentation: "modal" }} />
       <Stack.Screen name="category-form" options={{ presentation: "modal" }} />
       <Stack.Screen name="wallet-form" options={{ presentation: "modal" }} />
