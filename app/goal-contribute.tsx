@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { SavingsGoalFacade } from "@/store/savingsGoal";
 import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
 import { colors } from "@/theme/colors";
@@ -22,10 +23,16 @@ export default function GoalContributeScreen() {
     : 0;
 
   const [amount, setAmount] = useState("");
+  const [amountError, setAmountError] = useState<string>();
 
   const onSave = async () => {
     const value = Number(onlyDigits(amount)) || 0;
-    if (value <= 0 || !params.id) return;
+    if (value <= 0) {
+      setAmountError(t("common.validation.amountRequired"));
+      return;
+    }
+    setAmountError(undefined);
+    if (!params.id) return;
     try {
       await facade.contribute(params.id, value).unwrap();
       router.back();
@@ -55,7 +62,11 @@ export default function GoalContributeScreen() {
           </Text>
         ) : null}
 
-        <GlassSurface radius={20} className="my-2 items-center py-6">
+        <GlassSurface
+          radius={20}
+          className="my-2 items-center py-6"
+          style={amountError ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+        >
           <Text className="text-sm text-muted">{t("goals.contributeAmount")}</Text>
           <TextInput
             value={groupThousands(amount)}
@@ -79,6 +90,7 @@ export default function GoalContributeScreen() {
             </Pressable>
           ) : null}
         </GlassSurface>
+        <FieldError error={amountError} />
 
         <View className="mt-6">
           <Button title={t("goals.confirmContribute")} onPress={onSave} loading={facade.isSubmitting} />

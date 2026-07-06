@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
 import { DebtFacade } from "@/store/debt";
 import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
@@ -23,10 +24,16 @@ export default function DebtPayScreen() {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date());
   const [note, setNote] = useState("");
+  const [amountError, setAmountError] = useState<string>();
 
   const onSave = async () => {
     const value = Number(onlyDigits(amount)) || 0;
-    if (value <= 0 || !params.id) return;
+    if (value <= 0) {
+      setAmountError(t("common.validation.amountRequired"));
+      return;
+    }
+    setAmountError(undefined);
+    if (!params.id) return;
     try {
       await debt
         .pay(params.id, {
@@ -52,7 +59,14 @@ export default function DebtPayScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-10" keyboardShouldPersistTaps="handled">
-        <GlassSurface radius={20} className="items-center py-6" style={{ marginVertical: 12 }}>
+        <GlassSurface
+          radius={20}
+          className="items-center py-6"
+          style={{
+            marginVertical: 12,
+            ...(amountError ? { borderColor: colors.expense, borderWidth: 1 } : {}),
+          }}
+        >
           <Text className="text-sm text-muted">{t("debts.payAmount")}</Text>
           <TextInput
             value={groupThousands(amount)}
@@ -74,6 +88,7 @@ export default function DebtPayScreen() {
             </Text>
           </Pressable>
         </GlassSurface>
+        <FieldError error={amountError} />
 
         <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{t("debts.payDate")}</Text>
         <DateField value={date} onChange={setDate} maximumDate={new Date()} />

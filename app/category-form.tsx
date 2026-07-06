@@ -42,6 +42,7 @@ export default function CategoryFormScreen() {
   const [parentId, setParentId] = useState<string | undefined>(params.parentId);
   const [icon, setIcon] = useState(DEFAULT_CATEGORY_ICON);
   const [color, setColor] = useState(CATEGORY_FALLBACK_COLORS[0]);
+  const [nameError, setNameError] = useState<string>();
 
   useEffect(() => {
     facade.get({ page: 1, size: 200 });
@@ -74,7 +75,11 @@ export default function CategoryFormScreen() {
   const PreviewIcon = getCategoryIcon(icon);
 
   const onSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setNameError(t("common.validation.nameRequired"));
+      return;
+    }
+    setNameError(undefined);
     const values = {
       name: name.trim(),
       type,
@@ -146,6 +151,7 @@ export default function CategoryFormScreen() {
           placeholder={t("categories.namePlaceholder")}
           value={name}
           onChangeText={setName}
+          error={nameError}
         />
 
         {/* Parent category */}

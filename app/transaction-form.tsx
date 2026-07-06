@@ -20,6 +20,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
 import { SelectField } from "@/components/ui/SelectField";
 import { CategoryBadge } from "@/components/CategoryBadge";
@@ -66,6 +67,12 @@ export default function TransactionFormScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [receipt, setReceipt] = useState<AttachmentViewModel | undefined>();
   const [uploading, setUploading] = useState(false);
+  const [errors, setErrors] = useState<{
+    amount?: string;
+    category?: string;
+    wallet?: string;
+    toWallet?: string;
+  }>({});
 
   const isTransfer = type === TransactionType.Transfer;
 
@@ -160,12 +167,17 @@ export default function TransactionFormScreen() {
 
   const onSave = useCallback(async () => {
     const value = Number(amount) || 0;
-    if (!value || value <= 0) return;
-    if (!isTransfer && !categoryId) return;
+    const e: typeof errors = {};
+    if (value <= 0) e.amount = translate("common.validation.amountRequired");
+    if (!isTransfer && !categoryId) e.category = translate("common.validation.categoryRequired");
     if (isTransfer) {
-      if (!walletId || !toWalletId) return;
-      if (walletId === toWalletId) return;
+      if (!walletId) e.wallet = translate("common.validation.walletRequired");
+      if (!toWalletId) e.toWallet = translate("common.validation.toWalletRequired");
+      else if (walletId && walletId === toWalletId)
+        e.toWallet = translate("common.validation.sameWallet");
     }
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
     const values = {
       type,
       amount: value,
@@ -186,7 +198,7 @@ export default function TransactionFormScreen() {
     } catch {
       // toast surfaced by API layer
     }
-  }, [amount, type, categoryId, walletId, toWalletId, note, date, receipt, isTransfer, isEdit, params.id, tx, router]);
+  }, [amount, type, categoryId, walletId, toWalletId, note, date, receipt, isTransfer, isEdit, params.id, tx, router, translate]);
 
   return (
     <Screen orbs={false} className="px-5" edges={["top"]}>
@@ -228,7 +240,14 @@ export default function TransactionFormScreen() {
           </GlassSurface>
 
           {/* amount */}
-          <GlassSurface radius={20} className="items-center py-6" style={{ marginVertical: 12 }}>
+          <GlassSurface
+            radius={20}
+            className="items-center py-6"
+            style={{
+              marginVertical: 12,
+              ...(errors.amount ? { borderColor: colors.expense, borderWidth: 1 } : {}),
+            }}
+          >
             <Text className="text-sm text-muted">{translate("common.amount")}</Text>
             <TextInput
               value={groupThousands(amount)}
@@ -242,13 +261,17 @@ export default function TransactionFormScreen() {
             />
             <Text className="text-sm text-muted">{translate("transactionForm.currency")}</Text>
           </GlassSurface>
+          <FieldError error={errors.amount} />
 
           {/* category (hidden for transfer) */}
           {!isTransfer ? (
             <>
               <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{translate("common.category")}</Text>
               <Pressable onPress={() => setPickerOpen(true)}>
-                <GlassSurface radius={16}>
+                <GlassSurface
+                  radius={16}
+                  style={errors.category ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+                >
                   <View className="h-14 flex-row items-center gap-3 px-4">
                     {selectedCategory ? (
                       <>
@@ -268,6 +291,7 @@ export default function TransactionFormScreen() {
                   </View>
                 </GlassSurface>
               </Pressable>
+              <FieldError error={errors.category} />
             </>
           ) : null}
 
@@ -284,6 +308,7 @@ export default function TransactionFormScreen() {
             allowClear={!isTransfer}
             emptyText={translate("transactionForm.noWallet")}
           />
+          <FieldError error={errors.wallet} />
 
           {/* destination wallet (transfer) */}
           {isTransfer ? (
@@ -298,6 +323,7 @@ export default function TransactionFormScreen() {
                 allowClear={false}
                 emptyText={translate("transactionForm.noOtherWallet")}
               />
+              <FieldError error={errors.toWallet} />
             </>
           ) : null}
 

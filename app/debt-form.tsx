@@ -8,6 +8,7 @@ import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
 import { DebtFacade } from "@/store/debt";
 import { DEBT_TYPE_META, type DebtCreateModel } from "@/store/debt/model";
@@ -40,10 +41,15 @@ export default function DebtFormScreen() {
     return d;
   });
   const [note, setNote] = useState("");
+  const [errors, setErrors] = useState<{ personName?: string; totalAmount?: string }>({});
 
   const onSave = async () => {
     const total = Number(onlyDigits(totalAmount)) || 0;
-    if (!personName.trim() || total <= 0) return;
+    const e: { personName?: string; totalAmount?: string } = {};
+    if (!personName.trim()) e.personName = t("common.validation.personRequired");
+    if (total <= 0) e.totalAmount = t("common.validation.amountRequired");
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
     const values: DebtCreateModel = {
       personName: personName.trim(),
       type,
@@ -113,12 +119,16 @@ export default function DebtFormScreen() {
             placeholder={t("debts.personPlaceholder")}
             value={personName}
             onChangeText={setPersonName}
+            error={errors.personName}
           />
         </View>
 
         {/* amount */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("common.amount")}</Text>
-        <GlassSurface radius={16}>
+        <GlassSurface
+          radius={16}
+          style={errors.totalAmount ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+        >
           <TextInput
             value={groupThousands(totalAmount)}
             onChangeText={(t) => setTotalAmount(onlyDigits(t))}
@@ -129,6 +139,7 @@ export default function DebtFormScreen() {
             className="h-14 px-4 text-lg font-semibold text-ink"
           />
         </GlassSurface>
+        <FieldError error={errors.totalAmount} />
 
         {/* interest */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">

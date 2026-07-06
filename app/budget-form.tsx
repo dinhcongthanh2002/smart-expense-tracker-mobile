@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { CategoryPickerSheet } from "@/components/CategoryPickerSheet";
 import { BudgetFacade } from "@/store/budget";
@@ -31,6 +32,7 @@ export default function BudgetFormScreen() {
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [limit, setLimit] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [errors, setErrors] = useState<{ limit?: string; category?: string }>({});
 
   const month = existing?.month ?? (Number(params.month) || new Date().getMonth() + 1);
   const year = existing?.year ?? (Number(params.year) || new Date().getFullYear());
@@ -53,13 +55,16 @@ export default function BudgetFormScreen() {
 
   const onSave = async () => {
     const amount = Number(onlyDigits(limit)) || 0;
-    if (amount <= 0) return;
+    const e: { limit?: string; category?: string } = {};
+    if (amount <= 0) e.limit = t("common.validation.amountRequired");
+    if (!isEdit && !categoryId) e.category = t("common.validation.categoryRequired");
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
     try {
       if (isEdit && params.id) {
         await budget.put(params.id, amount).unwrap();
       } else {
-        if (!categoryId) return;
-        await budget.post({ categoryId, limitAmount: amount, month, year }).unwrap();
+        await budget.post({ categoryId: categoryId!, limitAmount: amount, month, year }).unwrap();
       }
       router.back();
     } catch {
@@ -89,7 +94,14 @@ export default function BudgetFormScreen() {
         </Text>
 
         {/* limit amount */}
-        <GlassSurface radius={20} className="items-center py-6" style={{ marginBottom: 12 }}>
+        <GlassSurface
+          radius={20}
+          className="items-center py-6"
+          style={{
+            marginBottom: 12,
+            ...(errors.limit ? { borderColor: colors.expense, borderWidth: 1 } : {}),
+          }}
+        >
           <Text className="text-sm text-muted">{t("budgets.limitLabel")}</Text>
           <TextInput
             value={groupThousands(limit)}
@@ -103,6 +115,7 @@ export default function BudgetFormScreen() {
           />
           <Text className="text-sm text-muted">VND</Text>
         </GlassSurface>
+        <FieldError error={errors.limit} />
 
         {/* category */}
         {isEdit ? (
@@ -125,7 +138,10 @@ export default function BudgetFormScreen() {
               {t("budgets.expenseCategory")}
             </Text>
             <Pressable onPress={() => setPickerOpen(true)}>
-              <GlassSurface radius={16}>
+              <GlassSurface
+                radius={16}
+                style={errors.category ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+              >
                 <View className="h-14 flex-row items-center gap-3 px-4">
                   {selectedCategory ? (
                     <>
@@ -145,6 +161,7 @@ export default function BudgetFormScreen() {
                 </View>
               </GlassSurface>
             </Pressable>
+            <FieldError error={errors.category} />
           </>
         )}
 

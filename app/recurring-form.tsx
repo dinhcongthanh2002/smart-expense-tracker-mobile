@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
 import { SelectField } from "@/components/ui/SelectField";
 import { CategoryBadge } from "@/components/CategoryBadge";
@@ -58,6 +59,7 @@ export default function RecurringFormScreen() {
   const [note, setNote] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [errors, setErrors] = useState<{ amount?: string; category?: string }>({});
 
   const TYPE_TABS = [
     { label: t("common.enums.txType.expense"), value: TransactionType.Expense },
@@ -104,9 +106,13 @@ export default function RecurringFormScreen() {
 
   const onSave = async () => {
     const value = Number(onlyDigits(amount)) || 0;
-    if (!categoryId || value <= 0) return;
+    const e: { amount?: string; category?: string } = {};
+    if (value <= 0) e.amount = t("common.validation.amountRequired");
+    if (!categoryId) e.category = t("common.validation.categoryRequired");
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
     const values: RecurringUpsertModel = {
-      categoryId,
+      categoryId: categoryId!,
       walletId: walletId ?? null,
       amount: value,
       type,
@@ -177,7 +183,11 @@ export default function RecurringFormScreen() {
         </GlassSurface>
 
         {/* amount */}
-        <GlassSurface radius={20} className="my-2 items-center py-6">
+        <GlassSurface
+          radius={20}
+          className="my-2 items-center py-6"
+          style={errors.amount ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+        >
           <Text className="text-sm text-muted">{t("common.amount")}</Text>
           <TextInput
             value={groupThousands(amount)}
@@ -191,11 +201,15 @@ export default function RecurringFormScreen() {
           />
           <Text className="text-sm text-muted">VND</Text>
         </GlassSurface>
+        <FieldError error={errors.amount} />
 
         {/* category */}
         <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{t("common.category")}</Text>
         <Pressable onPress={() => setPickerOpen(true)}>
-          <GlassSurface radius={16}>
+          <GlassSurface
+            radius={16}
+            style={errors.category ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+          >
             <View className="h-14 flex-row items-center gap-3 px-4">
               {selectedCategory ? (
                 <>
@@ -213,6 +227,7 @@ export default function RecurringFormScreen() {
             </View>
           </GlassSurface>
         </Pressable>
+        <FieldError error={errors.category} />
 
         {/* wallet */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("recurring.walletOptional")}</Text>

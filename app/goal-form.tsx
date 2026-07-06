@@ -8,6 +8,7 @@ import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
 import { SavingsGoalFacade } from "@/store/savingsGoal";
 import type { SavingsGoalUpsertModel } from "@/store/savingsGoal/model";
@@ -35,6 +36,7 @@ export default function GoalFormScreen() {
   const [icon, setIcon] = useState("piggy-bank");
   const [color, setColor] = useState(CATEGORY_FALLBACK_COLORS[0]);
   const [note, setNote] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; target?: string }>({});
 
   useEffect(() => {
     if (params.id) facade.getById(params.id);
@@ -62,7 +64,11 @@ export default function GoalFormScreen() {
 
   const onSave = async () => {
     const targetAmount = Number(onlyDigits(target)) || 0;
-    if (!name.trim() || targetAmount <= 0) return;
+    const e: { name?: string; target?: string } = {};
+    if (!name.trim()) e.name = t("common.validation.nameRequired");
+    if (targetAmount <= 0) e.target = t("common.validation.amountRequired");
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
     const values: SavingsGoalUpsertModel = {
       name: name.trim(),
       targetAmount,
@@ -131,10 +137,14 @@ export default function GoalFormScreen() {
           placeholder={t("goals.namePlaceholder")}
           value={name}
           onChangeText={setName}
+          error={errors.name}
         />
 
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("goals.targetAmount")}</Text>
-        <GlassSurface radius={16}>
+        <GlassSurface
+          radius={16}
+          style={errors.target ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+        >
           <TextInput
             value={groupThousands(target)}
             onChangeText={(v) => setTarget(onlyDigits(v))}
@@ -145,6 +155,7 @@ export default function GoalFormScreen() {
             className="h-14 px-4 text-lg font-semibold text-ink"
           />
         </GlassSurface>
+        <FieldError error={errors.target} />
 
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
           {t("goals.initialAmount")}

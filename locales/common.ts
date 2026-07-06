@@ -33,6 +33,16 @@ export default {
     month: "Tháng",
     year: "Năm",
     monthYear: "Tháng {{month}}/{{year}}",
+    validation: {
+      nameRequired: "Vui lòng nhập tên",
+      amountRequired: "Vui lòng nhập số tiền",
+      amountPositive: "Số tiền phải lớn hơn 0",
+      categoryRequired: "Vui lòng chọn danh mục",
+      walletRequired: "Vui lòng chọn ví",
+      toWalletRequired: "Vui lòng chọn ví nhận",
+      sameWallet: "Ví nguồn và ví nhận phải khác nhau",
+      personRequired: "Vui lòng nhập tên người",
+    },
     enums: {
       txType: { expense: "Chi tiêu", income: "Thu nhập", transfer: "Chuyển khoản" },
       walletType: { cash: "Tiền mặt", bank: "Ngân hàng", ewallet: "Ví điện tử", other: "Khác" },
@@ -75,6 +85,16 @@ export default {
     month: "Month",
     year: "Year",
     monthYear: "{{month}}/{{year}}",
+    validation: {
+      nameRequired: "Please enter a name",
+      amountRequired: "Please enter an amount",
+      amountPositive: "Amount must be greater than 0",
+      categoryRequired: "Please select a category",
+      walletRequired: "Please select a wallet",
+      toWalletRequired: "Please select a receiving wallet",
+      sameWallet: "Source and destination wallets must differ",
+      personRequired: "Please enter a person's name",
+    },
     enums: {
       txType: { expense: "Expense", income: "Income", transfer: "Transfer" },
       walletType: { cash: "Cash", bank: "Bank", ewallet: "E-wallet", other: "Other" },

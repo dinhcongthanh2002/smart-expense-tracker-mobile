@@ -52,6 +52,7 @@ export default function WalletFormScreen() {
   const [color, setColor] = useState(CATEGORY_FALLBACK_COLORS[0]);
   const [note, setNote] = useState("");
   const [iconTouched, setIconTouched] = useState(false);
+  const [nameError, setNameError] = useState<string>();
 
   useEffect(() => {
     if (params.id) facade.getById(params.id);
@@ -82,7 +83,11 @@ export default function WalletFormScreen() {
   const PreviewIcon = getCategoryIcon(icon);
 
   const onSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setNameError(t("common.validation.nameRequired"));
+      return;
+    }
+    setNameError(undefined);
     const values: WalletUpsertModel = {
       name: name.trim(),
       type,
@@ -152,6 +157,7 @@ export default function WalletFormScreen() {
           placeholder={t("wallets.namePlaceholder")}
           value={name}
           onChangeText={setName}
+          error={nameError}
         />
 
         {/* type */}

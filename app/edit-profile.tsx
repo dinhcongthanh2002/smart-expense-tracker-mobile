@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { FieldError } from "@/components/ui/FieldError";
 import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";
 import { DateField } from "@/components/ui/DateField";
@@ -60,6 +61,7 @@ export default function EditProfileScreen() {
     resolveFileUrl(u?.avatar),
   );
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [nameError, setNameError] = useState<string>();
 
   const chooseAvatarSource = () => {
     Alert.alert(t("editProfile.avatarTitle"), t("editProfile.avatarMessage"), [
@@ -114,9 +116,10 @@ export default function EditProfileScreen() {
   const onSave = async () => {
     if (!u?.id) return;
     if (!name.trim()) {
-      notify.error(t("editProfile.nameRequired"));
+      setNameError(t("common.validation.nameRequired"));
       return;
     }
+    setNameError(undefined);
     try {
       await updateProfile(u.id, {
         name: name.trim(),
@@ -171,7 +174,10 @@ export default function EditProfileScreen() {
           </View>
 
           <Field label={t("editProfile.fields.name")}>
-            <GlassSurface radius={16}>
+            <GlassSurface
+              radius={16}
+              style={nameError ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
+            >
               <TextInput
                 value={name}
                 onChangeText={setName}
@@ -181,6 +187,7 @@ export default function EditProfileScreen() {
                 className="h-14 px-4 text-base text-ink"
               />
             </GlassSurface>
+            <FieldError error={nameError} />
           </Field>
 
           <Field label={t("editProfile.fields.username")}>
