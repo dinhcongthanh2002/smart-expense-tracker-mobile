@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -129,6 +129,7 @@ export default function CategoriesScreen() {
   const router = useRouter();
   const category = CategoryFacade();
   const [type, setType] = useState<TransactionType>(TransactionType.Expense);
+  const [query, setQuery] = useState("");
 
   useFocusEffect(
     useCallback(() => {
@@ -139,7 +140,11 @@ export default function CategoriesScreen() {
 
   const all = category.pagination?.content ?? [];
 
-  const { topLevel, childrenOf } = useMemo(() => {
+  // topLevel = all parent blocks of the active type (unfiltered — used for empty state).
+  // groups = the same blocks filtered by the search query, keeping parent/child grouping:
+  // a parent block appears if the parent matches or any child matches; matching parents
+  // keep all children, otherwise only the matching children show.
+  const { topLevel, groups } = useMemo(() => {
     const ofType = all.filter((c) => c.type === type);
     const parentIds = new Set(
       ofType.filter((c) => !c.parentId).map((c) => c.id),
@@ -147,8 +152,27 @@ export default function CategoriesScreen() {
     const topLevel = ofType.filter((c) => !c.parentId || !parentIds.has(c.parentId));
     const childrenOf = (pid?: string) =>
       ofType.filter((c) => c.parentId && c.parentId === pid);
-    return { topLevel, childrenOf };
-  }, [all, type]);
+
+    const q = query.trim().toLowerCase();
+    const groups = topLevel
+      .map((parent) => {
+        const children = childrenOf(parent.id);
+        if (!q) return { parent, children };
+        const parentMatch = (parent.name ?? "").toLowerCase().includes(q);
+        const matched = children.filter((c) =>
+          (c.name ?? "").toLowerCase().includes(q),
+        );
+        if (parentMatch) return { parent, children };
+        if (matched.length > 0) return { parent, children: matched };
+        return null;
+      })
+      .filter(
+        (g): g is { parent: CategoryViewModel; children: CategoryViewModel[] } =>
+          g !== null,
+      );
+
+    return { topLevel, groups };
+  }, [all, type, query]);
 
   const goForm = (params: Record<string, string> = {}) =>
     router.push({ pathname: "/category-form", params });
@@ -196,6 +220,27 @@ export default function CategoriesScreen() {
           })}
         </View>
 
+        {/* search */}
+        {topLevel.length > 0 ? (
+          <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
+            <Ionicons name="search" size={18} color={colors.muted} />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t("categories.pickSearch")}
+              placeholderTextColor={colors.muted}
+              className="flex-1 py-3 text-base text-ink"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+            {query.length > 0 ? (
+              <Pressable onPress={() => setQuery("")} hitSlop={8}>
+                <Ionicons name="close-circle" size={18} color={colors.muted} />
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+
         {topLevel.length === 0 && !category.isLoading ? (
           <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 24 }}>
             <Ionicons name="albums-outline" size={40} color={colors.muted} />
@@ -207,12 +252,17 @@ export default function CategoriesScreen() {
               <Text className="font-semibold text-white">{t("categories.create")}</Text>
             </Pressable>
           </GlassSurface>
+        ) : groups.length === 0 ? (
+          <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 8 }}>
+            <Ionicons name="search-outline" size={40} color={colors.muted} />
+            <Text className="mt-3 text-muted">{t("categories.pickNoResult")}</Text>
+          </GlassSurface>
         ) : (
-          topLevel.map((parent) => (
+          groups.map(({ parent, children }) => (
             <ParentCard
               key={parent.id}
               parent={parent}
-              items={childrenOf(parent.id)}
+              items={children}
               onEditParent={() => goForm({ id: parent.id! })}
               onEditChild={(c) => goForm({ id: c.id! })}
               onAddChild={() =>

@@ -1,11 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import dayjs from "dayjs";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { DateField } from "@/components/ui/DateField";
 import { DebtFacade } from "@/store/debt";
 import {
   DEBT_STATUS_META,
@@ -13,6 +15,7 @@ import {
   type DebtViewModel,
 } from "@/store/debt/model";
 import { DebtStatus, DebtType } from "@/models/enums";
+import type { QueryParams } from "@/models/api.model";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { colors } from "@/theme/colors";
@@ -32,6 +35,13 @@ const FILTERS: { key: string; value?: DebtType }[] = [
   { key: "common.all", value: undefined },
   { key: "common.enums.debtType.borrow", value: DebtType.Borrow },
   { key: "common.enums.debtType.lend", value: DebtType.Lend },
+];
+
+const STATUS_FILTERS: { key: string; value?: DebtStatus }[] = [
+  { key: "common.all", value: undefined },
+  { key: "common.enums.debtStatus.active", value: DebtStatus.Active },
+  { key: "common.enums.debtStatus.paid", value: DebtStatus.Paid },
+  { key: "common.enums.debtStatus.overdue", value: DebtStatus.Overdue },
 ];
 
 function DebtCard({ debt, onPress }: { debt: DebtViewModel; onPress: () => void }) {
@@ -62,8 +72,9 @@ function DebtCard({ debt, onPress }: { debt: DebtViewModel; onPress: () => void 
             <Text className="text-base font-semibold text-ink" numberOfLines={1}>
               {debt.personName}
             </Text>
-            <Text className="mt-0.5 text-xs text-muted">
+            <Text className="mt-0.5 text-xs text-muted" numberOfLines={1}>
               {t("common.enums.debtType." + DEBT_TYPE_KEY[debt.type])}
+              {` · ${formatDate(debt.startDate)}`}
               {debt.dueDate ? ` · ${t("debts.dueShort", { date: formatDate(debt.dueDate) })}` : ""}
             </Text>
           </View>
@@ -107,13 +118,43 @@ export default function DebtsScreen() {
   const router = useRouter();
   const debt = DebtFacade();
   const [filter, setFilter] = useState<DebtType | undefined>(undefined);
+  const [status, setStatus] = useState<DebtStatus | undefined>(undefined);
+  const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [hasDateFilter, setHasDateFilter] = useState(false);
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d;
+  });
+  const [toDate, setToDate] = useState(new Date());
+
+  // debounce the search box
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(search.trim()), 400);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  const load = useCallback(() => {
+    // fullTextSearch/date range live inside `filter` — the API deserializes it into DebtQueryModel
+    const filterObj: Record<string, unknown> = {};
+    if (filter !== undefined) filterObj.type = filter;
+    if (status !== undefined) filterObj.status = status;
+    if (debounced) filterObj.fullTextSearch = debounced;
+    if (hasDateFilter) {
+      filterObj.fromDate = dayjs(fromDate).format("YYYY-MM-DD");
+      filterObj.toDate = dayjs(toDate).format("YYYY-MM-DD");
+    }
+    const params: QueryParams = { page: 1, size: 100 };
+    if (Object.keys(filterObj).length) params.filter = filterObj;
+    debt.get(params);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, status, debounced, hasDateFilter, fromDate, toDate]);
 
   useFocusEffect(
     useCallback(() => {
-      const params = filter !== undefined ? { filter: { type: filter } } : {};
-      debt.get({ page: 1, size: 100, ...params });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter]),
+      load();
+    }, [load]),
   );
 
   const debts = debt.pagination?.content ?? [];
@@ -165,8 +206,28 @@ export default function DebtsScreen() {
           </View>
         </GlassSurface>
 
-        {/* filter */}
-        <View className="mb-4 flex-row gap-2">
+        {/* search */}
+        <View className="mb-3 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
+          <Ionicons name="search" size={18} color={colors.muted} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder={t("debts.searchPlaceholder")}
+            placeholderTextColor={colors.muted}
+            selectionColor={colors.primary}
+            className="flex-1 py-3 text-base text-ink"
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {search.length > 0 ? (
+            <Pressable onPress={() => setSearch("")} hitSlop={8}>
+              <Ionicons name="close-circle" size={18} color={colors.muted} />
+            </Pressable>
+          ) : null}
+        </View>
+
+        {/* type filter */}
+        <View className="mb-3 flex-row gap-2">
           {FILTERS.map((f) => {
             const active = filter === f.value;
             return (
@@ -183,17 +244,72 @@ export default function DebtsScreen() {
           })}
         </View>
 
+        {/* status filter */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-2 pr-4"
+          className="mb-4"
+        >
+          {STATUS_FILTERS.map((f) => {
+            const active = status === f.value;
+            return (
+              <Pressable
+                key={f.key + String(f.value)}
+                onPress={() => setStatus(f.value)}
+                className={`rounded-full border px-4 py-2 ${active ? "border-primary bg-primary/20" : "border-white/15"}`}
+              >
+                <Text className={`text-sm font-medium ${active ? "text-primary" : "text-muted"}`}>
+                  {t(f.key)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* date filter */}
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-medium text-muted">{t("debts.dateFilter")}</Text>
+            <Switch
+              value={hasDateFilter}
+              onValueChange={setHasDateFilter}
+              trackColor={{ true: colors.primary, false: "rgba(255,255,255,0.15)" }}
+              thumbColor="#fff"
+            />
+          </View>
+          {hasDateFilter ? (
+            <View className="mt-2 flex-row gap-2">
+              <View className="flex-1">
+                <Text className="mb-1 ml-1 text-[11px] text-muted">{t("debts.fromDate")}</Text>
+                <DateField value={fromDate} onChange={setFromDate} maximumDate={toDate} />
+              </View>
+              <View className="flex-1">
+                <Text className="mb-1 ml-1 text-[11px] text-muted">{t("debts.toDate")}</Text>
+                <DateField value={toDate} onChange={setToDate} />
+              </View>
+            </View>
+          ) : null}
+        </View>
+
         {debts.length === 0 && !debt.isLoading ? (
-          <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 8 }}>
-            <Ionicons name="cash-outline" size={40} color={colors.muted} />
-            <Text className="mt-3 text-muted">{t("debts.empty")}</Text>
-            <Pressable
-              onPress={() => router.push("/debt-form")}
-              className="mt-4 rounded-full bg-primary px-5 py-2.5 active:opacity-80"
-            >
-              <Text className="font-semibold text-white">{t("debts.addDebt")}</Text>
-            </Pressable>
-          </GlassSurface>
+          filter !== undefined || status !== undefined || debounced.length > 0 || hasDateFilter ? (
+            <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 8 }}>
+              <Ionicons name="search-outline" size={40} color={colors.muted} />
+              <Text className="mt-3 text-muted">{t("debts.emptyFiltered")}</Text>
+            </GlassSurface>
+          ) : (
+            <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 8 }}>
+              <Ionicons name="cash-outline" size={40} color={colors.muted} />
+              <Text className="mt-3 text-muted">{t("debts.empty")}</Text>
+              <Pressable
+                onPress={() => router.push("/debt-form")}
+                className="mt-4 rounded-full bg-primary px-5 py-2.5 active:opacity-80"
+              >
+                <Text className="font-semibold text-white">{t("debts.addDebt")}</Text>
+              </Pressable>
+            </GlassSurface>
+          )
         ) : (
           debts.map((d) => (
             <DebtCard

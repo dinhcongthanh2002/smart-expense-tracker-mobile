@@ -1,6 +1,6 @@
-import { Platform } from "react-native";
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { useTranslation } from "react-i18next";
+import { Platform } from "react-native";
 
 import { colors } from "@/theme/colors";
 
@@ -18,7 +18,7 @@ const legacyBlurEffect =
 export default function TabsLayout() {
   const { t } = useTranslation();
   return (
-    <NativeTabs tintColor={colors.primary} blurEffect={legacyBlurEffect}>
+    <NativeTabs tintColor={colors.primary}>
       <NativeTabs.Trigger name="index">
         <Label>{t("tabs.dashboard")}</Label>
         <Icon sf="chart.pie.fill" drawable="ic_dashboard" />
