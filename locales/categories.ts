@@ -28,6 +28,8 @@ export default {
     // picker sheet
     pickTitle: "Chọn danh mục",
     pickEmpty: "Chưa có danh mục. Tạo trong mục Quản lý danh mục.",
+    pickSearch: "Tìm danh mục",
+    pickNoResult: "Không tìm thấy danh mục phù hợp",
   },
   en: {
     title: "Categories",
@@ -56,5 +58,7 @@ export default {
     // picker sheet
     pickTitle: "Select category",
     pickEmpty: "No categories yet. Create some in Manage categories.",
+    pickSearch: "Search categories",
+    pickNoResult: "No matching categories found",
   },
 };

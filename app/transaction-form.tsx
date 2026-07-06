@@ -36,7 +36,7 @@ const WALLET_TYPE_KEY: Record<WalletType, string> = {
   [WalletType.EWallet]: "ewallet",
   [WalletType.Other]: "other",
 };
-import { groupThousands, onlyDigits } from "@/lib/format";
+import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
 import { uploadImageAsync, resolveFileUrl } from "@/lib/upload";
 import { notify } from "@/lib/notify";
 import { colors } from "@/theme/colors";
@@ -100,7 +100,7 @@ export default function TransactionFormScreen() {
       wallets.map((w) => ({
         value: w.id!,
         label: w.name ?? "",
-        sublabel: `${translate("common.enums.walletType." + WALLET_TYPE_KEY[w.type])} · ${w.currency}`,
+        sublabel: `${translate("common.enums.walletType." + WALLET_TYPE_KEY[w.type])} · ${formatCurrency(w.currentBalance, w.currency)}`,
       })),
     [wallets, translate],
   );

@@ -4,7 +4,9 @@ import { NativeModules, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { STORAGE_KEYS } from "./constants";
-import { setLanguage } from "./api";
+import { API, setLanguage } from "./api";
+import { getAuthTokenSync } from "./secure-storage";
+import { routerLinks } from "./router-links";
 import { resources } from "@/locales";
 
 export const SUPPORTED_LANGUAGES = ["vi", "en"] as const;
@@ -55,6 +57,16 @@ export async function changeLanguage(lng: AppLanguage) {
   await i18n.changeLanguage(lng);
   await AsyncStorage.setItem(STORAGE_KEYS.language, lng);
   setLanguage(lng);
+  // Persist to the server (best-effort) so background jobs — budget alerts and the
+  // monthly summary email — are sent in the chosen language. Every request already
+  // carries the Accept-Language header, so this only needs to run when logged in.
+  if (getAuthTokenSync()) {
+    try {
+      await API.put(`${routerLinks("User")}/language`, { language: lng });
+    } catch {
+      // ignore — the header still localizes live responses; jobs sync on next login
+    }
+  }
 }
 
 export default i18n;
