@@ -1,15 +1,7 @@
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { useTranslation } from "react-i18next";
-import { Platform } from "react-native";
 
 import { colors } from "@/theme/colors";
-
-// iOS 15–25 UITabBar is transparent at the scroll edge, so give it a blur
-// material. iOS 26+ gets Liquid Glass automatically (leave blurEffect unset).
-const iosVersion =
-  Platform.OS === "ios" ? parseInt(String(Platform.Version), 10) || 0 : 0;
-const legacyBlurEffect =
-  Platform.OS === "ios" && iosVersion < 26 ? "systemChromeMaterialDark" : undefined;
 
 /**
  * Native iOS tab bar (real UITabBar). iOS 26+ renders it with Liquid Glass;
@@ -18,7 +10,7 @@ const legacyBlurEffect =
 export default function TabsLayout() {
   const { t } = useTranslation();
   return (
-    <NativeTabs tintColor={colors.primary}>
+    <NativeTabs tintColor={colors.primary} disableTransparentOnScrollEdge>
       <NativeTabs.Trigger name="index">
         <Label>{t("tabs.dashboard")}</Label>
         <Icon sf="chart.pie.fill" drawable="ic_dashboard" />
