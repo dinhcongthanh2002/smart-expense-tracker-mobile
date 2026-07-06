@@ -43,6 +43,14 @@
         {
           "faceIDPermission": "Cho phép $(PRODUCT_NAME) dùng Face ID để đăng nhập nhanh."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
     ],
     "experiments": {

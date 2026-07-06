@@ -40,6 +40,16 @@ export default {
     notePlaceholder: "Tuỳ chọn",
     create: "Tạo khoản nợ",
 
+    // wallet
+    walletLabelBorrow: "Ví nhận tiền (tuỳ chọn)",
+    walletLabelLend: "Ví chi tiền (tuỳ chọn)",
+    walletLabelRepay: "Ví chi tiền (tuỳ chọn)",
+    walletLabelCollect: "Ví nhận tiền (tuỳ chọn)",
+    selectWallet: "Chọn ví",
+    noWallet: "Chưa có ví nào",
+    walletHintBorrow: "Tiền vay sẽ được cộng vào ví này",
+    walletHintLend: "Tiền cho vay sẽ được trừ khỏi ví này",
+
     // pay
     payAmount: "Số tiền thanh toán",
     payAll: "Trả hết ({{amount}})",
@@ -83,6 +93,16 @@ export default {
     hasDueDate: "Has due date",
     notePlaceholder: "Optional",
     create: "Create debt",
+
+    // wallet
+    walletLabelBorrow: "Receiving wallet (optional)",
+    walletLabelLend: "Paying wallet (optional)",
+    walletLabelRepay: "Paying wallet (optional)",
+    walletLabelCollect: "Receiving wallet (optional)",
+    selectWallet: "Select wallet",
+    noWallet: "No wallet yet",
+    walletHintBorrow: "The borrowed money will be added to this wallet",
+    walletHintLend: "The lent money will be deducted from this wallet",
 
     // pay
     payAmount: "Payment amount",

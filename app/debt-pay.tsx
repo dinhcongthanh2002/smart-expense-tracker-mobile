@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -9,22 +9,53 @@ import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
+import { SelectField } from "@/components/ui/SelectField";
 import { DebtFacade } from "@/store/debt";
+import { WalletFacade } from "@/store/wallet";
+import { DebtType, WalletType } from "@/models/enums";
 import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
 import { colors } from "@/theme/colors";
+
+const WALLET_TYPE_KEY: Record<WalletType, string> = {
+  [WalletType.Cash]: "cash",
+  [WalletType.Bank]: "bank",
+  [WalletType.EWallet]: "ewallet",
+  [WalletType.Other]: "other",
+};
 
 export default function DebtPayScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const debt = DebtFacade();
-  const remaining =
-    debt.data && debt.data.id === params.id ? debt.data.remainingAmount : 0;
+  const wallet = WalletFacade();
+  const activeDebt =
+    debt.data && debt.data.id === params.id ? debt.data : undefined;
+  const remaining = activeDebt?.remainingAmount ?? 0;
+  // Trả nợ (mình đi vay) -> tiền ra ví; Thu nợ (mình cho vay) -> tiền vào ví.
+  const isRepay = activeDebt?.type === DebtType.Borrow;
 
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date());
   const [note, setNote] = useState("");
+  const [walletId, setWalletId] = useState<string | undefined>();
   const [amountError, setAmountError] = useState<string>();
+
+  useEffect(() => {
+    wallet.get({ page: 1, size: 100 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const wallets = wallet.pagination?.content ?? [];
+  const walletOptions = useMemo(
+    () =>
+      wallets.map((w) => ({
+        value: w.id!,
+        label: w.name ?? "",
+        sublabel: `${t("common.enums.walletType." + WALLET_TYPE_KEY[w.type])} · ${formatCurrency(w.currentBalance, w.currency)}`,
+      })),
+    [wallets, t],
+  );
 
   const onSave = async () => {
     const value = Number(onlyDigits(amount)) || 0;
@@ -40,6 +71,7 @@ export default function DebtPayScreen() {
           amount: value,
           paymentDate: dayjs(date).format("YYYY-MM-DDTHH:mm:ss"),
           note: note.trim() || undefined,
+          walletId: walletId || undefined,
         })
         .unwrap();
       router.back();
@@ -92,6 +124,18 @@ export default function DebtPayScreen() {
 
         <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{t("debts.payDate")}</Text>
         <DateField value={date} onChange={setDate} maximumDate={new Date()} />
+
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
+          {isRepay ? t("debts.walletLabelRepay") : t("debts.walletLabelCollect")}
+        </Text>
+        <SelectField
+          placeholder={t("debts.selectWallet")}
+          title={t("debts.selectWallet")}
+          value={walletId}
+          options={walletOptions}
+          onChange={setWalletId}
+          emptyText={t("debts.noWallet")}
+        />
 
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("common.note")}</Text>
         <GlassSurface radius={16}>

@@ -38,12 +38,16 @@ export interface DebtCreateModel {
   startDate: string;
   dueDate?: string | null;
   note?: string;
+  /** Ví đối ứng dòng tiền khoản nợ (tuỳ chọn). */
+  walletId?: string | null;
 }
 
 export interface DebtPayModel {
   amount: number;
   paymentDate: string;
   note?: string;
+  /** Ví dùng để trả/thu nợ (tuỳ chọn). */
+  walletId?: string | null;
 }
 
 export const DEBT_TYPE_META: Record<

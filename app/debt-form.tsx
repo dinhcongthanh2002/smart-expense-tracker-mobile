@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
+import { SelectField } from "@/components/ui/SelectField";
 import { DebtFacade } from "@/store/debt";
+import { WalletFacade } from "@/store/wallet";
 import { DEBT_TYPE_META, type DebtCreateModel } from "@/store/debt/model";
-import { DebtType } from "@/models/enums";
-import { groupThousands, onlyDigits } from "@/lib/format";
+import { DebtType, WalletType } from "@/models/enums";
+import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
 const TYPES = [DebtType.Borrow, DebtType.Lend];
@@ -24,15 +26,24 @@ const DEBT_TYPE_KEY: Record<DebtType, string> = {
   [DebtType.Lend]: "lend",
 };
 
+const WALLET_TYPE_KEY: Record<WalletType, string> = {
+  [WalletType.Cash]: "cash",
+  [WalletType.Bank]: "bank",
+  [WalletType.EWallet]: "ewallet",
+  [WalletType.Other]: "other",
+};
+
 export default function DebtFormScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const debt = DebtFacade();
+  const wallet = WalletFacade();
 
   const [personName, setPersonName] = useState("");
   const [type, setType] = useState<DebtType>(DebtType.Borrow);
   const [totalAmount, setTotalAmount] = useState("");
   const [interestRate, setInterestRate] = useState("");
+  const [walletId, setWalletId] = useState<string | undefined>();
   const [startDate, setStartDate] = useState(new Date());
   const [hasDueDate, setHasDueDate] = useState(false);
   const [dueDate, setDueDate] = useState(() => {
@@ -42,6 +53,22 @@ export default function DebtFormScreen() {
   });
   const [note, setNote] = useState("");
   const [errors, setErrors] = useState<{ personName?: string; totalAmount?: string }>({});
+
+  useEffect(() => {
+    wallet.get({ page: 1, size: 100 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const wallets = wallet.pagination?.content ?? [];
+  const walletOptions = useMemo(
+    () =>
+      wallets.map((w) => ({
+        value: w.id!,
+        label: w.name ?? "",
+        sublabel: `${t("common.enums.walletType." + WALLET_TYPE_KEY[w.type])} · ${formatCurrency(w.currentBalance, w.currency)}`,
+      })),
+    [wallets, t],
+  );
 
   const onSave = async () => {
     const total = Number(onlyDigits(totalAmount)) || 0;
@@ -58,6 +85,7 @@ export default function DebtFormScreen() {
       startDate: dayjs(startDate).format("YYYY-MM-DDTHH:mm:ss"),
       dueDate: hasDueDate ? dayjs(dueDate).format("YYYY-MM-DDTHH:mm:ss") : null,
       note: note.trim() || undefined,
+      walletId: walletId || undefined,
     };
     try {
       await debt.post(values).unwrap();
@@ -140,6 +168,22 @@ export default function DebtFormScreen() {
           />
         </GlassSurface>
         <FieldError error={errors.totalAmount} />
+
+        {/* wallet */}
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
+          {type === DebtType.Borrow ? t("debts.walletLabelBorrow") : t("debts.walletLabelLend")}
+        </Text>
+        <SelectField
+          placeholder={t("debts.selectWallet")}
+          title={t("debts.selectWallet")}
+          value={walletId}
+          options={walletOptions}
+          onChange={setWalletId}
+          emptyText={t("debts.noWallet")}
+        />
+        <Text className="ml-1 mt-1.5 text-[11px] text-muted">
+          {type === DebtType.Borrow ? t("debts.walletHintBorrow") : t("debts.walletHintLend")}
+        </Text>
 
         {/* interest */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
