@@ -15,11 +15,11 @@ import {
 import { getBiometricEnabled, setBiometricEnabled } from "@/lib/secure-storage";
 import { notify } from "@/lib/notify";
 import {
-  changeLanguage,
   LANGUAGE_LABELS,
   SUPPORTED_LANGUAGES,
   type AppLanguage,
 } from "@/lib/i18n";
+import { GlobalFacade } from "@/store/global";
 import { colors } from "@/theme/colors";
 
 function NavRow({
@@ -89,6 +89,7 @@ const Divider = () => <View className="border-t border-white/[0.05]" />;
 export default function SettingsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
+  const { changeLanguage } = GlobalFacade();
   const [available, setAvailable] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [label, setLabel] = useState("Face ID");
@@ -200,7 +201,10 @@ export default function SettingsScreen() {
               <View key={lng}>
                 {idx > 0 ? <Divider /> : null}
                 <Pressable
-                  onPress={() => changeLanguage(lng as AppLanguage)}
+                  onPress={() => {
+                    if (active) return;
+                    changeLanguage(lng as AppLanguage);
+                  }}
                   className="flex-row items-center gap-3 py-3.5 active:opacity-60"
                 >
                   <View className="h-10 w-10 items-center justify-center rounded-full bg-white/8">

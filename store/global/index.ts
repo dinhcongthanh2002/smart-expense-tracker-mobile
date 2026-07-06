@@ -3,9 +3,11 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import { API, ApiError } from "@/lib/api";
 import { routerLinks } from "@/lib/router-links";
 import { notify } from "@/lib/notify";
+import i18n, { applyLanguage, type AppLanguage } from "@/lib/i18n";
 import {
   bootstrapToken,
   clearAuthStorage,
+  getAuthTokenSync,
   getBiometricEnabled,
   getUser,
   setAuthTokens,
@@ -244,6 +246,24 @@ export const updateAvatar = createAsyncThunk(
   },
 );
 
+/** Switch the app language: apply locally, then persist to the server (best-effort) so
+ * background jobs — budget alerts and the monthly summary email — use the chosen language.
+ * The confirmation toast is fired from the fulfilled case below. */
+export const changeLanguage = createAsyncThunk(
+  "Auth/changeLanguage",
+  async (lng: AppLanguage) => {
+    await applyLanguage(lng);
+    if (getAuthTokenSync()) {
+      try {
+        await API.put(`${USER}/language`, { language: lng });
+      } catch {
+        // best-effort; the header localizes live responses, jobs sync on next login
+      }
+    }
+    return lng;
+  },
+);
+
 export const logout = createAsyncThunk("Auth/logout", async () => {
   try {
     await API.post(`${AUTH}/logout`, {}, { isMobileDevice: "true" });
@@ -362,6 +382,10 @@ const slice = createSlice({
       .addCase(updateAvatar.fulfilled, (s, { payload }) => {
         if (payload && s.user) s.user.userModel = payload;
       })
+      .addCase(changeLanguage.fulfilled, () => {
+        // `t` resolves against the just-applied language.
+        notify.success(i18n.t("settings.languageChanged"));
+      })
       .addCase(logout.fulfilled, (s) => {
         s.user = null;
         s.biometricLocked = false;
@@ -391,6 +415,7 @@ export const GlobalFacade = () => {
       dispatch(updateProfile({ id, values })),
     updateAvatar: (id: string, attachment: AttachmentViewModel) =>
       dispatch(updateAvatar({ id, attachment })),
+    changeLanguage: (lng: AppLanguage) => dispatch(changeLanguage(lng)),
     logout: () => dispatch(logout()),
     bootstrap: () => dispatch(bootstrap()),
     set: (payload: Partial<GlobalState>) => dispatch(slice.actions.set(payload)),
