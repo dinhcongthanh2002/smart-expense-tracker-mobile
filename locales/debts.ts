@@ -1,0 +1,93 @@
+// Debts list, debt detail, debt create form, and record-payment screen.
+// Shared keys reused from `common`: all, add, cancel, delete, amount, note,
+// loading, enums.debtType.* (borrow/lend), enums.debtStatus.* (active/paid/overdue).
+export default {
+  vi: {
+    // list
+    title: "Khoản nợ",
+    iOwe: "Mình đang nợ",
+    owedToMe: "Người khác nợ mình",
+    empty: "Chưa có khoản nợ nào",
+    addDebt: "Thêm khoản nợ",
+    dueShort: "Hạn {{date}}",
+    paidProgress: "Đã trả {{paid}} / {{total}}",
+
+    // detail
+    detailTitle: "Chi tiết khoản nợ",
+    remaining: "Còn lại",
+    totalAmount: "Tổng tiền",
+    paid: "Đã trả",
+    interestLabel: "Lãi suất",
+    interestValue: "{{rate}}%/năm",
+    startDate: "Ngày bắt đầu",
+    dueDate: "Hạn trả",
+    recordPayment: "Ghi nhận thanh toán",
+    paymentHistory: "Lịch sử thanh toán",
+    noPayments: "Chưa có thanh toán nào",
+    deleteTitle: "Xoá khoản nợ",
+    deleteMessage: "Xoá cả lịch sử thanh toán liên quan?",
+
+    // form
+    newTitle: "Khoản nợ mới",
+    typeLabel: "Loại",
+    borrowHint: "Mình nợ người khác",
+    lendHint: "Người khác nợ mình",
+    creditorLabel: "Chủ nợ (vay của ai)",
+    debtorLabel: "Con nợ (cho ai vay)",
+    personPlaceholder: "Tên người",
+    interestFieldLabel: "Lãi suất %/năm (tuỳ chọn)",
+    hasDueDate: "Có hạn trả",
+    notePlaceholder: "Tuỳ chọn",
+    create: "Tạo khoản nợ",
+
+    // pay
+    payAmount: "Số tiền thanh toán",
+    payAll: "Trả hết ({{amount}})",
+    payDate: "Ngày thanh toán",
+    confirmPayment: "Xác nhận thanh toán",
+  },
+  en: {
+    // list
+    title: "Debts",
+    iOwe: "I owe",
+    owedToMe: "Owed to me",
+    empty: "No debts yet",
+    addDebt: "Add debt",
+    dueShort: "Due {{date}}",
+    paidProgress: "Paid {{paid}} / {{total}}",
+
+    // detail
+    detailTitle: "Debt detail",
+    remaining: "Remaining",
+    totalAmount: "Total amount",
+    paid: "Paid",
+    interestLabel: "Interest rate",
+    interestValue: "{{rate}}%/year",
+    startDate: "Start date",
+    dueDate: "Due date",
+    recordPayment: "Record payment",
+    paymentHistory: "Payment history",
+    noPayments: "No payments yet",
+    deleteTitle: "Delete debt",
+    deleteMessage: "Also delete the related payment history?",
+
+    // form
+    newTitle: "New debt",
+    typeLabel: "Type",
+    borrowHint: "I owe someone",
+    lendHint: "Someone owes me",
+    creditorLabel: "Creditor (borrowed from)",
+    debtorLabel: "Debtor (lent to)",
+    personPlaceholder: "Person name",
+    interestFieldLabel: "Interest %/year (optional)",
+    hasDueDate: "Has due date",
+    notePlaceholder: "Optional",
+    create: "Create debt",
+
+    // pay
+    payAmount: "Payment amount",
+    payAll: "Pay all ({{amount}})",
+    payDate: "Payment date",
+    confirmPayment: "Confirm payment",
+  },
+};

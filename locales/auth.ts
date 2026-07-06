@@ -1,0 +1,148 @@
+// Auth screens: sign-in, sign-up, forgot-password, reset-password, verify-email.
+// Consumed as the "auth" namespace -> keys are used as t("auth.<group>.<key>").
+export default {
+  vi: {
+    signIn: {
+      tagline: "Quản lý chi tiêu thông minh",
+      welcomeBack: "Chào mừng trở lại",
+      orUsePassword: "— hoặc dùng mật khẩu —",
+    },
+    signUp: {
+      title: "Tạo tài khoản",
+      subtitle: "Bắt đầu quản lý chi tiêu của bạn",
+    },
+    forgotPassword: {
+      title: "Quên mật khẩu",
+      subtitle: "Nhập email đăng ký để nhận mã đặt lại mật khẩu",
+    },
+    resetPassword: {
+      title: "Đặt lại mật khẩu",
+      subtitle: "Nhập mã 6 chữ số đã gửi tới email và mật khẩu mới",
+    },
+    verifyEmail: {
+      title: "Xác thực email",
+      subtitle: "Nhập mã 6 chữ số đã được gửi tới email của bạn",
+    },
+    biometric: {
+      prompt: "Đăng nhập vào Smart Expense",
+      signInWith: "Đăng nhập bằng {{method}}",
+    },
+    fields: {
+      identifier: "Email / Số điện thoại / Tên đăng nhập",
+      email: "Email",
+      password: "Mật khẩu",
+      name: "Họ và tên",
+      phoneOptional: "Số điện thoại (tuỳ chọn)",
+      confirmPassword: "Xác nhận mật khẩu",
+      newPassword: "Mật khẩu mới",
+      resetCode: "Mã xác nhận",
+      verificationCode: "Mã xác thực",
+    },
+    placeholders: {
+      identifier: "Nhập tài khoản",
+      password: "Nhập mật khẩu",
+      email: "email@example.com",
+      name: "Nguyễn Văn A",
+      phone: "0987654321",
+      passwordMin: "Tối thiểu 6 ký tự",
+      confirmPassword: "Nhập lại mật khẩu",
+    },
+    actions: {
+      signIn: "Đăng nhập",
+      signUp: "Đăng ký",
+      sendResetCode: "Gửi mã đặt lại",
+      resetPassword: "Đặt lại mật khẩu",
+    },
+    links: {
+      forgotPassword: "Quên mật khẩu?",
+      noAccount: "Chưa có tài khoản?",
+      hasAccount: "Đã có tài khoản?",
+      rememberPassword: "Nhớ mật khẩu rồi?",
+      noCode: "Chưa nhận được mã?",
+      resend: "Gửi lại",
+    },
+    errors: {
+      identifierRequired: "Vui lòng nhập tài khoản",
+      passwordRequired: "Vui lòng nhập mật khẩu",
+      passwordMin: "Mật khẩu tối thiểu 6 ký tự",
+      nameRequired: "Vui lòng nhập họ tên",
+      invalidEmail: "Email không hợp lệ",
+      phoneInvalid: "Số điện thoại phải gồm 10 chữ số",
+      passwordMismatch: "Mật khẩu không khớp",
+      confirmPasswordMismatch: "Mật khẩu xác nhận không khớp",
+      tokenRequired: "Nhập mã xác nhận",
+    },
+  },
+  en: {
+    signIn: {
+      tagline: "Smart expense management",
+      welcomeBack: "Welcome back",
+      orUsePassword: "— or use your password —",
+    },
+    signUp: {
+      title: "Create account",
+      subtitle: "Start managing your spending",
+    },
+    forgotPassword: {
+      title: "Forgot password",
+      subtitle: "Enter your registered email to receive a reset code",
+    },
+    resetPassword: {
+      title: "Reset password",
+      subtitle: "Enter the 6-digit code sent to your email and a new password",
+    },
+    verifyEmail: {
+      title: "Verify email",
+      subtitle: "Enter the 6-digit code sent to your email",
+    },
+    biometric: {
+      prompt: "Sign in to Smart Expense",
+      signInWith: "Sign in with {{method}}",
+    },
+    fields: {
+      identifier: "Email / Phone / Username",
+      email: "Email",
+      password: "Password",
+      name: "Full name",
+      phoneOptional: "Phone number (optional)",
+      confirmPassword: "Confirm password",
+      newPassword: "New password",
+      resetCode: "Reset code",
+      verificationCode: "Verification code",
+    },
+    placeholders: {
+      identifier: "Enter your account",
+      password: "Enter your password",
+      email: "email@example.com",
+      name: "John Doe",
+      phone: "0987654321",
+      passwordMin: "At least 6 characters",
+      confirmPassword: "Re-enter your password",
+    },
+    actions: {
+      signIn: "Sign in",
+      signUp: "Sign up",
+      sendResetCode: "Send reset code",
+      resetPassword: "Reset password",
+    },
+    links: {
+      forgotPassword: "Forgot password?",
+      noAccount: "Don't have an account?",
+      hasAccount: "Already have an account?",
+      rememberPassword: "Remember your password?",
+      noCode: "Didn't receive the code?",
+      resend: "Resend",
+    },
+    errors: {
+      identifierRequired: "Please enter your account",
+      passwordRequired: "Please enter your password",
+      passwordMin: "Password must be at least 6 characters",
+      nameRequired: "Please enter your full name",
+      invalidEmail: "Invalid email",
+      phoneInvalid: "Phone number must be 10 digits",
+      passwordMismatch: "Passwords do not match",
+      confirmPasswordMismatch: "Password confirmation does not match",
+      tokenRequired: "Enter the verification code",
+    },
+  },
+};

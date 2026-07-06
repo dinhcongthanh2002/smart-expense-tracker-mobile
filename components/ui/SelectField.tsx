@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { GlassSurface } from "./GlassSurface";
@@ -30,8 +31,9 @@ export function SelectField({
   options,
   onChange,
   allowClear = true,
-  emptyText = "Không có lựa chọn",
+  emptyText,
 }: SelectFieldProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
@@ -84,14 +86,16 @@ export function SelectField({
                 onPress={() => pick(undefined)}
                 className="flex-row items-center justify-between border-b border-white/[0.05] py-3.5 active:opacity-60"
               >
-                <Text className="text-muted">Không chọn</Text>
+                <Text className="text-muted">{t("common.selectNone")}</Text>
                 {!value ? (
                   <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
                 ) : null}
               </Pressable>
             ) : null}
             {options.length === 0 ? (
-              <Text className="py-8 text-center text-muted">{emptyText}</Text>
+              <Text className="py-8 text-center text-muted">
+                {emptyText ?? t("common.noOptions")}
+              </Text>
             ) : (
               options.map((o) => (
                 <Pressable

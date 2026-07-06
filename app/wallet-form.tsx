@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
@@ -28,8 +29,17 @@ const TYPES = [
   WalletType.Other,
 ];
 
+// Maps a wallet type to its shared enum-label key (common.enums.walletType.*).
+const WALLET_TYPE_KEY: Record<WalletType, string> = {
+  [WalletType.Cash]: "cash",
+  [WalletType.Bank]: "bank",
+  [WalletType.EWallet]: "ewallet",
+  [WalletType.Other]: "other",
+};
+
 export default function WalletFormScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
   const isEdit = !!params.id;
   const facade = WalletFacade();
@@ -64,9 +74,9 @@ export default function WalletFormScreen() {
   }, [facade.data]);
 
   // default icon follows the type until the user picks one
-  const onType = (t: WalletType) => {
-    setType(t);
-    if (!iconTouched) setIcon(WALLET_TYPE_META[t].icon);
+  const onType = (next: WalletType) => {
+    setType(next);
+    if (!iconTouched) setIcon(WALLET_TYPE_META[next].icon);
   };
 
   const PreviewIcon = getCategoryIcon(icon);
@@ -108,10 +118,10 @@ export default function WalletFormScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
         <Text className="text-lg font-bold text-ink">
-          {isEdit ? "Sửa ví" : "Ví mới"}
+          {isEdit ? t("wallets.editTitle") : t("wallets.newTitle")}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -138,25 +148,25 @@ export default function WalletFormScreen() {
         </View>
 
         <Input
-          label="Tên ví"
-          placeholder="VD: Tiền mặt, Vietcombank"
+          label={t("wallets.name")}
+          placeholder={t("wallets.namePlaceholder")}
           value={name}
           onChangeText={setName}
         />
 
         {/* type */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Loại ví</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("wallets.type")}</Text>
         <View className="flex-row flex-wrap gap-2">
-          {TYPES.map((t) => {
-            const active = type === t;
+          {TYPES.map((wt) => {
+            const active = type === wt;
             return (
               <Pressable
-                key={t}
-                onPress={() => onType(t)}
+                key={wt}
+                onPress={() => onType(wt)}
                 className={`rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-white/[0.06]"}`}
               >
                 <Text className={active ? "font-semibold text-white" : "text-muted"}>
-                  {WALLET_TYPE_META[t].label}
+                  {t("common.enums.walletType." + WALLET_TYPE_KEY[wt])}
                 </Text>
               </Pressable>
             );
@@ -164,7 +174,7 @@ export default function WalletFormScreen() {
         </View>
 
         {/* currency */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Tiền tệ</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("wallets.currency")}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-4">
           {CURRENCIES.map((c) => {
             const active = currency === c;
@@ -181,7 +191,7 @@ export default function WalletFormScreen() {
         </ScrollView>
 
         {/* initial balance */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Số dư ban đầu</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("wallets.initialBalance")}</Text>
         <GlassSurface radius={16}>
           <TextInput
             value={groupThousands(initialBalance)}
@@ -195,7 +205,7 @@ export default function WalletFormScreen() {
         </GlassSurface>
 
         {/* color */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Màu sắc</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("wallets.color")}</Text>
         <View className="flex-row flex-wrap gap-3">
           {CATEGORY_FALLBACK_COLORS.map((c) => (
             <Pressable
@@ -214,7 +224,7 @@ export default function WalletFormScreen() {
         </View>
 
         {/* icon */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Biểu tượng</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("wallets.icon")}</Text>
         <GlassSurface radius={20} className="p-3">
           <View className="flex-row flex-wrap gap-3">
             {CATEGORY_ICON_NAMES.map((ic) => {
@@ -247,8 +257,8 @@ export default function WalletFormScreen() {
 
         <View className="mt-4">
           <Input
-            label="Ghi chú"
-            placeholder="Tuỳ chọn"
+            label={t("common.note")}
+            placeholder={t("wallets.notePlaceholder")}
             value={note}
             onChangeText={setNote}
           />
@@ -256,11 +266,11 @@ export default function WalletFormScreen() {
 
         <View className="mt-8 gap-3">
           <Button
-            title={isEdit ? "Cập nhật" : "Tạo ví"}
+            title={isEdit ? t("wallets.update") : t("wallets.create")}
             onPress={onSave}
             loading={facade.isSubmitting}
           />
-          {isEdit && <Button title="Xoá ví" variant="danger" onPress={onDelete} />}
+          {isEdit && <Button title={t("wallets.deleteWallet")} variant="danger" onPress={onDelete} />}
         </View>
       </ScrollView>
     </Screen>

@@ -4,6 +4,7 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { GlassSurface } from "./GlassSurface";
@@ -21,6 +22,7 @@ interface DateFieldProps {
  * calendar in a bottom sheet; on Android the native date dialog.
  */
 export function DateField({ value, onChange, maximumDate }: DateFieldProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [show, setShow] = useState(false);
 
@@ -64,9 +66,9 @@ export function DateField({ value, onChange, maximumDate }: DateFieldProps) {
             className="rounded-t-3xl bg-surface"
           >
             <View className="flex-row items-center justify-between px-5 py-3">
-              <Text className="text-lg font-bold text-ink">Chọn ngày</Text>
+              <Text className="text-lg font-bold text-ink">{t("common.selectDate")}</Text>
               <Pressable onPress={() => setShow(false)} hitSlop={10}>
-                <Text className="text-base font-semibold text-primary">Xong</Text>
+                <Text className="text-base font-semibold text-primary">{t("common.done")}</Text>
               </Pressable>
             </View>
             <View className="items-center pb-4">

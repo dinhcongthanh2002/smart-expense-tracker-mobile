@@ -2,26 +2,28 @@ import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { RecurringFacade } from "@/store/recurring";
-import { FREQUENCY_META, type RecurringViewModel } from "@/store/recurring/model";
-import { TransactionType } from "@/models/enums";
+import type { RecurringViewModel } from "@/store/recurring/model";
+import { RecurringFrequency, TransactionType } from "@/models/enums";
 import { transactionTypeMeta } from "@/lib/ui-helpers";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
-const FILTERS: { label: string; value?: TransactionType }[] = [
-  { label: "Tất cả", value: undefined },
-  { label: "Chi tiêu", value: TransactionType.Expense },
-  { label: "Thu nhập", value: TransactionType.Income },
-];
+const FREQUENCY_KEY: Record<RecurringFrequency, string> = {
+  [RecurringFrequency.Daily]: "daily",
+  [RecurringFrequency.Weekly]: "weekly",
+  [RecurringFrequency.Monthly]: "monthly",
+  [RecurringFrequency.Yearly]: "yearly",
+};
 
 function RecurringCard({ item, onPress }: { item: RecurringViewModel; onPress: () => void }) {
+  const { t } = useTranslation();
   const meta = transactionTypeMeta(item.type);
-  const freq = FREQUENCY_META[item.frequency];
   const title = item.category?.name || item.note || meta.label;
 
   return (
@@ -36,8 +38,10 @@ function RecurringCard({ item, onPress }: { item: RecurringViewModel; onPress: (
             {title}
           </Text>
           <Text className="mt-0.5 text-xs text-muted">
-            {freq.label}
-            {item.nextRunDate ? ` · Kế tiếp ${formatDate(item.nextRunDate)}` : ""}
+            {t("common.enums.frequency." + FREQUENCY_KEY[item.frequency])}
+            {item.nextRunDate
+              ? ` · ${t("recurring.next", { date: formatDate(item.nextRunDate) })}`
+              : ""}
           </Text>
         </View>
         <View className="items-end">
@@ -53,7 +57,7 @@ function RecurringCard({ item, onPress }: { item: RecurringViewModel; onPress: (
               className="text-[11px] font-medium"
               style={{ color: item.isActive ? colors.income : colors.muted }}
             >
-              {item.isActive ? "Đang chạy" : "Tạm dừng"}
+              {item.isActive ? t("recurring.active") : t("recurring.paused")}
             </Text>
           </View>
         </View>
@@ -64,8 +68,15 @@ function RecurringCard({ item, onPress }: { item: RecurringViewModel; onPress: (
 
 export default function RecurringScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const recurring = RecurringFacade();
   const [filter, setFilter] = useState<TransactionType | undefined>(undefined);
+
+  const FILTERS: { label: string; value?: TransactionType }[] = [
+    { label: t("common.all"), value: undefined },
+    { label: t("common.enums.txType.expense"), value: TransactionType.Expense },
+    { label: t("common.enums.txType.income"), value: TransactionType.Income },
+  ];
 
   useFocusEffect(
     useCallback(() => {
@@ -88,7 +99,7 @@ export default function RecurringScreen() {
           >
             <Ionicons name="chevron-back" size={26} color={colors.ink} />
           </Pressable>
-          <Text className="text-lg font-bold text-ink">Giao dịch định kỳ</Text>
+          <Text className="text-lg font-bold text-ink">{t("recurring.title")}</Text>
           <Pressable
             onPress={() => router.push("/recurring-form")}
             className="h-10 w-10 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
@@ -117,12 +128,12 @@ export default function RecurringScreen() {
         {items.length === 0 && !recurring.isLoading ? (
           <GlassSurface radius={24} className="mt-4 items-center p-10">
             <Ionicons name="repeat-outline" size={40} color={colors.muted} />
-            <Text className="mt-3 text-muted">Chưa có giao dịch định kỳ</Text>
+            <Text className="mt-3 text-muted">{t("recurring.empty")}</Text>
             <Pressable
               onPress={() => router.push("/recurring-form")}
               className="mt-4 rounded-full bg-primary px-5 py-2.5 active:opacity-80"
             >
-              <Text className="font-semibold text-white">Tạo định kỳ</Text>
+              <Text className="font-semibold text-white">{t("recurring.create")}</Text>
             </Pressable>
           </GlassSurface>
         ) : (

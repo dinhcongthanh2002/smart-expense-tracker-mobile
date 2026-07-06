@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -13,6 +14,7 @@ import { formatCurrency } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
 export default function DayTransactionsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ date?: string }>();
   const date = params.date ?? "";
@@ -61,9 +63,9 @@ export default function DayTransactionsScreen() {
   const title = date
     ? (() => {
         const [y, m, d] = date.split("-");
-        return `${d}/${m}/${y}`;
+        return t("dayTransactions.dayTitle", { day: d, month: m, year: y });
       })()
-    : "Giao dịch";
+    : t("dayTransactions.fallbackTitle");
 
   return (
     <Screen className="px-5">
@@ -75,20 +77,20 @@ export default function DayTransactionsScreen() {
         >
           <Ionicons name="chevron-back" size={26} color={colors.ink} />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Ngày {title}</Text>
+        <Text className="text-lg font-bold text-ink">{title}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* summary */}
       <View className="mb-4 flex-row gap-3">
         <GlassSurface radius={18} className="flex-1 p-4">
-          <Text className="text-xs text-muted">Thu nhập</Text>
+          <Text className="text-xs text-muted">{t("common.income")}</Text>
           <Text className="mt-1 text-base font-bold text-income" numberOfLines={1}>
             {formatCurrency(totals.income)}
           </Text>
         </GlassSurface>
         <GlassSurface radius={18} className="flex-1 p-4">
-          <Text className="text-xs text-muted">Chi tiêu</Text>
+          <Text className="text-xs text-muted">{t("common.expense")}</Text>
           <Text className="mt-1 text-base font-bold text-expense" numberOfLines={1}>
             {formatCurrency(totals.expense)}
           </Text>
@@ -119,7 +121,7 @@ export default function DayTransactionsScreen() {
           ListEmptyComponent={
             <GlassSurface radius={24} className="mt-8 items-center p-10">
               <Ionicons name="receipt-outline" size={40} color={colors.muted} />
-              <Text className="mt-3 text-muted">Chưa có giao dịch ngày này</Text>
+              <Text className="mt-3 text-muted">{t("dayTransactions.empty")}</Text>
             </GlassSurface>
           }
         />

@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
@@ -26,6 +27,7 @@ interface Errors {
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, forgotPassword, resetPassword, isSubmitting } = GlobalFacade();
   const email = user?.userModel?.email ?? "";
 
@@ -37,7 +39,7 @@ export default function ChangePasswordScreen() {
 
   const sendCode = async () => {
     if (!email) {
-      notify.error("Tài khoản chưa có email");
+      notify.error(t("changePassword.noEmail"));
       return;
     }
     try {
@@ -50,9 +52,9 @@ export default function ChangePasswordScreen() {
 
   const validate = () => {
     const e: Errors = {};
-    if (token.trim().length < 4) e.token = "Nhập mã xác nhận";
-    if (newPassword.length < 6) e.newPassword = "Mật khẩu tối thiểu 6 ký tự";
-    if (confirmPassword !== newPassword) e.confirmPassword = "Mật khẩu không khớp";
+    if (token.trim().length < 4) e.token = t("changePassword.validation.token");
+    if (newPassword.length < 6) e.newPassword = t("changePassword.validation.minLength");
+    if (confirmPassword !== newPassword) e.confirmPassword = t("changePassword.validation.mismatch");
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -66,7 +68,7 @@ export default function ChangePasswordScreen() {
         newPassword,
         confirmPassword,
       }).unwrap();
-      notify.success("Đổi mật khẩu thành công");
+      notify.success(t("changePassword.success"));
       router.back();
     } catch {
       // toast surfaced by API layer
@@ -81,9 +83,9 @@ export default function ChangePasswordScreen() {
       >
         <View className="mb-2 mt-1 flex-row items-center justify-between">
           <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Text className="text-base text-muted">Huỷ</Text>
+            <Text className="text-base text-muted">{t("common.cancel")}</Text>
           </Pressable>
-          <Text className="text-lg font-bold text-ink">Đổi mật khẩu</Text>
+          <Text className="text-lg font-bold text-ink">{t("changePassword.title")}</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -98,17 +100,19 @@ export default function ChangePasswordScreen() {
             </View>
             <Text className="px-4 text-center text-base text-muted">
               {sent
-                ? `Nhập mã xác nhận đã gửi tới ${email} và mật khẩu mới`
-                : `Chúng tôi sẽ gửi mã xác nhận tới ${email || "email của bạn"}`}
+                ? t("changePassword.instructionsSent", { email })
+                : t("changePassword.instructionsInitial", {
+                    email: email || t("changePassword.emailFallback"),
+                  })}
             </Text>
           </View>
 
           {!sent ? (
-            <Button title="Gửi mã xác nhận" onPress={sendCode} loading={isSubmitting} />
+            <Button title={t("changePassword.sendCode")} onPress={sendCode} loading={isSubmitting} />
           ) : (
             <GlassCard className="gap-4 p-5">
               <Input
-                label="Mã xác nhận"
+                label={t("changePassword.fields.token")}
                 placeholder="123456"
                 keyboardType="number-pad"
                 maxLength={6}
@@ -118,8 +122,8 @@ export default function ChangePasswordScreen() {
                 leftIcon={<Ionicons name="key-outline" size={20} color={colors.muted} />}
               />
               <Input
-                label="Mật khẩu mới"
-                placeholder="Tối thiểu 6 ký tự"
+                label={t("changePassword.fields.newPassword")}
+                placeholder={t("changePassword.placeholders.newPassword")}
                 secureTextEntry
                 autoCapitalize="none"
                 value={newPassword}
@@ -128,8 +132,8 @@ export default function ChangePasswordScreen() {
                 leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.muted} />}
               />
               <Input
-                label="Xác nhận mật khẩu"
-                placeholder="Nhập lại mật khẩu"
+                label={t("changePassword.fields.confirmPassword")}
+                placeholder={t("changePassword.placeholders.confirmPassword")}
                 secureTextEntry
                 autoCapitalize="none"
                 value={confirmPassword}
@@ -138,13 +142,13 @@ export default function ChangePasswordScreen() {
                 leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.muted} />}
               />
               <Button
-                title="Đổi mật khẩu"
+                title={t("changePassword.title")}
                 onPress={onSubmit}
                 loading={isSubmitting}
                 className="mt-2"
               />
               <Pressable onPress={sendCode} hitSlop={8} className="items-center">
-                <Text className="font-semibold text-primary">Gửi lại mã</Text>
+                <Text className="font-semibold text-primary">{t("changePassword.resendCode")}</Text>
               </Pressable>
             </GlassCard>
           )}

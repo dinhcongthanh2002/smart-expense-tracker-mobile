@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -8,7 +9,6 @@ import { StatisticFacade } from "@/store/statistic";
 import { formatCurrency } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
-const WEEKDAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 const MASK = "******";
 
 /** Monday-first weekday index (0 = Monday .. 6 = Sunday). */
@@ -26,8 +26,10 @@ interface Props {
 
 /** A monthly calendar that reports daily income/expense on the dashboard. */
 export function MonthCalendarReport({ hidden }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const stat = StatisticFacade();
+  const weekdays = t("dashboard.weekdays", { returnObjects: true }) as string[];
   const today = new Date();
   const [month, setMonth] = useState(today.getMonth() + 1); // 1-12
   const [year, setYear] = useState(today.getFullYear());
@@ -100,13 +102,13 @@ export function MonthCalendarReport({ hidden }: Props) {
     <GlassCard className="p-5" style={{ marginTop: 20 }}>
       {/* header */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-lg font-bold text-ink">Lịch thu chi</Text>
+        <Text className="text-lg font-bold text-ink">{t("dashboard.calendarTitle")}</Text>
         <View className="flex-row items-center gap-1">
           <Pressable onPress={() => shift(-1)} hitSlop={8} className="h-8 w-8 items-center justify-center">
             <Ionicons name="chevron-back" size={20} color={colors.ink} />
           </Pressable>
           <Text className="w-24 text-center text-sm font-semibold text-ink">
-            Tháng {month}/{year}
+            {t("common.monthYear", { month, year })}
           </Text>
           <Pressable onPress={() => shift(1)} hitSlop={8} className="h-8 w-8 items-center justify-center">
             <Ionicons name="chevron-forward" size={20} color={colors.ink} />
@@ -132,7 +134,7 @@ export function MonthCalendarReport({ hidden }: Props) {
 
       {/* weekday header */}
       <View className="mt-4 flex-row">
-        {WEEKDAYS.map((w, i) => (
+        {weekdays.map((w, i) => (
           <View key={w} className="flex-1 items-center">
             <Text className={`text-xs font-medium ${i === 6 ? "text-expense/70" : "text-muted"}`}>
               {w}
@@ -194,25 +196,29 @@ export function MonthCalendarReport({ hidden }: Props) {
       {selectedDay ? (
         <View className="mt-3 rounded-2xl bg-white/[0.05] p-4">
           <Text className="text-sm font-semibold text-ink">
-            Ngày {pad2(selectedDay)}/{pad2(month)}/{year}
+            {t("dashboard.dayTitle", {
+              day: pad2(selectedDay),
+              month: pad2(month),
+              year,
+            })}
           </Text>
           {selected ? (
             <View className="mt-2 flex-row">
               <View className="flex-1">
-                <Text className="text-xs text-muted">Thu nhập</Text>
+                <Text className="text-xs text-muted">{t("common.income")}</Text>
                 <Text className="mt-0.5 text-base font-bold text-income">
                   {money(selected.income)}
                 </Text>
               </View>
               <View className="flex-1">
-                <Text className="text-xs text-muted">Chi tiêu</Text>
+                <Text className="text-xs text-muted">{t("common.expense")}</Text>
                 <Text className="mt-0.5 text-base font-bold text-expense">
                   {money(selected.expense)}
                 </Text>
               </View>
             </View>
           ) : (
-            <Text className="mt-2 text-sm text-muted">Không có giao dịch</Text>
+            <Text className="mt-2 text-sm text-muted">{t("dashboard.noTransactionsDay")}</Text>
           )}
         </View>
       ) : null}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
@@ -16,6 +17,7 @@ import { colors } from "@/theme/colors";
 
 export default function BudgetFormScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string; month?: string; year?: string }>();
   const isEdit = !!params.id;
   const budget = BudgetFacade();
@@ -69,10 +71,10 @@ export default function BudgetFormScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
         <Text className="text-lg font-bold text-ink">
-          {isEdit ? "Sửa ngân sách" : "Ngân sách mới"}
+          {isEdit ? t("budgets.editTitle") : t("budgets.newTitle")}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -83,12 +85,12 @@ export default function BudgetFormScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text className="my-3 text-center text-sm text-muted">
-          Tháng {month}/{year}
+          {t("common.monthYear", { month, year })}
         </Text>
 
         {/* limit amount */}
         <GlassSurface radius={20} className="items-center py-6" style={{ marginBottom: 12 }}>
-          <Text className="text-sm text-muted">Hạn mức</Text>
+          <Text className="text-sm text-muted">{t("budgets.limitLabel")}</Text>
           <TextInput
             value={groupThousands(limit)}
             onChangeText={(t) => setLimit(onlyDigits(t))}
@@ -112,15 +114,15 @@ export default function BudgetFormScreen() {
             />
             <View className="flex-1">
               <Text className="text-base font-semibold text-ink">
-                {existing?.category?.name ?? "Danh mục"}
+                {existing?.category?.name ?? t("common.category")}
               </Text>
-              <Text className="text-xs text-muted">Không đổi được danh mục khi sửa</Text>
+              <Text className="text-xs text-muted">{t("budgets.categoryLocked")}</Text>
             </View>
           </View>
         ) : (
           <>
             <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">
-              Danh mục chi tiêu
+              {t("budgets.expenseCategory")}
             </Text>
             <Pressable onPress={() => setPickerOpen(true)}>
               <GlassSurface radius={16}>
@@ -137,7 +139,7 @@ export default function BudgetFormScreen() {
                       </Text>
                     </>
                   ) : (
-                    <Text className="flex-1 text-base text-muted">Chọn danh mục</Text>
+                    <Text className="flex-1 text-base text-muted">{t("budgets.selectCategory")}</Text>
                   )}
                   <Ionicons name="chevron-down" size={18} color={colors.muted} />
                 </View>
@@ -148,13 +150,13 @@ export default function BudgetFormScreen() {
 
         <View className="mt-8 gap-3">
           <Button
-            title={isEdit ? "Cập nhật" : "Đặt ngân sách"}
+            title={isEdit ? t("budgets.update") : t("budgets.setBudget")}
             onPress={onSave}
             loading={budget.isSubmitting}
           />
           {isEdit && params.id ? (
             <Button
-              title="Xoá ngân sách"
+              title={t("budgets.deleteBudget")}
               variant="danger"
               onPress={async () => {
                 try {

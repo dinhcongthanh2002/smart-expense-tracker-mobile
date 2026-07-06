@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -60,6 +61,7 @@ export function CategoryPickerSheet({
   onSelect,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const { topLevel, childrenOf } = useMemo(() => {
@@ -88,7 +90,7 @@ export function CategoryPickerSheet({
           <View className="h-1.5 w-10 rounded-full bg-white/20" />
         </View>
         <View className="flex-row items-center justify-between px-5 py-3">
-          <Text className="text-lg font-bold text-ink">Chọn danh mục</Text>
+          <Text className="text-lg font-bold text-ink">{t("categories.pickTitle")}</Text>
           <Pressable onPress={onClose} hitSlop={10}>
             <Ionicons name="close" size={24} color={colors.muted} />
           </Pressable>
@@ -100,7 +102,7 @@ export function CategoryPickerSheet({
         >
           {topLevel.length === 0 ? (
             <Text className="py-8 text-center text-muted">
-              Chưa có danh mục. Tạo trong mục Quản lý danh mục.
+              {t("categories.pickEmpty")}
             </Text>
           ) : (
             topLevel.map((parent) => (

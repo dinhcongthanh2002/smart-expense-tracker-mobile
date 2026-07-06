@@ -1,5 +1,6 @@
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
@@ -54,6 +55,7 @@ function Row({
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, logout } = GlobalFacade();
   const u = user?.userModel;
   const avatarUrl = resolveFileUrl(u?.avatar);
@@ -64,7 +66,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-28"
       >
-        <Text className="mb-5 mt-2 text-2xl font-bold text-ink">Cá nhân</Text>
+        <Text className="mb-5 mt-2 text-2xl font-bold text-ink">{t("profile.title")}</Text>
 
         <Pressable onPress={() => router.push("/edit-profile")} className="active:opacity-80">
           <GlassSurface radius={28} className="items-center p-6">
@@ -76,71 +78,71 @@ export default function ProfileScreen() {
               )}
             </View>
             <Text className="mt-3 text-xl font-bold text-ink">
-              {u?.name ?? "Người dùng"}
+              {u?.name ?? t("profile.defaultName")}
             </Text>
             <Text className="text-sm text-muted">{u?.email}</Text>
             <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-white/[0.08] px-4 py-1.5">
               <Ionicons name="create-outline" size={15} color={colors.primarySoft} />
-              <Text className="text-xs font-medium text-primarySoft">Chỉnh sửa hồ sơ</Text>
+              <Text className="text-xs font-medium text-primarySoft">{t("profile.editProfile")}</Text>
             </View>
           </GlassSurface>
         </Pressable>
 
         <GlassSurface radius={24} className="px-5 py-2" style={{ marginTop: 20 }}>
-          <Row icon="person-outline" label="Tên đăng nhập" value={u?.userName} />
-          <Row icon="call-outline" label="Số điện thoại" value={u?.phoneNumber} />
-          <Row icon="mail-outline" label="Email" value={u?.email} />
+          <Row icon="person-outline" label={t("profile.username")} value={u?.userName} />
+          <Row icon="call-outline" label={t("profile.phone")} value={u?.phoneNumber} />
+          <Row icon="mail-outline" label={t("profile.email")} value={u?.email} />
           <Row
             icon="shield-checkmark-outline"
-            label="Xác thực email"
-            value={u?.isEmailVerified ? "Đã xác thực" : "Chưa"}
+            label={t("profile.emailVerification")}
+            value={u?.isEmailVerified ? t("profile.verified") : t("profile.notVerified")}
           />
         </GlassSurface>
 
         <Text className="mb-2 ml-1 mt-6 text-sm font-medium text-muted">
-          Quản lý
+          {t("profile.manage")}
         </Text>
         <GlassSurface radius={24} className="px-5 py-1">
           <MenuRow
             icon="notifications-outline"
-            label="Thông báo"
+            label={t("profile.menu.notifications")}
             onPress={() => router.push("/notifications")}
           />
           <View className="border-t border-white/[0.05]" />
           <MenuRow
             icon="albums-outline"
-            label="Quản lý danh mục"
+            label={t("profile.menu.categories")}
             onPress={() => router.push("/categories")}
           />
           <View className="border-t border-white/[0.05]" />
           <MenuRow
             icon="cash-outline"
-            label="Khoản nợ / Cho vay"
+            label={t("profile.menu.debts")}
             onPress={() => router.push("/debts")}
           />
           <View className="border-t border-white/[0.05]" />
           <MenuRow
             icon="flag-outline"
-            label="Mục tiêu tiết kiệm"
+            label={t("profile.menu.goals")}
             onPress={() => router.push("/goals")}
           />
           <View className="border-t border-white/[0.05]" />
           <MenuRow
             icon="repeat-outline"
-            label="Giao dịch định kỳ"
+            label={t("profile.menu.recurring")}
             onPress={() => router.push("/recurring")}
           />
           <View className="border-t border-white/[0.05]" />
           <MenuRow
             icon="settings-outline"
-            label="Cài đặt"
+            label={t("profile.menu.settings")}
             onPress={() => router.push("/settings")}
           />
         </GlassSurface>
 
         <View className="mt-8">
           <Button
-            title="Đăng xuất"
+            title={t("profile.logout")}
             variant="danger"
             leftIcon={<Ionicons name="log-out-outline" size={20} color="#fff" />}
             onPress={() => logout()}

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
@@ -20,6 +21,7 @@ function GoalCard({
   onEdit: () => void;
   onContribute: () => void;
 }) {
+  const { t } = useTranslation();
   const color = goal.color || colors.primary;
   const Icon = getCategoryIcon(goal.icon || "piggy-bank");
   const percent = Math.min(goal.progressPercent ?? 0, 100);
@@ -46,12 +48,14 @@ function GoalCard({
               {goal.name}
             </Text>
             <Text className="mt-0.5 text-xs text-muted">
-              {goal.deadline ? `Hạn ${formatDate(goal.deadline)}` : "Không thời hạn"}
+              {goal.deadline
+                ? t("goals.deadline", { date: formatDate(goal.deadline) })
+                : t("goals.noDeadline")}
             </Text>
           </View>
           {goal.isCompleted ? (
             <View className="rounded-full bg-income/20 px-2 py-0.5">
-              <Text className="text-[11px] font-medium text-income">Hoàn thành</Text>
+              <Text className="text-[11px] font-medium text-income">{t("goals.completed")}</Text>
             </View>
           ) : (
             <Text className="text-sm font-bold" style={{ color: barColor }}>
@@ -74,7 +78,7 @@ function GoalCard({
               className="flex-row items-center gap-1 rounded-full bg-primary/20 px-3 py-1.5 active:opacity-70"
             >
               <Ionicons name="add" size={16} color={colors.primary} />
-              <Text className="text-xs font-semibold text-primary">Góp tiền</Text>
+              <Text className="text-xs font-semibold text-primary">{t("goals.contribute")}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -85,6 +89,7 @@ function GoalCard({
 
 export default function GoalsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const goal = SavingsGoalFacade();
 
   useFocusEffect(
@@ -108,7 +113,7 @@ export default function GoalsScreen() {
           >
             <Ionicons name="chevron-back" size={26} color={colors.ink} />
           </Pressable>
-          <Text className="text-lg font-bold text-ink">Mục tiêu tiết kiệm</Text>
+          <Text className="text-lg font-bold text-ink">{t("goals.title")}</Text>
           <Pressable
             onPress={() => router.push("/goal-form")}
             className="h-10 w-10 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
@@ -118,22 +123,22 @@ export default function GoalsScreen() {
         </View>
 
         <GlassSurface radius={22} className="mb-5 items-center p-5">
-          <Text className="text-sm text-muted">Tổng đã tiết kiệm</Text>
+          <Text className="text-sm text-muted">{t("goals.totalSaved")}</Text>
           <Text className="mt-1 text-3xl font-bold text-income">
             {formatCurrency(totalSaved)}
           </Text>
-          <Text className="mt-1 text-xs text-muted">{goals.length} mục tiêu</Text>
+          <Text className="mt-1 text-xs text-muted">{t("goals.count", { count: goals.length })}</Text>
         </GlassSurface>
 
         {goals.length === 0 && !goal.isLoading ? (
           <GlassSurface radius={24} className="items-center p-10">
             <Ionicons name="flag-outline" size={40} color={colors.muted} />
-            <Text className="mt-3 text-muted">Chưa có mục tiêu nào</Text>
+            <Text className="mt-3 text-muted">{t("goals.empty")}</Text>
             <Pressable
               onPress={() => router.push("/goal-form")}
               className="mt-4 rounded-full bg-primary px-5 py-2.5 active:opacity-80"
             >
-              <Text className="font-semibold text-white">Tạo mục tiêu</Text>
+              <Text className="font-semibold text-white">{t("goals.create")}</Text>
             </Pressable>
           </GlassSurface>
         ) : (

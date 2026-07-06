@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { PieChart } from "react-native-gifted-charts";
@@ -19,15 +20,16 @@ import { formatCurrency, formatCompact, startOfMonthISO, endOfMonthISO } from "@
 import { colorForIndex } from "@/lib/ui-helpers";
 import { colors, gradients } from "@/theme/colors";
 
-function greeting(): string {
+function greetingKey(): string {
   const h = new Date().getHours();
-  if (h < 11) return "Chào buổi sáng";
-  if (h < 14) return "Chào buổi trưa";
-  if (h < 18) return "Chào buổi chiều";
-  return "Chào buổi tối";
+  if (h < 11) return "dashboard.greeting.morning";
+  if (h < 14) return "dashboard.greeting.noon";
+  if (h < 18) return "dashboard.greeting.afternoon";
+  return "dashboard.greeting.evening";
 }
 
 export default function DashboardScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { getStatistic, dashboard, isLoading } = StatisticFacade();
   const tx = TransactionFacade();
@@ -82,9 +84,9 @@ export default function DashboardScreen() {
         {/* Header */}
         <View className="mb-5 mt-2 flex-row items-center justify-between">
           <View>
-            <Text className="text-sm text-muted">{greeting()}</Text>
+            <Text className="text-sm text-muted">{t(greetingKey())}</Text>
             <Text className="text-xl font-bold text-ink">
-              {user?.userModel?.name ?? "Bạn"}
+              {user?.userModel?.name ?? t("dashboard.guest")}
             </Text>
           </View>
           <Pressable
@@ -112,7 +114,7 @@ export default function DashboardScreen() {
             style={{ padding: 20 }}
           >
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm text-white/80">Số dư tháng này</Text>
+              <Text className="text-sm text-white/80">{t("dashboard.balanceThisMonth")}</Text>
               <Pressable
                 onPress={toggleHide}
                 hitSlop={10}
@@ -135,7 +137,7 @@ export default function DashboardScreen() {
                   <Ionicons name="arrow-down" size={18} color="#fff" />
                 </View>
                 <View>
-                  <Text className="text-xs text-white/70">Thu nhập</Text>
+                  <Text className="text-xs text-white/70">{t("common.income")}</Text>
                   <Text className="text-base font-semibold text-white">
                     {money(dashboard?.totalIncome)}
                   </Text>
@@ -146,7 +148,7 @@ export default function DashboardScreen() {
                   <Ionicons name="arrow-up" size={18} color="#fff" />
                 </View>
                 <View>
-                  <Text className="text-xs text-white/70">Chi tiêu</Text>
+                  <Text className="text-xs text-white/70">{t("common.expense")}</Text>
                   <Text className="text-base font-semibold text-white">
                     {money(dashboard?.totalExpense)}
                   </Text>
@@ -160,7 +162,7 @@ export default function DashboardScreen() {
         {pieData.length > 0 && (
           <GlassCard className="p-5" style={{ marginTop: 20 }}>
             <Text className="mb-4 text-lg font-bold text-ink">
-              Chi tiêu theo danh mục
+              {t("dashboard.spendingByCategory")}
             </Text>
             <View className="flex-row items-center">
               <PieChart
@@ -171,7 +173,7 @@ export default function DashboardScreen() {
                 innerCircleColor={colors.surface}
                 centerLabelComponent={() => (
                   <View className="items-center">
-                    <Text className="text-xs text-muted">Tổng chi</Text>
+                    <Text className="text-xs text-muted">{t("dashboard.totalExpense")}</Text>
                     <Text className="text-sm font-bold text-ink">
                       {compact(dashboard?.totalExpense)}
                     </Text>
@@ -207,12 +209,12 @@ export default function DashboardScreen() {
 
         {/* Recent transactions */}
         <View className="mb-3 mt-6 flex-row items-center justify-between">
-          <Text className="text-lg font-bold text-ink">Giao dịch gần đây</Text>
+          <Text className="text-lg font-bold text-ink">{t("dashboard.recentTransactions")}</Text>
         </View>
         <GlassSurface radius={24} className="px-4">
           {recent.length === 0 ? (
             <Text className="py-8 text-center text-muted">
-              Chưa có giao dịch nào
+              {t("dashboard.noTransactions")}
             </Text>
           ) : (
             recent.map((item, i) => (

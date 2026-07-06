@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
@@ -21,16 +22,17 @@ import { colors } from "@/theme/colors";
 
 const PAGE_SIZE = 20;
 
-const FILTERS: { label: string; value?: TransactionType }[] = [
-  { label: "Tất cả", value: undefined },
-  { label: "Chi tiêu", value: TransactionType.Expense },
-  { label: "Thu nhập", value: TransactionType.Income },
-  { label: "Chuyển khoản", value: TransactionType.Transfer },
-];
-
 export default function TransactionsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const tx = TransactionFacade();
+
+  const filters: { label: string; value?: TransactionType }[] = [
+    { label: t("common.all"), value: undefined },
+    { label: t("common.enums.txType.expense"), value: TransactionType.Expense },
+    { label: t("common.enums.txType.income"), value: TransactionType.Income },
+    { label: t("common.enums.txType.transfer"), value: TransactionType.Transfer },
+  ];
 
   const [filter, setFilter] = useState<TransactionType | undefined>(undefined);
   const [search, setSearch] = useState("");
@@ -108,8 +110,8 @@ export default function TransactionsScreen() {
   return (
     <Screen className="px-5">
       <View className="mb-3 mt-2">
-        <Text className="text-2xl font-bold text-ink">Giao dịch</Text>
-        <Text className="text-sm text-muted">{total} giao dịch</Text>
+        <Text className="text-2xl font-bold text-ink">{t("transactions.title")}</Text>
+        <Text className="text-sm text-muted">{t("transactions.count", { count: total })}</Text>
       </View>
 
       {/* search */}
@@ -119,7 +121,7 @@ export default function TransactionsScreen() {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Tìm theo ghi chú, danh mục..."
+            placeholder={t("transactions.searchPlaceholder")}
             placeholderTextColor={colors.muted}
             selectionColor={colors.primary}
             className="ml-2 flex-1 text-base text-ink"
@@ -134,7 +136,7 @@ export default function TransactionsScreen() {
 
       {/* filters */}
       <View className="mb-3 flex-row flex-wrap gap-2">
-        {FILTERS.map((f) => {
+        {filters.map((f) => {
           const active = filter === f.value;
           return (
             <Pressable
@@ -181,7 +183,7 @@ export default function TransactionsScreen() {
             <GlassSurface radius={24} className="mt-8 items-center p-10">
               <Ionicons name="receipt-outline" size={40} color={colors.muted} />
               <Text className="mt-3 text-muted">
-                {debounced ? "Không tìm thấy giao dịch" : "Chưa có giao dịch nào"}
+                {debounced ? t("transactions.emptySearch") : t("transactions.empty")}
               </Text>
             </GlassSurface>
           ) : null

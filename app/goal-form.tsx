@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
@@ -17,6 +18,7 @@ import { colors } from "@/theme/colors";
 
 export default function GoalFormScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
   const isEdit = !!params.id;
   const facade = SavingsGoalFacade();
@@ -96,10 +98,10 @@ export default function GoalFormScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
         <Text className="text-lg font-bold text-ink">
-          {isEdit ? "Sửa mục tiêu" : "Mục tiêu mới"}
+          {isEdit ? t("goals.editTitle") : t("goals.newTitle")}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -125,17 +127,17 @@ export default function GoalFormScreen() {
         </View>
 
         <Input
-          label="Tên mục tiêu"
-          placeholder="VD: Mua laptop, Du lịch"
+          label={t("goals.name")}
+          placeholder={t("goals.namePlaceholder")}
           value={name}
           onChangeText={setName}
         />
 
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Số tiền mục tiêu</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("goals.targetAmount")}</Text>
         <GlassSurface radius={16}>
           <TextInput
             value={groupThousands(target)}
-            onChangeText={(t) => setTarget(onlyDigits(t))}
+            onChangeText={(v) => setTarget(onlyDigits(v))}
             keyboardType="number-pad"
             placeholder="0"
             placeholderTextColor={colors.muted}
@@ -145,12 +147,12 @@ export default function GoalFormScreen() {
         </GlassSurface>
 
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
-          Đã có sẵn (số dư ban đầu)
+          {t("goals.initialAmount")}
         </Text>
         <GlassSurface radius={16}>
           <TextInput
             value={groupThousands(current)}
-            onChangeText={(t) => setCurrent(onlyDigits(t))}
+            onChangeText={(v) => setCurrent(onlyDigits(v))}
             keyboardType="number-pad"
             placeholder="0"
             placeholderTextColor={colors.muted}
@@ -160,7 +162,7 @@ export default function GoalFormScreen() {
         </GlassSurface>
 
         <View className="mb-2 ml-1 mt-4 flex-row items-center justify-between">
-          <Text className="text-sm font-medium text-muted">Có thời hạn</Text>
+          <Text className="text-sm font-medium text-muted">{t("goals.hasDeadline")}</Text>
           <Switch
             value={hasDeadline}
             onValueChange={setHasDeadline}
@@ -170,7 +172,7 @@ export default function GoalFormScreen() {
         </View>
         {hasDeadline ? <DateField value={deadline} onChange={setDeadline} /> : null}
 
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Màu sắc</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("goals.color")}</Text>
         <View className="flex-row flex-wrap gap-3">
           {CATEGORY_FALLBACK_COLORS.map((c) => (
             <Pressable
@@ -188,7 +190,7 @@ export default function GoalFormScreen() {
           ))}
         </View>
 
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Biểu tượng</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("goals.icon")}</Text>
         <GlassSurface radius={20} className="p-3">
           <View className="flex-row flex-wrap gap-3">
             {CATEGORY_ICON_NAMES.map((ic) => {
@@ -217,16 +219,16 @@ export default function GoalFormScreen() {
         </GlassSurface>
 
         <View className="mt-4">
-          <Input label="Ghi chú" placeholder="Tuỳ chọn" value={note} onChangeText={setNote} />
+          <Input label={t("common.note")} placeholder={t("goals.notePlaceholder")} value={note} onChangeText={setNote} />
         </View>
 
         <View className="mt-8 gap-3">
           <Button
-            title={isEdit ? "Cập nhật" : "Tạo mục tiêu"}
+            title={isEdit ? t("goals.update") : t("goals.create")}
             onPress={onSave}
             loading={facade.isSubmitting}
           />
-          {isEdit && <Button title="Xoá mục tiêu" variant="danger" onPress={onDelete} />}
+          {isEdit && <Button title={t("goals.deleteGoal")} variant="danger" onPress={onDelete} />}
         </View>
       </ScrollView>
     </Screen>

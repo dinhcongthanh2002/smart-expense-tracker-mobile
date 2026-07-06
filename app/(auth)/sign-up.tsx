@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
@@ -27,6 +28,7 @@ interface Errors {
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { register, isSubmitting } = GlobalFacade();
 
   const [form, setForm] = useState({
@@ -43,14 +45,14 @@ export default function SignUpScreen() {
 
   const validate = (): boolean => {
     const e: Errors = {};
-    if (!form.name.trim()) e.name = "Vui lòng nhập họ tên";
+    if (!form.name.trim()) e.name = t("auth.errors.nameRequired");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Email không hợp lệ";
+      e.email = t("auth.errors.invalidEmail");
     if (form.phoneNumber && !/^\d{10}$/.test(form.phoneNumber))
-      e.phoneNumber = "Số điện thoại phải gồm 10 chữ số";
-    if (form.password.length < 6) e.password = "Mật khẩu tối thiểu 6 ký tự";
+      e.phoneNumber = t("auth.errors.phoneInvalid");
+    if (form.password.length < 6) e.password = t("auth.errors.passwordMin");
     if (form.confirmPassword !== form.password)
-      e.confirmPassword = "Mật khẩu xác nhận không khớp";
+      e.confirmPassword = t("auth.errors.confirmPasswordMismatch");
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -85,24 +87,24 @@ export default function SignUpScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="mb-6">
-            <Text className="text-3xl font-bold text-ink">Tạo tài khoản</Text>
+            <Text className="text-3xl font-bold text-ink">{t("auth.signUp.title")}</Text>
             <Text className="mt-2 text-base text-muted">
-              Bắt đầu quản lý chi tiêu của bạn
+              {t("auth.signUp.subtitle")}
             </Text>
           </View>
 
           <GlassCard className="gap-4 p-5">
             <Input
-              label="Họ và tên"
-              placeholder="Nguyễn Văn A"
+              label={t("auth.fields.name")}
+              placeholder={t("auth.placeholders.name")}
               value={form.name}
               onChangeText={set("name")}
               error={errors.name}
               leftIcon={<Ionicons name="person-outline" size={20} color={colors.muted} />}
             />
             <Input
-              label="Email"
-              placeholder="email@example.com"
+              label={t("auth.fields.email")}
+              placeholder={t("auth.placeholders.email")}
               autoCapitalize="none"
               keyboardType="email-address"
               value={form.email}
@@ -111,8 +113,8 @@ export default function SignUpScreen() {
               leftIcon={<Ionicons name="mail-outline" size={20} color={colors.muted} />}
             />
             <Input
-              label="Số điện thoại (tuỳ chọn)"
-              placeholder="0987654321"
+              label={t("auth.fields.phoneOptional")}
+              placeholder={t("auth.placeholders.phone")}
               keyboardType="number-pad"
               maxLength={10}
               value={form.phoneNumber}
@@ -121,8 +123,8 @@ export default function SignUpScreen() {
               leftIcon={<Ionicons name="call-outline" size={20} color={colors.muted} />}
             />
             <Input
-              label="Mật khẩu"
-              placeholder="Tối thiểu 6 ký tự"
+              label={t("auth.fields.password")}
+              placeholder={t("auth.placeholders.passwordMin")}
               secureTextEntry
               autoCapitalize="none"
               value={form.password}
@@ -131,8 +133,8 @@ export default function SignUpScreen() {
               leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.muted} />}
             />
             <Input
-              label="Xác nhận mật khẩu"
-              placeholder="Nhập lại mật khẩu"
+              label={t("auth.fields.confirmPassword")}
+              placeholder={t("auth.placeholders.confirmPassword")}
               secureTextEntry
               autoCapitalize="none"
               value={form.confirmPassword}
@@ -142,7 +144,7 @@ export default function SignUpScreen() {
             />
 
             <Button
-              title="Đăng ký"
+              title={t("auth.actions.signUp")}
               onPress={onSubmit}
               loading={isSubmitting}
               className="mt-2"
@@ -150,10 +152,10 @@ export default function SignUpScreen() {
           </GlassCard>
 
           <View className="mt-6 flex-row items-center justify-center gap-1">
-            <Text className="text-muted">Đã có tài khoản?</Text>
+            <Text className="text-muted">{t("auth.links.hasAccount")}</Text>
             <Link href="/(auth)/sign-in" asChild>
               <Pressable hitSlop={8}>
-                <Text className="font-semibold text-primary">Đăng nhập</Text>
+                <Text className="font-semibold text-primary">{t("auth.actions.signIn")}</Text>
               </Pressable>
             </Link>
           </View>

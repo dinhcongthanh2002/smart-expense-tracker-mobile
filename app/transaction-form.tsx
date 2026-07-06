@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
@@ -26,22 +27,29 @@ import { CategoryPickerSheet } from "@/components/CategoryPickerSheet";
 import { CategoryFacade } from "@/store/category";
 import { TransactionFacade } from "@/store/transaction";
 import { WalletFacade } from "@/store/wallet";
-import { WALLET_TYPE_META } from "@/store/wallet/model";
 import type { AttachmentViewModel } from "@/store/user/model";
-import { TransactionType } from "@/models/enums";
+import { TransactionType, WalletType } from "@/models/enums";
+
+const WALLET_TYPE_KEY: Record<WalletType, string> = {
+  [WalletType.Cash]: "cash",
+  [WalletType.Bank]: "bank",
+  [WalletType.EWallet]: "ewallet",
+  [WalletType.Other]: "other",
+};
 import { groupThousands, onlyDigits } from "@/lib/format";
 import { uploadImageAsync, resolveFileUrl } from "@/lib/upload";
 import { notify } from "@/lib/notify";
 import { colors } from "@/theme/colors";
 
 const TYPE_TABS = [
-  { label: "Chi tiêu", value: TransactionType.Expense },
-  { label: "Thu nhập", value: TransactionType.Income },
-  { label: "Chuyển khoản", value: TransactionType.Transfer },
+  { labelKey: "common.enums.txType.expense", value: TransactionType.Expense },
+  { labelKey: "common.enums.txType.income", value: TransactionType.Income },
+  { labelKey: "common.enums.txType.transfer", value: TransactionType.Transfer },
 ];
 
 export default function TransactionFormScreen() {
   const router = useRouter();
+  const { t: translate } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
   const isEdit = !!params.id;
   const category = CategoryFacade();
@@ -92,9 +100,9 @@ export default function TransactionFormScreen() {
       wallets.map((w) => ({
         value: w.id!,
         label: w.name ?? "",
-        sublabel: `${WALLET_TYPE_META[w.type].label} · ${w.currency}`,
+        sublabel: `${translate("common.enums.walletType." + WALLET_TYPE_KEY[w.type])} · ${w.currency}`,
       })),
-    [wallets],
+    [wallets, translate],
   );
 
   const onType = (t: TransactionType) => {
@@ -103,10 +111,10 @@ export default function TransactionFormScreen() {
   };
 
   const chooseReceiptSource = () => {
-    Alert.alert("Ảnh hóa đơn / biên lai", "Chọn nguồn ảnh", [
-      { text: "Chụp ảnh", onPress: () => pickReceipt("camera") },
-      { text: "Chọn từ thư viện", onPress: () => pickReceipt("library") },
-      { text: "Huỷ", style: "cancel" },
+    Alert.alert(translate("transactionForm.receipt"), translate("transactionForm.receiptSource"), [
+      { text: translate("transactionForm.takePhoto"), onPress: () => pickReceipt("camera") },
+      { text: translate("transactionForm.chooseLibrary"), onPress: () => pickReceipt("library") },
+      { text: translate("common.cancel"), style: "cancel" },
     ]);
   };
 
@@ -115,7 +123,7 @@ export default function TransactionFormScreen() {
     if (source === "camera") {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) {
-        notify.error("Cần cấp quyền camera để chụp ảnh");
+        notify.error(translate("transactionForm.cameraPermission"));
         return;
       }
       res = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.7 });
@@ -188,10 +196,10 @@ export default function TransactionFormScreen() {
       >
         <View className="mb-2 mt-1 flex-row items-center justify-between">
           <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Text className="text-base text-muted">Huỷ</Text>
+            <Text className="text-base text-muted">{translate("common.cancel")}</Text>
           </Pressable>
           <Text className="text-lg font-bold text-ink">
-            {isEdit ? "Sửa giao dịch" : "Giao dịch mới"}
+            {isEdit ? translate("transactionForm.editTitle") : translate("transactionForm.newTitle")}
           </Text>
           <View style={{ width: 40 }} />
         </View>
@@ -212,7 +220,7 @@ export default function TransactionFormScreen() {
                   className={`flex-1 items-center rounded-xl py-2.5 ${active ? "bg-primary" : ""}`}
                 >
                   <Text className={`text-[13px] font-semibold ${active ? "text-white" : "text-muted"}`}>
-                    {t.label}
+                    {translate(t.labelKey)}
                   </Text>
                 </Pressable>
               );
@@ -221,7 +229,7 @@ export default function TransactionFormScreen() {
 
           {/* amount */}
           <GlassSurface radius={20} className="items-center py-6" style={{ marginVertical: 12 }}>
-            <Text className="text-sm text-muted">Số tiền</Text>
+            <Text className="text-sm text-muted">{translate("common.amount")}</Text>
             <TextInput
               value={groupThousands(amount)}
               onChangeText={(t) => setAmount(onlyDigits(t))}
@@ -232,13 +240,13 @@ export default function TransactionFormScreen() {
               className="mt-1 text-center text-4xl font-bold text-ink"
               style={{ minWidth: 160 }}
             />
-            <Text className="text-sm text-muted">VND</Text>
+            <Text className="text-sm text-muted">{translate("transactionForm.currency")}</Text>
           </GlassSurface>
 
           {/* category (hidden for transfer) */}
           {!isTransfer ? (
             <>
-              <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">Danh mục</Text>
+              <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{translate("common.category")}</Text>
               <Pressable onPress={() => setPickerOpen(true)}>
                 <GlassSurface radius={16}>
                   <View className="h-14 flex-row items-center gap-3 px-4">
@@ -254,7 +262,7 @@ export default function TransactionFormScreen() {
                         </Text>
                       </>
                     ) : (
-                      <Text className="flex-1 text-base text-muted">Chọn danh mục</Text>
+                      <Text className="flex-1 text-base text-muted">{translate("transactionForm.selectCategory")}</Text>
                     )}
                     <Ionicons name="chevron-down" size={18} color={colors.muted} />
                   </View>
@@ -265,45 +273,45 @@ export default function TransactionFormScreen() {
 
           {/* source wallet */}
           <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
-            {isTransfer ? "Ví nguồn" : "Ví / Tài khoản"}
+            {isTransfer ? translate("transactionForm.sourceWallet") : translate("transactionForm.wallet")}
           </Text>
           <SelectField
-            placeholder="Chọn ví"
-            title="Chọn ví"
+            placeholder={translate("transactionForm.selectWallet")}
+            title={translate("transactionForm.selectWallet")}
             value={walletId}
             options={walletOptions}
             onChange={setWalletId}
             allowClear={!isTransfer}
-            emptyText="Chưa có ví. Tạo ở tab Ví."
+            emptyText={translate("transactionForm.noWallet")}
           />
 
           {/* destination wallet (transfer) */}
           {isTransfer ? (
             <>
-              <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ví đích</Text>
+              <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{translate("transactionForm.destWallet")}</Text>
               <SelectField
-                placeholder="Chọn ví nhận"
-                title="Ví đích"
+                placeholder={translate("transactionForm.selectReceiveWallet")}
+                title={translate("transactionForm.destWallet")}
                 value={toWalletId}
                 options={walletOptions.filter((o) => o.value !== walletId)}
                 onChange={setToWalletId}
                 allowClear={false}
-                emptyText="Chưa có ví khác."
+                emptyText={translate("transactionForm.noOtherWallet")}
               />
             </>
           ) : null}
 
           {/* date */}
-          <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ngày giao dịch</Text>
+          <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{translate("transactionForm.transactionDate")}</Text>
           <DateField value={date} onChange={setDate} maximumDate={new Date()} />
 
           {/* note */}
-          <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ghi chú</Text>
+          <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{translate("common.note")}</Text>
           <GlassSurface radius={16}>
             <TextInput
               value={note}
               onChangeText={setNote}
-              placeholder="Nhập ghi chú (tuỳ chọn)"
+              placeholder={translate("transactionForm.notePlaceholder")}
               placeholderTextColor={colors.muted}
               selectionColor={colors.primary}
               multiline
@@ -314,7 +322,7 @@ export default function TransactionFormScreen() {
 
           {/* receipt */}
           <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
-            Ảnh hóa đơn / biên lai
+            {translate("transactionForm.receipt")}
           </Text>
           {receipt ? (
             <GlassSurface radius={16} className="flex-row items-center gap-3 p-3">
@@ -324,7 +332,7 @@ export default function TransactionFormScreen() {
                 contentFit="cover"
               />
               <Text className="flex-1 text-sm text-ink" numberOfLines={1}>
-                {receipt.fileName ?? "Ảnh biên lai"}
+                {receipt.fileName ?? translate("transactionForm.receiptFallback")}
               </Text>
               <Pressable
                 onPress={() => setReceipt(undefined)}
@@ -344,7 +352,7 @@ export default function TransactionFormScreen() {
                     <Ionicons name="camera-outline" size={20} color={colors.primarySoft} />
                   )}
                   <Text className="font-medium text-primarySoft">
-                    {uploading ? "Đang tải..." : "Thêm ảnh biên lai"}
+                    {uploading ? translate("common.loading") : translate("transactionForm.addReceipt")}
                   </Text>
                 </View>
               </GlassSurface>
@@ -352,9 +360,9 @@ export default function TransactionFormScreen() {
           )}
 
           <View className="mt-8 gap-3">
-            <Button title="Lưu giao dịch" onPress={onSave} loading={tx.isSubmitting} />
+            <Button title={translate("transactionForm.save")} onPress={onSave} loading={tx.isSubmitting} />
             {isEdit ? (
-              <Button title="Xoá giao dịch" variant="danger" onPress={onDelete} />
+              <Button title={translate("transactionForm.delete")} variant="danger" onPress={onDelete} />
             ) : null}
           </View>
         </ScrollView>

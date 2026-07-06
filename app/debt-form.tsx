@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import dayjs from "dayjs";
@@ -16,7 +17,14 @@ import { colors } from "@/theme/colors";
 
 const TYPES = [DebtType.Borrow, DebtType.Lend];
 
+// Maps debt enum values to shared enum-label keys (common.enums.debtType.*).
+const DEBT_TYPE_KEY: Record<DebtType, string> = {
+  [DebtType.Borrow]: "borrow",
+  [DebtType.Lend]: "lend",
+};
+
 export default function DebtFormScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const debt = DebtFacade();
 
@@ -57,9 +65,9 @@ export default function DebtFormScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Khoản nợ mới</Text>
+        <Text className="text-lg font-bold text-ink">{t("debts.newTitle")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -69,15 +77,15 @@ export default function DebtFormScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* type */}
-        <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">Loại</Text>
+        <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{t("debts.typeLabel")}</Text>
         <View className="flex-row gap-2">
-          {TYPES.map((t) => {
-            const active = type === t;
-            const meta = DEBT_TYPE_META[t];
+          {TYPES.map((opt) => {
+            const active = type === opt;
+            const meta = DEBT_TYPE_META[opt];
             return (
               <Pressable
-                key={t}
-                onPress={() => setType(t)}
+                key={opt}
+                onPress={() => setType(opt)}
                 className="flex-1 items-center rounded-2xl py-3"
                 style={{
                   backgroundColor: active ? `${meta.color}26` : "rgba(255,255,255,0.06)",
@@ -89,10 +97,10 @@ export default function DebtFormScreen() {
                   className="font-semibold"
                   style={{ color: active ? meta.color : colors.muted }}
                 >
-                  {meta.label}
+                  {t("common.enums.debtType." + DEBT_TYPE_KEY[opt])}
                 </Text>
                 <Text className="mt-0.5 text-[11px] text-muted">
-                  {t === DebtType.Borrow ? "Mình nợ người khác" : "Người khác nợ mình"}
+                  {opt === DebtType.Borrow ? t("debts.borrowHint") : t("debts.lendHint")}
                 </Text>
               </Pressable>
             );
@@ -101,15 +109,15 @@ export default function DebtFormScreen() {
 
         <View className="mt-4">
           <Input
-            label={type === DebtType.Borrow ? "Chủ nợ (vay của ai)" : "Con nợ (cho ai vay)"}
-            placeholder="Tên người"
+            label={type === DebtType.Borrow ? t("debts.creditorLabel") : t("debts.debtorLabel")}
+            placeholder={t("debts.personPlaceholder")}
             value={personName}
             onChangeText={setPersonName}
           />
         </View>
 
         {/* amount */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Số tiền</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("common.amount")}</Text>
         <GlassSurface radius={16}>
           <TextInput
             value={groupThousands(totalAmount)}
@@ -124,7 +132,7 @@ export default function DebtFormScreen() {
 
         {/* interest */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
-          Lãi suất %/năm (tuỳ chọn)
+          {t("debts.interestFieldLabel")}
         </Text>
         <GlassSurface radius={16}>
           <TextInput
@@ -139,12 +147,12 @@ export default function DebtFormScreen() {
         </GlassSurface>
 
         {/* start date */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ngày bắt đầu</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("debts.startDate")}</Text>
         <DateField value={startDate} onChange={setStartDate} />
 
         {/* due date */}
         <View className="mb-2 ml-1 mt-4 flex-row items-center justify-between">
-          <Text className="text-sm font-medium text-muted">Có hạn trả</Text>
+          <Text className="text-sm font-medium text-muted">{t("debts.hasDueDate")}</Text>
           <Switch
             value={hasDueDate}
             onValueChange={setHasDueDate}
@@ -157,12 +165,12 @@ export default function DebtFormScreen() {
         ) : null}
 
         {/* note */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ghi chú</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("common.note")}</Text>
         <GlassSurface radius={16}>
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Tuỳ chọn"
+            placeholder={t("debts.notePlaceholder")}
             placeholderTextColor={colors.muted}
             selectionColor={colors.primary}
             multiline
@@ -172,7 +180,7 @@ export default function DebtFormScreen() {
         </GlassSurface>
 
         <View className="mt-8">
-          <Button title="Tạo khoản nợ" onPress={onSave} loading={debt.isSubmitting} />
+          <Button title={t("debts.create")} onPress={onSave} loading={debt.isSubmitting} />
         </View>
       </ScrollView>
     </Screen>

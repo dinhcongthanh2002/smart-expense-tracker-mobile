@@ -1,5 +1,6 @@
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { TransactionRow } from "./TransactionRow";
@@ -12,12 +13,13 @@ interface Props {
   onDelete: () => void;
 }
 
-/** Transaction card with swipe-left actions: Sửa + Xoá. */
+/** Transaction card with swipe-left actions: edit + delete. */
 export function SwipeableTransactionRow({ tx, onEdit, onDelete }: Props) {
+  const { t } = useTranslation();
   const confirmDelete = () => {
-    Alert.alert("Xoá giao dịch", "Bạn chắc chắn muốn xoá giao dịch này?", [
-      { text: "Huỷ", style: "cancel" },
-      { text: "Xoá", style: "destructive", onPress: onDelete },
+    Alert.alert(t("transactions.deleteTitle"), t("transactions.deleteConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.delete"), style: "destructive", onPress: onDelete },
     ]);
   };
 
@@ -34,7 +36,7 @@ export function SwipeableTransactionRow({ tx, onEdit, onDelete }: Props) {
             style={{ backgroundColor: colors.primary }}
           >
             <Ionicons name="create-outline" size={20} color="#fff" />
-            <Text className="mt-1 text-xs font-semibold text-white">Sửa</Text>
+            <Text className="mt-1 text-xs font-semibold text-white">{t("common.edit")}</Text>
           </Pressable>
           <Pressable
             onPress={confirmDelete}
@@ -42,7 +44,7 @@ export function SwipeableTransactionRow({ tx, onEdit, onDelete }: Props) {
             style={{ backgroundColor: colors.expense }}
           >
             <Ionicons name="trash-outline" size={20} color="#fff" />
-            <Text className="mt-1 text-xs font-semibold text-white">Xoá</Text>
+            <Text className="mt-1 text-xs font-semibold text-white">{t("common.delete")}</Text>
           </Pressable>
         </View>
       )}

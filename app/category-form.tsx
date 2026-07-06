@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,11 +20,12 @@ import {
 import { colors } from "@/theme/colors";
 
 const TYPE_TABS = [
-  { label: "Chi tiêu", value: TransactionType.Expense },
-  { label: "Thu nhập", value: TransactionType.Income },
+  { key: "expense", value: TransactionType.Expense },
+  { key: "income", value: TransactionType.Income },
 ];
 
 export default function CategoryFormScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{
     id?: string;
@@ -106,10 +108,14 @@ export default function CategoryFormScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
         <Text className="text-lg font-bold text-ink">
-          {isEdit ? "Sửa danh mục" : isChild ? "Danh mục con" : "Danh mục mới"}
+          {isEdit
+            ? t("categories.editTitle")
+            : isChild
+              ? t("categories.childTitle")
+              : t("categories.newTitle")}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -136,15 +142,15 @@ export default function CategoryFormScreen() {
         </View>
 
         <Input
-          label="Tên danh mục"
-          placeholder="VD: Ăn uống"
+          label={t("categories.name")}
+          placeholder={t("categories.namePlaceholder")}
           value={name}
           onChangeText={setName}
         />
 
         {/* Parent category */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
-          Danh mục cha (tuỳ chọn)
+          {t("categories.parentLabel")}
         </Text>
         <ScrollView
           horizontal
@@ -158,7 +164,7 @@ export default function CategoryFormScreen() {
             }`}
           >
             <Text className={!parentId ? "font-semibold text-primary" : "text-muted"}>
-              — Cấp cha —
+              {t("categories.topLevelOption")}
             </Text>
           </Pressable>
           {parentOptions.map((p) => {
@@ -188,23 +194,23 @@ export default function CategoryFormScreen() {
           <View className="mt-4 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-4 py-3">
             <Ionicons name="git-branch-outline" size={18} color={colors.muted} />
             <Text className="text-sm text-muted">
-              Danh mục con — loại kế thừa từ danh mục cha
+              {t("categories.childInheritType")}
             </Text>
           </View>
         ) : (
           <>
-            <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Loại</Text>
+            <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("categories.typeLabel")}</Text>
             <GlassSurface radius={16} className="flex-row p-1">
-              {TYPE_TABS.map((t) => {
-                const active = type === t.value;
+              {TYPE_TABS.map((opt) => {
+                const active = type === opt.value;
                 return (
                   <Pressable
-                    key={t.value}
-                    onPress={() => setType(t.value)}
+                    key={opt.value}
+                    onPress={() => setType(opt.value)}
                     className={`flex-1 items-center rounded-xl py-2.5 ${active ? "bg-primary" : ""}`}
                   >
                     <Text className={`font-semibold ${active ? "text-white" : "text-muted"}`}>
-                      {t.label}
+                      {t("common.enums.txType." + opt.key)}
                     </Text>
                   </Pressable>
                 );
@@ -214,7 +220,7 @@ export default function CategoryFormScreen() {
         )}
 
         {/* Color */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Màu sắc</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("categories.color")}</Text>
         <View className="flex-row flex-wrap gap-3">
           {CATEGORY_FALLBACK_COLORS.map((c) => (
             <Pressable
@@ -233,7 +239,7 @@ export default function CategoryFormScreen() {
         </View>
 
         {/* Icon */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Biểu tượng</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("categories.icon")}</Text>
         <GlassSurface radius={20} className="p-3">
           <View className="flex-row flex-wrap gap-3">
             {CATEGORY_ICON_NAMES.map((ic) => {
@@ -267,12 +273,12 @@ export default function CategoryFormScreen() {
 
         <View className="mt-8 gap-3">
           <Button
-            title={isEdit ? "Cập nhật" : "Tạo danh mục"}
+            title={isEdit ? t("categories.update") : t("categories.create")}
             onPress={onSave}
             loading={facade.isSubmitting}
           />
           {isEdit && (
-            <Button title="Xoá danh mục" variant="danger" onPress={onDelete} />
+            <Button title={t("categories.deleteCategory")} variant="danger" onPress={onDelete} />
           )}
         </View>
       </ScrollView>

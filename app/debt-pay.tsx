@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
@@ -12,6 +13,7 @@ import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
 export default function DebtPayScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const debt = DebtFacade();
@@ -43,15 +45,15 @@ export default function DebtPayScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Ghi nhận thanh toán</Text>
+        <Text className="text-lg font-bold text-ink">{t("debts.recordPayment")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-10" keyboardShouldPersistTaps="handled">
         <GlassSurface radius={20} className="items-center py-6" style={{ marginVertical: 12 }}>
-          <Text className="text-sm text-muted">Số tiền thanh toán</Text>
+          <Text className="text-sm text-muted">{t("debts.payAmount")}</Text>
           <TextInput
             value={groupThousands(amount)}
             onChangeText={(t) => setAmount(onlyDigits(t))}
@@ -68,20 +70,20 @@ export default function DebtPayScreen() {
             className="mt-3 rounded-full bg-white/[0.08] px-4 py-2 active:opacity-70"
           >
             <Text className="text-sm font-medium text-primarySoft">
-              Trả hết ({formatCurrency(remaining)})
+              {t("debts.payAll", { amount: formatCurrency(remaining) })}
             </Text>
           </Pressable>
         </GlassSurface>
 
-        <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">Ngày thanh toán</Text>
+        <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{t("debts.payDate")}</Text>
         <DateField value={date} onChange={setDate} maximumDate={new Date()} />
 
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ghi chú</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("common.note")}</Text>
         <GlassSurface radius={16}>
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Tuỳ chọn"
+            placeholder={t("debts.notePlaceholder")}
             placeholderTextColor={colors.muted}
             selectionColor={colors.primary}
             multiline
@@ -91,7 +93,7 @@ export default function DebtPayScreen() {
         </GlassSurface>
 
         <View className="mt-8">
-          <Button title="Xác nhận thanh toán" onPress={onSave} loading={debt.isSubmitting} />
+          <Button title={t("debts.confirmPayment")} onPress={onSave} loading={debt.isSubmitting} />
         </View>
       </ScrollView>
     </Screen>

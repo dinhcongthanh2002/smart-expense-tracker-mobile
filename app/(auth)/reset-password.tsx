@@ -2,6 +2,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
@@ -19,6 +20,7 @@ interface Errors {
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ email?: string }>();
   const { resetPassword, forgotPassword, isSubmitting } = GlobalFacade();
 
@@ -30,10 +32,10 @@ export default function ResetPasswordScreen() {
 
   const validate = () => {
     const e: Errors = {};
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email không hợp lệ";
-    if (token.trim().length < 4) e.token = "Nhập mã xác nhận";
-    if (newPassword.length < 6) e.newPassword = "Mật khẩu tối thiểu 6 ký tự";
-    if (confirmPassword !== newPassword) e.confirmPassword = "Mật khẩu không khớp";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t("auth.errors.invalidEmail");
+    if (token.trim().length < 4) e.token = t("auth.errors.tokenRequired");
+    if (newPassword.length < 6) e.newPassword = t("auth.errors.passwordMin");
+    if (confirmPassword !== newPassword) e.confirmPassword = t("auth.errors.passwordMismatch");
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -75,16 +77,16 @@ export default function ResetPasswordScreen() {
             <View className="mb-4 h-20 w-20 items-center justify-center rounded-3xl bg-primary/20">
               <Ionicons name="shield-checkmark" size={40} color={colors.primary} />
             </View>
-            <Text className="text-2xl font-bold text-ink">Đặt lại mật khẩu</Text>
+            <Text className="text-2xl font-bold text-ink">{t("auth.resetPassword.title")}</Text>
             <Text className="mt-2 px-4 text-center text-base text-muted">
-              Nhập mã 6 chữ số đã gửi tới email và mật khẩu mới
+              {t("auth.resetPassword.subtitle")}
             </Text>
           </View>
 
           <GlassCard className="gap-4 p-5">
             <Input
-              label="Email"
-              placeholder="email@example.com"
+              label={t("auth.fields.email")}
+              placeholder={t("auth.placeholders.email")}
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
@@ -93,7 +95,7 @@ export default function ResetPasswordScreen() {
               leftIcon={<Ionicons name="mail-outline" size={20} color={colors.muted} />}
             />
             <Input
-              label="Mã xác nhận"
+              label={t("auth.fields.resetCode")}
               placeholder="123456"
               keyboardType="number-pad"
               maxLength={6}
@@ -103,8 +105,8 @@ export default function ResetPasswordScreen() {
               leftIcon={<Ionicons name="key-outline" size={20} color={colors.muted} />}
             />
             <Input
-              label="Mật khẩu mới"
-              placeholder="Tối thiểu 6 ký tự"
+              label={t("auth.fields.newPassword")}
+              placeholder={t("auth.placeholders.passwordMin")}
               secureTextEntry
               autoCapitalize="none"
               value={newPassword}
@@ -113,8 +115,8 @@ export default function ResetPasswordScreen() {
               leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.muted} />}
             />
             <Input
-              label="Xác nhận mật khẩu"
-              placeholder="Nhập lại mật khẩu"
+              label={t("auth.fields.confirmPassword")}
+              placeholder={t("auth.placeholders.confirmPassword")}
               secureTextEntry
               autoCapitalize="none"
               value={confirmPassword}
@@ -123,7 +125,7 @@ export default function ResetPasswordScreen() {
               leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.muted} />}
             />
             <Button
-              title="Đặt lại mật khẩu"
+              title={t("auth.actions.resetPassword")}
               onPress={onSubmit}
               loading={isSubmitting}
               className="mt-2"
@@ -131,9 +133,9 @@ export default function ResetPasswordScreen() {
           </GlassCard>
 
           <View className="mt-6 flex-row items-center justify-center gap-1">
-            <Text className="text-muted">Chưa nhận được mã?</Text>
+            <Text className="text-muted">{t("auth.links.noCode")}</Text>
             <Pressable onPress={() => email.trim() && forgotPassword(email.trim())} hitSlop={8}>
-              <Text className="font-semibold text-primary">Gửi lại</Text>
+              <Text className="font-semibold text-primary">{t("auth.links.resend")}</Text>
             </Pressable>
           </View>
         </ScrollView>

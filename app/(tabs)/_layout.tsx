@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { useTranslation } from "react-i18next";
 
 import { colors } from "@/theme/colors";
 
@@ -15,26 +16,27 @@ const legacyBlurEffect =
  * older iOS gets a dark blur material so it isn't transparent.
  */
 export default function TabsLayout() {
+  const { t } = useTranslation();
   return (
     <NativeTabs tintColor={colors.primary} blurEffect={legacyBlurEffect}>
       <NativeTabs.Trigger name="index">
-        <Label>Tổng quan</Label>
+        <Label>{t("tabs.dashboard")}</Label>
         <Icon sf="chart.pie.fill" drawable="ic_dashboard" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="transactions">
-        <Label>Giao dịch</Label>
+        <Label>{t("tabs.transactions")}</Label>
         <Icon sf="list.bullet.rectangle.fill" drawable="ic_list" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="budgets">
-        <Label>Ngân sách</Label>
+        <Label>{t("tabs.budgets")}</Label>
         <Icon sf="chart.bar.fill" drawable="ic_budget" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="wallets">
-        <Label>Ví</Label>
+        <Label>{t("tabs.wallets")}</Label>
         <Icon sf="creditcard.fill" drawable="ic_wallet" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
-        <Label>Cá nhân</Label>
+        <Label>{t("tabs.profile")}</Label>
         <Icon sf="person.crop.circle.fill" drawable="ic_person" />
       </NativeTabs.Trigger>
     </NativeTabs>

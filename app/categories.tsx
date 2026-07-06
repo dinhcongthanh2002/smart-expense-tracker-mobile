@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import Animated, {
   FadeIn,
@@ -64,6 +65,7 @@ function ParentCard({
   onEditChild: (c: CategoryViewModel) => void;
   onAddChild: () => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
   const count = items.length;
 
@@ -83,7 +85,7 @@ function ParentCard({
               {parent.name}
             </Text>
             <Text className="mt-0.5 text-xs text-muted">
-              {count > 0 ? `${count} danh mục con` : "Chưa có danh mục con"}
+              {count > 0 ? t("categories.childCount", { count }) : t("categories.noChildren")}
             </Text>
           </View>
           <Chevron open={open} />
@@ -108,7 +110,7 @@ function ParentCard({
               <Ionicons name="add" size={18} color={colors.primarySoft} />
             </View>
             <Text className="text-[15px] font-medium text-primarySoft">
-              Thêm danh mục con
+              {t("categories.addChild")}
             </Text>
           </Pressable>
         </Animated.View>
@@ -118,11 +120,12 @@ function ParentCard({
 }
 
 const TYPES = [
-  { label: "Chi tiêu", value: TransactionType.Expense },
-  { label: "Thu nhập", value: TransactionType.Income },
+  { key: "expense", value: TransactionType.Expense },
+  { key: "income", value: TransactionType.Income },
 ];
 
 export default function CategoriesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const category = CategoryFacade();
   const [type, setType] = useState<TransactionType>(TransactionType.Expense);
@@ -164,7 +167,7 @@ export default function CategoriesScreen() {
           >
             <Ionicons name="chevron-back" size={26} color={colors.ink} />
           </Pressable>
-          <Text className="text-lg font-bold text-ink">Danh mục</Text>
+          <Text className="text-lg font-bold text-ink">{t("categories.title")}</Text>
           <Pressable
             onPress={() => goForm({ type: String(type) })}
             className="h-10 w-10 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
@@ -175,18 +178,18 @@ export default function CategoriesScreen() {
 
         {/* type toggle */}
         <View className="mb-5 flex-row rounded-2xl bg-white/[0.06] p-1">
-          {TYPES.map((t) => {
-            const active = type === t.value;
+          {TYPES.map((opt) => {
+            const active = type === opt.value;
             return (
               <Pressable
-                key={t.value}
-                onPress={() => setType(t.value)}
+                key={opt.value}
+                onPress={() => setType(opt.value)}
                 className={`flex-1 items-center rounded-xl py-2.5 ${active ? "bg-primary" : ""}`}
               >
                 <Text
                   className={`font-semibold ${active ? "text-white" : "text-muted"}`}
                 >
-                  {t.label}
+                  {t("common.enums.txType." + opt.key)}
                 </Text>
               </Pressable>
             );
@@ -196,12 +199,12 @@ export default function CategoriesScreen() {
         {topLevel.length === 0 && !category.isLoading ? (
           <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 24 }}>
             <Ionicons name="albums-outline" size={40} color={colors.muted} />
-            <Text className="mt-3 text-muted">Chưa có danh mục nào</Text>
+            <Text className="mt-3 text-muted">{t("categories.empty")}</Text>
             <Pressable
               onPress={() => goForm({ type: String(type) })}
               className="mt-4 rounded-full bg-primary px-5 py-2.5 active:opacity-80"
             >
-              <Text className="font-semibold text-white">Tạo danh mục</Text>
+              <Text className="font-semibold text-white">{t("categories.create")}</Text>
             </Pressable>
           </GlassSurface>
         ) : (

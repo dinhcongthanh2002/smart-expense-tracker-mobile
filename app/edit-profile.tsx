@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -26,12 +27,6 @@ import { notify } from "@/lib/notify";
 import { Gender } from "@/models/enums";
 import { colors } from "@/theme/colors";
 
-const GENDER_OPTIONS = [
-  { value: String(Gender.Male), label: "Nam" },
-  { value: String(Gender.Female), label: "Nữ" },
-  { value: String(Gender.Unknown), label: "Khác" },
-];
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View className="mt-4">
@@ -43,8 +38,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, updateProfile, updateAvatar, isSubmitting } = GlobalFacade();
   const u = user?.userModel;
+
+  const GENDER_OPTIONS = [
+    { value: String(Gender.Male), label: t("common.enums.gender.male") },
+    { value: String(Gender.Female), label: t("common.enums.gender.female") },
+    { value: String(Gender.Unknown), label: t("common.enums.gender.unknown") },
+  ];
 
   const [name, setName] = useState(u?.name ?? "");
   const [userName, setUserName] = useState(u?.userName ?? "");
@@ -60,10 +62,10 @@ export default function EditProfileScreen() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const chooseAvatarSource = () => {
-    Alert.alert("Ảnh đại diện", "Chọn nguồn ảnh", [
-      { text: "Chụp ảnh", onPress: () => pickAvatar("camera") },
-      { text: "Chọn từ thư viện", onPress: () => pickAvatar("library") },
-      { text: "Huỷ", style: "cancel" },
+    Alert.alert(t("editProfile.avatarTitle"), t("editProfile.avatarMessage"), [
+      { text: t("editProfile.takePhoto"), onPress: () => pickAvatar("camera") },
+      { text: t("editProfile.chooseLibrary"), onPress: () => pickAvatar("library") },
+      { text: t("common.cancel"), style: "cancel" },
     ]);
   };
 
@@ -72,7 +74,7 @@ export default function EditProfileScreen() {
     if (source === "camera") {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) {
-        notify.error("Cần cấp quyền camera để chụp ảnh");
+        notify.error(t("editProfile.cameraPermission"));
         return;
       }
       res = await ImagePicker.launchCameraAsync({
@@ -112,7 +114,7 @@ export default function EditProfileScreen() {
   const onSave = async () => {
     if (!u?.id) return;
     if (!name.trim()) {
-      notify.error("Vui lòng nhập họ tên");
+      notify.error(t("editProfile.nameRequired"));
       return;
     }
     try {
@@ -138,9 +140,9 @@ export default function EditProfileScreen() {
       >
         <View className="mb-2 mt-1 flex-row items-center justify-between">
           <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Text className="text-base text-muted">Huỷ</Text>
+            <Text className="text-base text-muted">{t("common.cancel")}</Text>
           </Pressable>
-          <Text className="text-lg font-bold text-ink">Chỉnh sửa hồ sơ</Text>
+          <Text className="text-lg font-bold text-ink">{t("editProfile.title")}</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -165,15 +167,15 @@ export default function EditProfileScreen() {
                 <Ionicons name="camera" size={16} color="#fff" />
               </View>
             </Pressable>
-            <Text className="mt-3 text-sm text-muted">Chạm để đổi ảnh đại diện</Text>
+            <Text className="mt-3 text-sm text-muted">{t("editProfile.changeAvatar")}</Text>
           </View>
 
-          <Field label="Họ và tên">
+          <Field label={t("editProfile.fields.name")}>
             <GlassSurface radius={16}>
               <TextInput
                 value={name}
                 onChangeText={setName}
-                placeholder="Nhập họ tên"
+                placeholder={t("editProfile.placeholders.name")}
                 placeholderTextColor={colors.muted}
                 selectionColor={colors.primary}
                 className="h-14 px-4 text-base text-ink"
@@ -181,12 +183,12 @@ export default function EditProfileScreen() {
             </GlassSurface>
           </Field>
 
-          <Field label="Tên đăng nhập">
+          <Field label={t("editProfile.fields.username")}>
             <GlassSurface radius={16}>
               <TextInput
                 value={userName}
                 onChangeText={setUserName}
-                placeholder="Tên đăng nhập"
+                placeholder={t("editProfile.placeholders.username")}
                 placeholderTextColor={colors.muted}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -196,12 +198,12 @@ export default function EditProfileScreen() {
             </GlassSurface>
           </Field>
 
-          <Field label="Email">
+          <Field label={t("editProfile.fields.email")}>
             <GlassSurface radius={16}>
               <TextInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Email"
+                placeholder={t("editProfile.placeholders.email")}
                 placeholderTextColor={colors.muted}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -212,12 +214,12 @@ export default function EditProfileScreen() {
             </GlassSurface>
           </Field>
 
-          <Field label="Số điện thoại">
+          <Field label={t("editProfile.fields.phone")}>
             <GlassSurface radius={16}>
               <TextInput
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
-                placeholder="Số điện thoại"
+                placeholder={t("editProfile.placeholders.phone")}
                 placeholderTextColor={colors.muted}
                 keyboardType="phone-pad"
                 selectionColor={colors.primary}
@@ -226,17 +228,17 @@ export default function EditProfileScreen() {
             </GlassSurface>
           </Field>
 
-          <Field label="Giới tính">
+          <Field label={t("editProfile.fields.gender")}>
             <SelectField
-              placeholder="Chọn giới tính"
-              title="Giới tính"
+              placeholder={t("editProfile.selectGender")}
+              title={t("editProfile.fields.gender")}
               value={gender !== undefined ? String(gender) : undefined}
               options={GENDER_OPTIONS}
               onChange={(v) => setGender(v !== undefined ? (Number(v) as Gender) : undefined)}
             />
           </Field>
 
-          <Field label="Ngày sinh">
+          <Field label={t("editProfile.fields.birthdate")}>
             {birthdate ? (
               <>
                 <DateField
@@ -245,14 +247,14 @@ export default function EditProfileScreen() {
                   maximumDate={new Date()}
                 />
                 <Pressable onPress={() => setBirthdate(null)} hitSlop={8} className="mt-2">
-                  <Text className="ml-1 text-xs text-expense">Xoá ngày sinh</Text>
+                  <Text className="ml-1 text-xs text-expense">{t("editProfile.clearBirthdate")}</Text>
                 </Pressable>
               </>
             ) : (
               <Pressable onPress={() => setBirthdate(new Date(2000, 0, 1))}>
                 <GlassSurface radius={16}>
                   <View className="h-14 flex-row items-center justify-between px-4">
-                    <Text className="text-base text-muted">Chọn ngày sinh</Text>
+                    <Text className="text-base text-muted">{t("editProfile.selectBirthdate")}</Text>
                     <Ionicons name="calendar-outline" size={20} color={colors.muted} />
                   </View>
                 </GlassSurface>
@@ -261,7 +263,7 @@ export default function EditProfileScreen() {
           </Field>
 
           <View className="mt-8">
-            <Button title="Lưu thay đổi" onPress={onSave} loading={isSubmitting} />
+            <Button title={t("common.saveChanges")} onPress={onSave} loading={isSubmitting} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

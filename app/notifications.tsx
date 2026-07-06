@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
@@ -9,11 +10,6 @@ import { NotificationFacade } from "@/store/notification";
 import type { NotificationViewModel } from "@/store/notification/model";
 import { formatDateTime } from "@/lib/format";
 import { colors } from "@/theme/colors";
-
-const FILTERS: { label: string; unreadOnly: boolean }[] = [
-  { label: "Tất cả", unreadOnly: false },
-  { label: "Chưa đọc", unreadOnly: true },
-];
 
 function NotificationRow({
   item,
@@ -65,8 +61,14 @@ function NotificationRow({
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const noti = NotificationFacade();
   const [unreadOnly, setUnreadOnly] = useState(false);
+
+  const FILTERS: { label: string; unreadOnly: boolean }[] = [
+    { label: t("common.all"), unreadOnly: false },
+    { label: t("notifications.unread"), unreadOnly: true },
+  ];
 
   useFocusEffect(
     useCallback(() => {
@@ -89,10 +91,10 @@ export default function NotificationsScreen() {
         >
           <Ionicons name="chevron-back" size={26} color={colors.ink} />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Thông báo</Text>
+        <Text className="text-lg font-bold text-ink">{t("notifications.title")}</Text>
         {noti.unreadCount > 0 ? (
           <Pressable onPress={() => noti.markAllRead()} hitSlop={8}>
-            <Text className="text-sm font-semibold text-primary">Đọc hết</Text>
+            <Text className="text-sm font-semibold text-primary">{t("notifications.markAllRead")}</Text>
           </Pressable>
         ) : (
           <View style={{ width: 40 }} />
@@ -121,7 +123,7 @@ export default function NotificationsScreen() {
         {items.length === 0 && !noti.isLoading ? (
           <GlassSurface radius={24} className="mt-8 items-center p-10">
             <Ionicons name="notifications-off-outline" size={40} color={colors.muted} />
-            <Text className="mt-3 text-muted">Không có thông báo</Text>
+            <Text className="mt-3 text-muted">{t("notifications.empty")}</Text>
           </GlassSurface>
         ) : (
           items.map((item) => (

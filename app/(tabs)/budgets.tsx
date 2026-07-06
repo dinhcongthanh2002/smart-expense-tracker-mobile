@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
@@ -31,6 +32,7 @@ function progressColor(percent: number) {
 
 export default function BudgetsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const budget = BudgetFacade();
   const now = new Date();
@@ -127,7 +129,7 @@ export default function BudgetsScreen() {
     <Screen className="px-5">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-28">
         <View className="mb-4 mt-2 flex-row items-center justify-between">
-          <Text className="text-2xl font-bold text-ink">Ngân sách</Text>
+          <Text className="text-2xl font-bold text-ink">{t("budgets.title")}</Text>
           <Pressable
             onPress={() => router.push({ pathname: "/budget-form", params: { month: String(month), year: String(year) } })}
             className="h-11 w-11 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
@@ -142,7 +144,7 @@ export default function BudgetsScreen() {
             <Ionicons name="chevron-back" size={22} color={colors.ink} />
           </Pressable>
           <Text className="text-base font-semibold text-ink">
-            Tháng {month}/{year}
+            {t("common.monthYear", { month, year })}
           </Text>
           <Pressable onPress={() => shift(1)} hitSlop={8} className="h-9 w-9 items-center justify-center">
             <Ionicons name="chevron-forward" size={22} color={colors.ink} />
@@ -152,13 +154,13 @@ export default function BudgetsScreen() {
         {/* summary */}
         <GlassSurface radius={22} className="flex-row p-5" style={{ marginBottom: 20 }}>
           <View className="flex-1">
-            <Text className="text-xs text-muted">Đã chi</Text>
+            <Text className="text-xs text-muted">{t("budgets.spent")}</Text>
             <Text className="mt-1 text-lg font-bold text-expense">
               {formatCurrency(totalSpent)}
             </Text>
           </View>
           <View className="flex-1 items-end">
-            <Text className="text-xs text-muted">Ngân sách</Text>
+            <Text className="text-xs text-muted">{t("budgets.budgetLabel")}</Text>
             <Text className="mt-1 text-lg font-bold text-ink">
               {formatCurrency(totalLimit)}
             </Text>
@@ -168,12 +170,12 @@ export default function BudgetsScreen() {
         {items.length === 0 && !budget.isLoading ? (
           <GlassSurface radius={24} className="items-center p-10">
             <Ionicons name="pie-chart-outline" size={40} color={colors.muted} />
-            <Text className="mt-3 text-muted">Chưa có ngân sách tháng này</Text>
+            <Text className="mt-3 text-muted">{t("budgets.empty")}</Text>
             <Pressable
               onPress={() => router.push({ pathname: "/budget-form", params: { month: String(month), year: String(year) } })}
               className="mt-4 rounded-full bg-primary px-5 py-2.5 active:opacity-80"
             >
-              <Text className="font-semibold text-white">Đặt ngân sách</Text>
+              <Text className="font-semibold text-white">{t("budgets.setBudget")}</Text>
             </Pressable>
           </GlassSurface>
         ) : (
@@ -196,7 +198,7 @@ export default function BudgetsScreen() {
                     />
                     <View className="flex-1">
                       <Text className="text-base font-semibold text-ink" numberOfLines={1}>
-                        {b.category?.name ?? "Danh mục"}
+                        {b.category?.name ?? t("common.category")}
                       </Text>
                       <View className="mt-0.5 flex-row items-center gap-2">
                         <Text className="text-xs text-muted">
@@ -241,8 +243,8 @@ export default function BudgetsScreen() {
                   </View>
                   <Text className="mt-2 text-xs" style={{ color: over ? colors.expense : colors.muted }}>
                     {over
-                      ? `Vượt ${formatCurrency(-remaining)}`
-                      : `Còn lại ${formatCurrency(remaining)}`}
+                      ? t("budgets.over", { amount: formatCurrency(-remaining) })
+                      : t("budgets.remaining", { amount: formatCurrency(remaining) })}
                   </Text>
                 </GlassSurface>
               </Pressable>
@@ -272,17 +274,17 @@ export default function BudgetsScreen() {
                 <View className="h-1.5 w-10 rounded-full bg-white/20" />
               </View>
               <View className="flex-row items-center justify-between pt-1">
-                <Text className="text-lg font-bold text-ink">Chia sẻ ngân sách</Text>
+                <Text className="text-lg font-bold text-ink">{t("budgets.shareTitle")}</Text>
                 <Pressable onPress={closeShare} hitSlop={10}>
                   <Ionicons name="close" size={24} color={colors.muted} />
                 </Pressable>
               </View>
               <Text className="mt-2 text-sm text-muted">
-                Nhập tên đăng nhập của người bạn muốn chia sẻ ngân sách{" "}
+                {t("budgets.shareDescBefore")}
                 <Text className="font-semibold text-ink">
                   {shareTarget?.category?.name}
                 </Text>
-                . Họ sẽ xem được ngân sách và tiến độ chi tiêu của bạn.
+                {t("budgets.shareDescAfter")}
               </Text>
               <GlassSurface radius={16} className="mt-4">
                 <View className="h-14 flex-row items-center px-4">
@@ -290,7 +292,7 @@ export default function BudgetsScreen() {
                   <TextInput
                     value={shareUserName}
                     onChangeText={setShareUserName}
-                    placeholder="Tên đăng nhập"
+                    placeholder={t("budgets.usernamePlaceholder")}
                     placeholderTextColor={colors.muted}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -305,7 +307,7 @@ export default function BudgetsScreen() {
               {sharedIds.length > 0 ? (
                 <View className="mt-5">
                   <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                    Đang chia sẻ với ({sharedIds.length})
+                    {t("budgets.sharedWith", { count: sharedIds.length })}
                   </Text>
                   <ScrollView
                     style={{ maxHeight: 180 }}
@@ -322,7 +324,7 @@ export default function BudgetsScreen() {
                           <Ionicons name="person" size={16} color={colors.primary} />
                         </View>
                         <Text className="flex-1 text-sm text-ink" numberOfLines={1}>
-                          Người dùng ••{uid.slice(-6)}
+                          {t("budgets.userLabel", { id: uid.slice(-6) })}
                         </Text>
                         {unsharingId === uid ? (
                           <ActivityIndicator size="small" color={colors.muted} />
@@ -342,7 +344,7 @@ export default function BudgetsScreen() {
               ) : null}
 
               <View className="mt-4">
-                <Button title="Chia sẻ" onPress={doShare} loading={budget.isSubmitting} />
+                <Button title={t("budgets.shareButton")} onPress={doShare} loading={budget.isSubmitting} />
               </View>
             </View>
           </KeyboardAvoidingView>

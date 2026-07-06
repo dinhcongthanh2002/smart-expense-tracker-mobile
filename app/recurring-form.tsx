@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-nati
 import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
@@ -13,24 +14,29 @@ import { CategoryBadge } from "@/components/CategoryBadge";
 import { CategoryPickerSheet } from "@/components/CategoryPickerSheet";
 import { CategoryFacade } from "@/store/category";
 import { WalletFacade } from "@/store/wallet";
-import { WALLET_TYPE_META } from "@/store/wallet/model";
 import { RecurringFacade } from "@/store/recurring";
-import {
-  FREQUENCIES,
-  FREQUENCY_META,
-  type RecurringUpsertModel,
-} from "@/store/recurring/model";
-import { RecurringFrequency, TransactionType } from "@/models/enums";
+import { FREQUENCIES, type RecurringUpsertModel } from "@/store/recurring/model";
+import { RecurringFrequency, TransactionType, WalletType } from "@/models/enums";
 import { groupThousands, onlyDigits } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
-const TYPE_TABS = [
-  { label: "Chi tiêu", value: TransactionType.Expense },
-  { label: "Thu nhập", value: TransactionType.Income },
-];
+const FREQUENCY_KEY: Record<RecurringFrequency, string> = {
+  [RecurringFrequency.Daily]: "daily",
+  [RecurringFrequency.Weekly]: "weekly",
+  [RecurringFrequency.Monthly]: "monthly",
+  [RecurringFrequency.Yearly]: "yearly",
+};
+
+const WALLET_TYPE_KEY: Record<WalletType, string> = {
+  [WalletType.Cash]: "cash",
+  [WalletType.Bank]: "bank",
+  [WalletType.EWallet]: "ewallet",
+  [WalletType.Other]: "other",
+};
 
 export default function RecurringFormScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
   const isEdit = !!params.id;
   const category = CategoryFacade();
@@ -52,6 +58,11 @@ export default function RecurringFormScreen() {
   const [note, setNote] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  const TYPE_TABS = [
+    { label: t("common.enums.txType.expense"), value: TransactionType.Expense },
+    { label: t("common.enums.txType.income"), value: TransactionType.Income },
+  ];
 
   useEffect(() => {
     category.get({ page: 1, size: 200 });
@@ -86,9 +97,9 @@ export default function RecurringFormScreen() {
       (wallet.pagination?.content ?? []).map((w) => ({
         value: w.id!,
         label: w.name ?? "",
-        sublabel: `${WALLET_TYPE_META[w.type].label} · ${w.currency}`,
+        sublabel: `${t("common.enums.walletType." + WALLET_TYPE_KEY[w.type])} · ${w.currency}`,
       })),
-    [wallet.pagination],
+    [wallet.pagination, t],
   );
 
   const onSave = async () => {
@@ -131,10 +142,10 @@ export default function RecurringFormScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
         <Text className="text-lg font-bold text-ink">
-          {isEdit ? "Sửa định kỳ" : "Định kỳ mới"}
+          {isEdit ? t("recurring.editTitle") : t("recurring.newTitle")}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -146,19 +157,19 @@ export default function RecurringFormScreen() {
       >
         {/* type */}
         <GlassSurface radius={16} className="my-3 flex-row p-1">
-          {TYPE_TABS.map((t) => {
-            const active = type === t.value;
+          {TYPE_TABS.map((tab) => {
+            const active = type === tab.value;
             return (
               <Pressable
-                key={t.value}
+                key={tab.value}
                 onPress={() => {
-                  setType(t.value);
+                  setType(tab.value);
                   setCategoryId(undefined);
                 }}
                 className={`flex-1 items-center rounded-xl py-2.5 ${active ? "bg-primary" : ""}`}
               >
                 <Text className={`font-semibold ${active ? "text-white" : "text-muted"}`}>
-                  {t.label}
+                  {tab.label}
                 </Text>
               </Pressable>
             );
@@ -167,10 +178,10 @@ export default function RecurringFormScreen() {
 
         {/* amount */}
         <GlassSurface radius={20} className="my-2 items-center py-6">
-          <Text className="text-sm text-muted">Số tiền</Text>
+          <Text className="text-sm text-muted">{t("common.amount")}</Text>
           <TextInput
             value={groupThousands(amount)}
-            onChangeText={(t) => setAmount(onlyDigits(t))}
+            onChangeText={(v) => setAmount(onlyDigits(v))}
             keyboardType="number-pad"
             placeholder="0"
             placeholderTextColor={colors.muted}
@@ -182,7 +193,7 @@ export default function RecurringFormScreen() {
         </GlassSurface>
 
         {/* category */}
-        <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">Danh mục</Text>
+        <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{t("common.category")}</Text>
         <Pressable onPress={() => setPickerOpen(true)}>
           <GlassSurface radius={16}>
             <View className="h-14 flex-row items-center gap-3 px-4">
@@ -196,7 +207,7 @@ export default function RecurringFormScreen() {
                   <Text className="flex-1 text-base text-ink">{selectedCategory.name}</Text>
                 </>
               ) : (
-                <Text className="flex-1 text-base text-muted">Chọn danh mục</Text>
+                <Text className="flex-1 text-base text-muted">{t("recurring.selectCategory")}</Text>
               )}
               <Ionicons name="chevron-down" size={18} color={colors.muted} />
             </View>
@@ -204,18 +215,18 @@ export default function RecurringFormScreen() {
         </Pressable>
 
         {/* wallet */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ví (tuỳ chọn)</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("recurring.walletOptional")}</Text>
         <SelectField
-          placeholder="Chọn ví"
-          title="Chọn ví"
+          placeholder={t("recurring.selectWallet")}
+          title={t("recurring.selectWallet")}
           value={walletId}
           options={walletOptions}
           onChange={setWalletId}
-          emptyText="Chưa có ví."
+          emptyText={t("recurring.noWallet")}
         />
 
         {/* frequency */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Tần suất</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("recurring.frequency")}</Text>
         <View className="flex-row flex-wrap gap-2">
           {FREQUENCIES.map((f) => {
             const active = frequency === f;
@@ -226,7 +237,7 @@ export default function RecurringFormScreen() {
                 className={`rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-white/[0.06]"}`}
               >
                 <Text className={active ? "font-semibold text-white" : "text-muted"}>
-                  {FREQUENCY_META[f].label}
+                  {t("common.enums.frequency." + FREQUENCY_KEY[f])}
                 </Text>
               </Pressable>
             );
@@ -234,12 +245,12 @@ export default function RecurringFormScreen() {
         </View>
 
         {/* start date */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ngày bắt đầu</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("recurring.startDate")}</Text>
         <DateField value={startDate} onChange={setStartDate} />
 
         {/* end date */}
         <View className="mb-2 ml-1 mt-4 flex-row items-center justify-between">
-          <Text className="text-sm font-medium text-muted">Có ngày kết thúc</Text>
+          <Text className="text-sm font-medium text-muted">{t("recurring.hasEndDate")}</Text>
           <Switch
             value={hasEndDate}
             onValueChange={setHasEndDate}
@@ -252,8 +263,8 @@ export default function RecurringFormScreen() {
         {/* active */}
         <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-white/[0.06] px-4 py-3">
           <View>
-            <Text className="font-medium text-ink">Đang hoạt động</Text>
-            <Text className="text-xs text-muted">Tự động tạo giao dịch theo lịch</Text>
+            <Text className="font-medium text-ink">{t("recurring.activeTitle")}</Text>
+            <Text className="text-xs text-muted">{t("recurring.activeHint")}</Text>
           </View>
           <Switch
             value={isActive}
@@ -264,12 +275,12 @@ export default function RecurringFormScreen() {
         </View>
 
         {/* note */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">Ghi chú</Text>
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("common.note")}</Text>
         <GlassSurface radius={16}>
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Tuỳ chọn"
+            placeholder={t("recurring.notePlaceholder")}
             placeholderTextColor={colors.muted}
             selectionColor={colors.primary}
             multiline
@@ -280,11 +291,11 @@ export default function RecurringFormScreen() {
 
         <View className="mt-8 gap-3">
           <Button
-            title={isEdit ? "Cập nhật" : "Tạo định kỳ"}
+            title={isEdit ? t("recurring.update") : t("recurring.create")}
             onPress={onSave}
             loading={rec.isSubmitting}
           />
-          {isEdit && <Button title="Xoá định kỳ" variant="danger" onPress={onDelete} />}
+          {isEdit && <Button title={t("recurring.deleteRecurring")} variant="danger" onPress={onDelete} />}
         </View>
       </ScrollView>
 

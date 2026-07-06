@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +12,7 @@ import { colors } from "@/theme/colors";
 
 export default function GoalContributeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string }>();
   const facade = SavingsGoalFacade();
   const goal =
@@ -36,9 +38,9 @@ export default function GoalContributeScreen() {
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <View className="mb-3 mt-1 flex-row items-center justify-between">
         <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text className="text-base text-muted">Huỷ</Text>
+          <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Góp tiền</Text>
+        <Text className="text-lg font-bold text-ink">{t("goals.contribute")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -49,15 +51,15 @@ export default function GoalContributeScreen() {
       >
         {goal ? (
           <Text className="my-3 text-center text-sm text-muted">
-            {goal.name} · còn thiếu {formatCurrency(remaining)}
+            {goal.name} · {t("goals.remaining", { amount: formatCurrency(remaining) })}
           </Text>
         ) : null}
 
         <GlassSurface radius={20} className="my-2 items-center py-6">
-          <Text className="text-sm text-muted">Số tiền góp</Text>
+          <Text className="text-sm text-muted">{t("goals.contributeAmount")}</Text>
           <TextInput
             value={groupThousands(amount)}
-            onChangeText={(t) => setAmount(onlyDigits(t))}
+            onChangeText={(v) => setAmount(onlyDigits(v))}
             keyboardType="number-pad"
             placeholder="0"
             placeholderTextColor={colors.muted}
@@ -72,14 +74,14 @@ export default function GoalContributeScreen() {
               className="mt-3 rounded-full bg-white/[0.08] px-4 py-2 active:opacity-70"
             >
               <Text className="text-sm font-medium text-primarySoft">
-                Góp đủ ({formatCurrency(remaining)})
+                {t("goals.contributeFull", { amount: formatCurrency(remaining) })}
               </Text>
             </Pressable>
           ) : null}
         </GlassSurface>
 
         <View className="mt-6">
-          <Button title="Xác nhận góp" onPress={onSave} loading={facade.isSubmitting} />
+          <Button title={t("goals.confirmContribute")} onPress={onSave} loading={facade.isSubmitting} />
         </View>
       </ScrollView>
     </Screen>

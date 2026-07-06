@@ -3,16 +3,26 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { WalletFacade } from "@/store/wallet";
 import { WALLET_TYPE_META, type WalletViewModel } from "@/store/wallet/model";
+import { WalletType } from "@/models/enums";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { formatCurrency } from "@/lib/format";
 import { colorForIndex } from "@/lib/ui-helpers";
 import { colors, gradients } from "@/theme/colors";
+
+// Maps a wallet type to its shared enum-label key (common.enums.walletType.*).
+const WALLET_TYPE_KEY: Record<WalletType, string> = {
+  [WalletType.Cash]: "cash",
+  [WalletType.Bank]: "bank",
+  [WalletType.EWallet]: "ewallet",
+  [WalletType.Other]: "other",
+};
 
 function WalletRow({
   wallet,
@@ -25,6 +35,7 @@ function WalletRow({
   hidden: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const meta = WALLET_TYPE_META[wallet.type];
   const color = wallet.color || colorForIndex(index);
   const Icon = getCategoryIcon(wallet.icon || meta.icon);
@@ -48,7 +59,7 @@ function WalletRow({
             {wallet.name}
           </Text>
           <Text className="mt-0.5 text-xs text-muted">
-            {meta.label} · {wallet.currency}
+            {t("common.enums.walletType." + WALLET_TYPE_KEY[wallet.type])} · {wallet.currency}
           </Text>
         </View>
         <Text className="text-base font-bold text-ink">
@@ -61,6 +72,7 @@ function WalletRow({
 
 export default function WalletsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const wallet = WalletFacade();
   const [hideBalance, setHideBalance] = useState(false);
 
@@ -94,7 +106,7 @@ export default function WalletsScreen() {
         refreshControl={undefined}
       >
         <View className="mb-4 mt-2 flex-row items-center justify-between">
-          <Text className="text-2xl font-bold text-ink">Ví của tôi</Text>
+          <Text className="text-2xl font-bold text-ink">{t("wallets.title")}</Text>
           <Pressable
             onPress={() => router.push("/wallet-form")}
             className="h-11 w-11 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
@@ -112,7 +124,7 @@ export default function WalletsScreen() {
             style={{ padding: 20 }}
           >
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm text-white/80">Tổng số dư ({baseCurrency})</Text>
+              <Text className="text-sm text-white/80">{t("wallets.totalBalance", { currency: baseCurrency })}</Text>
               <Pressable
                 onPress={toggleHide}
                 hitSlop={10}
@@ -129,7 +141,7 @@ export default function WalletsScreen() {
               {hideBalance ? "******" : formatCurrency(total, baseCurrency)}
             </Text>
             <Text className="mt-1 text-xs text-white/70">
-              {wallets.length} ví
+              {t("wallets.count", { count: wallets.length })}
             </Text>
           </LinearGradient>
         </View>
@@ -137,12 +149,12 @@ export default function WalletsScreen() {
         {wallets.length === 0 && !wallet.isLoading ? (
           <GlassSurface radius={24} className="items-center p-10" style={{ marginTop: 8 }}>
             <Ionicons name="wallet-outline" size={40} color={colors.muted} />
-            <Text className="mt-3 text-muted">Chưa có ví nào</Text>
+            <Text className="mt-3 text-muted">{t("wallets.empty")}</Text>
             <Pressable
               onPress={() => router.push("/wallet-form")}
               className="mt-4 rounded-full bg-primary px-5 py-2.5 active:opacity-80"
             >
-              <Text className="font-semibold text-white">Thêm ví</Text>
+              <Text className="font-semibold text-white">{t("wallets.addWallet")}</Text>
             </Pressable>
           </GlassSurface>
         ) : (
