@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 
 import { Screen } from "@/components/ui/Screen";
@@ -36,6 +36,8 @@ const WALLET_TYPE_KEY: Record<WalletType, string> = {
 export default function DebtFormScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string }>();
+  const isEdit = !!params.id;
   const debt = DebtFacade();
   const wallet = WalletFacade();
 
@@ -56,8 +58,28 @@ export default function DebtFormScreen() {
 
   useEffect(() => {
     wallet.get({ page: 1, size: 100 });
+    if (params.id) debt.getById(params.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Prefill the form once the edited debt is loaded.
+  useEffect(() => {
+    const d = debt.data;
+    if (!isEdit || !d || d.id !== params.id) return;
+    setPersonName(d.personName ?? "");
+    setType(d.type ?? DebtType.Borrow);
+    setTotalAmount(String(d.totalAmount ?? ""));
+    setInterestRate(d.interestRate != null ? String(d.interestRate) : "");
+    setStartDate(d.startDate ? new Date(d.startDate) : new Date());
+    if (d.dueDate) {
+      setHasDueDate(true);
+      setDueDate(new Date(d.dueDate));
+    } else {
+      setHasDueDate(false);
+    }
+    setNote(d.note ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debt.data]);
 
   const wallets = wallet.pagination?.content ?? [];
   const walletOptions = useMemo(
@@ -85,10 +107,15 @@ export default function DebtFormScreen() {
       startDate: dayjs(startDate).format("YYYY-MM-DDTHH:mm:ss"),
       dueDate: hasDueDate ? dayjs(dueDate).format("YYYY-MM-DDTHH:mm:ss") : null,
       note: note.trim() || undefined,
-      walletId: walletId || undefined,
+      // Wallet only drives cash flow at creation time; omit it when editing.
+      walletId: isEdit ? undefined : walletId || undefined,
     };
     try {
-      await debt.post(values).unwrap();
+      if (isEdit && params.id) {
+        await debt.put({ id: params.id, ...values }).unwrap();
+      } else {
+        await debt.post(values).unwrap();
+      }
       router.back();
     } catch {
       // toast surfaced by API layer
@@ -101,7 +128,9 @@ export default function DebtFormScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <Text className="text-base text-muted">{t("common.cancel")}</Text>
         </Pressable>
-        <Text className="text-lg font-bold text-ink">{t("debts.newTitle")}</Text>
+        <Text className="text-lg font-bold text-ink">
+          {isEdit ? t("debts.editTitle") : t("debts.newTitle")}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -169,21 +198,25 @@ export default function DebtFormScreen() {
         </GlassSurface>
         <FieldError error={errors.totalAmount} />
 
-        {/* wallet */}
-        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
-          {type === DebtType.Borrow ? t("debts.walletLabelBorrow") : t("debts.walletLabelLend")}
-        </Text>
-        <SelectField
-          placeholder={t("debts.selectWallet")}
-          title={t("debts.selectWallet")}
-          value={walletId}
-          options={walletOptions}
-          onChange={setWalletId}
-          emptyText={t("debts.noWallet")}
-        />
-        <Text className="ml-1 mt-1.5 text-[11px] text-muted">
-          {type === DebtType.Borrow ? t("debts.walletHintBorrow") : t("debts.walletHintLend")}
-        </Text>
+        {/* wallet — only relevant when creating (drives cash flow) */}
+        {!isEdit ? (
+          <>
+            <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
+              {type === DebtType.Borrow ? t("debts.walletLabelBorrow") : t("debts.walletLabelLend")}
+            </Text>
+            <SelectField
+              placeholder={t("debts.selectWallet")}
+              title={t("debts.selectWallet")}
+              value={walletId}
+              options={walletOptions}
+              onChange={setWalletId}
+              emptyText={t("debts.noWallet")}
+            />
+            <Text className="ml-1 mt-1.5 text-[11px] text-muted">
+              {type === DebtType.Borrow ? t("debts.walletHintBorrow") : t("debts.walletHintLend")}
+            </Text>
+          </>
+        ) : null}
 
         {/* interest */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
@@ -235,7 +268,11 @@ export default function DebtFormScreen() {
         </GlassSurface>
 
         <View className="mt-8">
-          <Button title={t("debts.create")} onPress={onSave} loading={debt.isSubmitting} />
+          <Button
+            title={isEdit ? t("debts.update") : t("debts.create")}
+            onPress={onSave}
+            loading={debt.isSubmitting}
+          />
         </View>
       </ScrollView>
     </Screen>

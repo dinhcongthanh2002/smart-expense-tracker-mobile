@@ -91,9 +91,18 @@ export default function DebtDetailScreen() {
           <Ionicons name="chevron-back" size={26} color={colors.ink} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t("debts.detailTitle")}</Text>
-        <Pressable onPress={onDelete} hitSlop={10} className="h-10 w-10 items-center justify-center">
-          <Ionicons name="trash-outline" size={22} color={colors.expense} />
-        </Pressable>
+        <View className="flex-row items-center">
+          <Pressable
+            onPress={() => router.push({ pathname: "/debt-form", params: { id: d.id! } })}
+            hitSlop={10}
+            className="h-10 w-10 items-center justify-center"
+          >
+            <Ionicons name="create-outline" size={22} color={colors.ink} />
+          </Pressable>
+          <Pressable onPress={onDelete} hitSlop={10} className="h-10 w-10 items-center justify-center">
+            <Ionicons name="trash-outline" size={22} color={colors.expense} />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-28">

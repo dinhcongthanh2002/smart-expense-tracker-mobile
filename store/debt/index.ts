@@ -36,6 +36,8 @@ export const DebtFacade = () => {
     getById: (id: string) => dispatch(action.getById({ id })),
     post: (values: DebtCreateModel) =>
       dispatch(action.post({ values: values as Partial<DebtViewModel> })),
+    put: (values: DebtCreateModel & { id: string }) =>
+      dispatch(action.put({ values: values as Partial<DebtViewModel> & { id: string } })),
     delete: (id: string) => dispatch(action.delete({ id })),
     pay: (id: string, values: DebtPayModel) => dispatch(debtPay({ id, values })),
     set: (payload: Partial<State<DebtViewModel>>) =>

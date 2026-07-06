@@ -29,6 +29,8 @@ export default {
 
     // form
     newTitle: "Khoản nợ mới",
+    editTitle: "Sửa khoản nợ",
+    update: "Cập nhật",
     typeLabel: "Loại",
     borrowHint: "Mình nợ người khác",
     lendHint: "Người khác nợ mình",
@@ -83,6 +85,8 @@ export default {
 
     // form
     newTitle: "New debt",
+    editTitle: "Edit debt",
+    update: "Update",
     typeLabel: "Type",
     borrowHint: "I owe someone",
     lendHint: "Someone owes me",
