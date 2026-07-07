@@ -1,4 +1,5 @@
 name: Build unsigned iOS IPA
+# Unsigned iOS build for Sideloadly / TrollStore.
 
 # Builds an UNSIGNED .ipa on a macOS runner (no Apple account needed).
 # Install the artifact with Sideloadly (re-signs with your Apple ID) or TrollStore.
