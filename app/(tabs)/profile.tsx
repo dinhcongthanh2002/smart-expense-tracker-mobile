@@ -69,24 +69,28 @@ export default function ProfileScreen() {
       >
         <Text className="mb-5 mt-2 text-2xl font-bold text-ink">{t("profile.title")}</Text>
 
-        <Pressable onPress={() => router.push("/edit-profile")} className="active:opacity-80">
-          <GlassSurface radius={28} className="items-center p-6">
-            {avatarUrl ? (
-              <MediaViewer
-                items={[{ type: "image", source: avatarUrl }]}
-                config={{ theme: "dark" }}
-                renderLayout={({ renderItem }) =>
-                  renderItem(0, { frame: { width: 96, height: 96, borderRadius: 48 } })
-                }
-              />
-            ) : (
-              <Pressable
-                onPress={() => router.push("/edit-profile")}
-                className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-primary/20 active:opacity-80"
-              >
-                <Ionicons name="person" size={48} color={colors.primary} />
-              </Pressable>
-            )}
+        <GlassSurface radius={28} className="items-center p-6">
+          {/* Avatar opens the full-screen preview; the rest of the card edits. */}
+          {avatarUrl ? (
+            <MediaViewer
+              items={[{ type: "image", source: avatarUrl }]}
+              config={{ theme: "dark" }}
+              renderLayout={({ renderItem }) =>
+                renderItem(0, { frame: { width: 96, height: 96, borderRadius: 48 } })
+              }
+            />
+          ) : (
+            <Pressable
+              onPress={() => router.push("/edit-profile")}
+              className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-primary/20 active:opacity-80"
+            >
+              <Ionicons name="person" size={48} color={colors.primary} />
+            </Pressable>
+          )}
+          <Pressable
+            onPress={() => router.push("/edit-profile")}
+            className="items-center active:opacity-80"
+          >
             <Text className="mt-3 text-xl font-bold text-ink">
               {u?.name ?? t("profile.defaultName")}
             </Text>
@@ -95,8 +99,8 @@ export default function ProfileScreen() {
               <Ionicons name="create-outline" size={15} color={colors.primarySoft} />
               <Text className="text-xs font-medium text-primarySoft">{t("profile.editProfile")}</Text>
             </View>
-          </GlassSurface>
-        </Pressable>
+          </Pressable>
+        </GlassSurface>
 
         <GlassSurface radius={24} className="px-5 py-2" style={{ marginTop: 20 }}>
           <Row icon="person-outline" label={t("profile.username")} value={u?.userName} />
