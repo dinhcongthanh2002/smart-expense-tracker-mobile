@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -48,12 +48,6 @@ export default function BudgetsScreen() {
   const { height } = useWindowDimensions();
   const shareSheetRef = useRef<BottomSheetModal>(null);
 
-  // Drive the share bottom sheet from `shareTarget`.
-  useEffect(() => {
-    if (shareTarget) shareSheetRef.current?.present();
-    else shareSheetRef.current?.dismiss();
-  }, [shareTarget]);
-
   const renderShareBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -70,6 +64,7 @@ export default function BudgetsScreen() {
   const openShare = (b: BudgetViewModel) => {
     setShareUserName("");
     setShareTarget(b);
+    shareSheetRef.current?.present();
   };
   const closeShare = () => {
     setShareTarget(null);
@@ -94,7 +89,7 @@ export default function BudgetsScreen() {
     if (!shareTarget?.id || !shareUserName.trim()) return;
     try {
       await budget.share(shareTarget.id, shareUserName.trim()).unwrap();
-      closeShare();
+      shareSheetRef.current?.dismiss();
       load(month, year);
     } catch {
       // toast surfaced by API layer

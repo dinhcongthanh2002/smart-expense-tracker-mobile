@@ -24,7 +24,10 @@ import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
 import { SelectField } from "@/components/ui/SelectField";
 import { CategoryBadge } from "@/components/CategoryBadge";
-import { CategoryPickerSheet } from "@/components/CategoryPickerSheet";
+import {
+  CategoryPickerSheet,
+  type CategoryPickerSheetRef,
+} from "@/components/CategoryPickerSheet";
 import { CategoryFacade } from "@/store/category";
 import { TransactionFacade } from "@/store/transaction";
 import { WalletFacade } from "@/store/wallet";
@@ -64,7 +67,7 @@ export default function TransactionFormScreen() {
   const [toWalletId, setToWalletId] = useState<string | undefined>();
   const [note, setNote] = useState("");
   const [date, setDate] = useState(new Date());
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<CategoryPickerSheetRef>(null);
   const [receipt, setReceipt] = useState<AttachmentViewModel | undefined>();
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<{
@@ -92,7 +95,7 @@ export default function TransactionFormScreen() {
       category.get({ page: 1, size: 200 });
       if (reopenPickerRef.current) {
         reopenPickerRef.current = false;
-        setPickerOpen(true);
+        pickerRef.current?.present();
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
@@ -282,7 +285,7 @@ export default function TransactionFormScreen() {
           {!isTransfer ? (
             <>
               <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{translate("common.category")}</Text>
-              <Pressable onPress={() => setPickerOpen(true)}>
+              <Pressable onPress={() => pickerRef.current?.present()}>
                 <GlassSurface
                   radius={16}
                   style={errors.category ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
@@ -411,17 +414,16 @@ export default function TransactionFormScreen() {
 
       {!isTransfer ? (
         <CategoryPickerSheet
-          visible={pickerOpen}
+          ref={pickerRef}
           categories={categories}
           type={type}
           value={categoryId}
           onSelect={(c) => {
             setCategoryId(c.id);
-            setPickerOpen(false);
+            pickerRef.current?.dismiss();
           }}
-          onClose={() => setPickerOpen(false)}
           onCreate={() => {
-            setPickerOpen(false);
+            pickerRef.current?.dismiss();
             reopenPickerRef.current = true;
             router.push({ pathname: "/category-form", params: { type: String(type) } });
           }}

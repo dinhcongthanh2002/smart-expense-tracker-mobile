@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
@@ -12,7 +12,10 @@ import { FieldError } from "@/components/ui/FieldError";
 import { DateField } from "@/components/ui/DateField";
 import { SelectField } from "@/components/ui/SelectField";
 import { CategoryBadge } from "@/components/CategoryBadge";
-import { CategoryPickerSheet } from "@/components/CategoryPickerSheet";
+import {
+  CategoryPickerSheet,
+  type CategoryPickerSheetRef,
+} from "@/components/CategoryPickerSheet";
 import { CategoryFacade } from "@/store/category";
 import { WalletFacade } from "@/store/wallet";
 import { RecurringFacade } from "@/store/recurring";
@@ -58,7 +61,7 @@ export default function RecurringFormScreen() {
   });
   const [note, setNote] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<CategoryPickerSheetRef>(null);
   const [errors, setErrors] = useState<{ amount?: string; category?: string }>({});
 
   const TYPE_TABS = [
@@ -205,7 +208,7 @@ export default function RecurringFormScreen() {
 
         {/* category */}
         <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">{t("common.category")}</Text>
-        <Pressable onPress={() => setPickerOpen(true)}>
+        <Pressable onPress={() => pickerRef.current?.present()}>
           <GlassSurface
             radius={16}
             style={errors.category ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
@@ -315,15 +318,14 @@ export default function RecurringFormScreen() {
       </ScrollView>
 
       <CategoryPickerSheet
-        visible={pickerOpen}
+        ref={pickerRef}
         categories={categories}
         type={type}
         value={categoryId}
         onSelect={(c) => {
           setCategoryId(c.id);
-          setPickerOpen(false);
+          pickerRef.current?.dismiss();
         }}
-        onClose={() => setPickerOpen(false)}
       />
     </Screen>
   );

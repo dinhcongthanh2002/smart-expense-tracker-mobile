@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BottomSheetBackdrop,
@@ -16,13 +23,17 @@ import type { CategoryViewModel } from "@/store/category/model";
 import type { TransactionType } from "@/models/enums";
 import { colors } from "@/theme/colors";
 
+export interface CategoryPickerSheetRef {
+  present: () => void;
+  dismiss: () => void;
+}
+
 interface Props {
-  visible: boolean;
   categories: CategoryViewModel[];
   type: TransactionType;
   value?: string;
   onSelect: (category: CategoryViewModel) => void;
-  onClose: () => void;
+  onClose?: () => void;
   /** When provided, shows a "create new category" row at the top of the list. */
   onCreate?: () => void;
 }
@@ -61,31 +72,23 @@ function Row({
   );
 }
 
-/** Bottom-sheet category picker that respects the 2-level parent/child tree. */
-export function CategoryPickerSheet({
-  visible,
-  categories,
-  type,
-  value,
-  onSelect,
-  onClose,
-  onCreate,
-}: Props) {
+/** Bottom-sheet category picker that respects the 2-level parent/child tree.
+ *  Controlled imperatively via a ref: `ref.current?.present()` / `.dismiss()`. */
+export const CategoryPickerSheet = forwardRef<CategoryPickerSheetRef, Props>(
+  function CategoryPickerSheet({ categories, type, value, onSelect, onClose, onCreate }, ref) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const sheetRef = useRef<BottomSheetModal>(null);
+  const { height } = useWindowDimensions();
   const [query, setQuery] = useState("");
-  const snapPoints = useMemo(() => ["80%"], []);
 
-  // Drive the native sheet from the `visible` prop.
-  useEffect(() => {
-    if (visible) {
+  useImperativeHandle(ref, () => ({
+    present: () => {
       setQuery("");
       sheetRef.current?.present();
-    } else {
-      sheetRef.current?.dismiss();
-    }
-  }, [visible]);
+    },
+    dismiss: () => sheetRef.current?.dismiss(),
+  }));
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -130,8 +133,8 @@ export function CategoryPickerSheet({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={snapPoints}
-      enableDynamicSizing={false}
+      enableDynamicSizing
+      maxDynamicContentSize={height * 0.85}
       onDismiss={onClose}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.surface }}
@@ -140,41 +143,37 @@ export function CategoryPickerSheet({
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
     >
-      <View style={{ flex: 1 }}>
-        <View className="flex-row items-center justify-between px-5 pb-3 pt-1">
+      <BottomSheetScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-row items-center justify-between pb-2 pt-1">
           <Text className="text-lg font-bold text-ink">{t("categories.pickTitle")}</Text>
           <Pressable onPress={() => sheetRef.current?.dismiss()} hitSlop={10}>
             <Ionicons name="close" size={24} color={colors.muted} />
           </Pressable>
         </View>
         {topLevel.length > 0 ? (
-          <View className="px-5 pb-2">
-            <View className="flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
-              <Ionicons name="search" size={18} color={colors.muted} />
-              <BottomSheetTextInput
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("categories.pickSearch")}
-                placeholderTextColor={colors.muted}
-                className="flex-1 py-3 text-base text-ink"
-                autoCorrect={false}
-                returnKeyType="search"
-              />
-              {query.length > 0 ? (
-                <Pressable onPress={() => setQuery("")} hitSlop={8}>
-                  <Ionicons name="close-circle" size={18} color={colors.muted} />
-                </Pressable>
-              ) : null}
-            </View>
+          <View className="mb-1 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
+            <Ionicons name="search" size={18} color={colors.muted} />
+            <BottomSheetTextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t("categories.pickSearch")}
+              placeholderTextColor={colors.muted}
+              className="flex-1 py-3 text-base text-ink"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+            {query.length > 0 ? (
+              <Pressable onPress={() => setQuery("")} hitSlop={8}>
+                <Ionicons name="close-circle" size={18} color={colors.muted} />
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
-        <BottomSheetScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {onCreate ? (
+        {onCreate ? (
             <Pressable
               onPress={onCreate}
               className="mb-1 flex-row items-center gap-3 border-b border-white/[0.05] py-3 active:opacity-60"
@@ -216,7 +215,6 @@ export function CategoryPickerSheet({
             ))
           )}
         </BottomSheetScrollView>
-      </View>
     </BottomSheetModal>
   );
-}
+});

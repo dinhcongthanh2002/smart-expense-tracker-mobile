@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { FieldError } from "@/components/ui/FieldError";
 import { CategoryBadge } from "@/components/CategoryBadge";
-import { CategoryPickerSheet } from "@/components/CategoryPickerSheet";
+import {
+  CategoryPickerSheet,
+  type CategoryPickerSheetRef,
+} from "@/components/CategoryPickerSheet";
 import { BudgetFacade } from "@/store/budget";
 import { CategoryFacade } from "@/store/category";
 import { TransactionType } from "@/models/enums";
@@ -31,7 +34,7 @@ export default function BudgetFormScreen() {
 
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [limit, setLimit] = useState("");
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<CategoryPickerSheetRef>(null);
   const [errors, setErrors] = useState<{ limit?: string; category?: string }>({});
 
   const month = existing?.month ?? (Number(params.month) || new Date().getMonth() + 1);
@@ -137,7 +140,7 @@ export default function BudgetFormScreen() {
             <Text className="mb-2 ml-1 mt-2 text-sm font-medium text-muted">
               {t("budgets.expenseCategory")}
             </Text>
-            <Pressable onPress={() => setPickerOpen(true)}>
+            <Pressable onPress={() => pickerRef.current?.present()}>
               <GlassSurface
                 radius={16}
                 style={errors.category ? { borderColor: colors.expense, borderWidth: 1 } : undefined}
@@ -189,15 +192,14 @@ export default function BudgetFormScreen() {
       </ScrollView>
 
       <CategoryPickerSheet
-        visible={pickerOpen}
+        ref={pickerRef}
         categories={allCategories}
         type={TransactionType.Expense}
         value={categoryId}
         onSelect={(c) => {
           setCategoryId(c.id);
-          setPickerOpen(false);
+          pickerRef.current?.dismiss();
         }}
-        onClose={() => setPickerOpen(false)}
       />
     </Screen>
   );
