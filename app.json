@@ -13,7 +13,6 @@
       "bundleIdentifier": "vn.vdcd.smartexpense",
       "infoPlist": {
         "NSAppTransportSecurity": {
-          "NSAllowsLocalNetworking": true,
           "NSAllowsArbitraryLoads": true
         }
       }
