@@ -280,7 +280,7 @@ export default function BudgetsScreen() {
         <View className="flex-1">
           <Pressable className="flex-1 bg-black/60" onPress={closeShare} />
           <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior="padding"
           >
             <View
               style={{ paddingBottom: insets.bottom + 16 }}

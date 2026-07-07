@@ -77,7 +77,7 @@ export default function SignInScreen() {
   return (
     <Screen>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
         className="flex-1"
       >
         <ScrollView

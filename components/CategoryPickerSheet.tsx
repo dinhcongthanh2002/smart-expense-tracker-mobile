@@ -16,6 +16,8 @@ interface Props {
   value?: string;
   onSelect: (category: CategoryViewModel) => void;
   onClose: () => void;
+  /** When provided, shows a "create new category" row at the top of the list. */
+  onCreate?: () => void;
 }
 
 function Row({
@@ -60,6 +62,7 @@ export function CategoryPickerSheet({
   value,
   onSelect,
   onClose,
+  onCreate,
 }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -148,6 +151,19 @@ export function CategoryPickerSheet({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {onCreate ? (
+            <Pressable
+              onPress={onCreate}
+              className="mb-1 flex-row items-center gap-3 border-b border-white/[0.05] py-3 active:opacity-60"
+            >
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/20">
+                <Ionicons name="add" size={22} color={colors.primary} />
+              </View>
+              <Text className="flex-1 text-base font-semibold text-primary">
+                {t("categories.createNew")}
+              </Text>
+            </Pressable>
+          ) : null}
           {topLevel.length === 0 ? (
             <Text className="py-8 text-center text-muted">
               {t("categories.pickEmpty")}

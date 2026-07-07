@@ -30,6 +30,7 @@ export default {
     pickEmpty: "Chưa có danh mục. Tạo trong mục Quản lý danh mục.",
     pickSearch: "Tìm danh mục",
     pickNoResult: "Không tìm thấy danh mục phù hợp",
+    createNew: "Tạo danh mục mới",
   },
   en: {
     title: "Categories",
@@ -60,5 +61,6 @@ export default {
     pickEmpty: "No categories yet. Create some in Manage categories.",
     pickSearch: "Search categories",
     pickNoResult: "No matching categories found",
+    createNew: "Create new category",
   },
 };

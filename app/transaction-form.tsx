@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,7 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import * as ImagePicker from "expo-image-picker";
@@ -75,13 +75,28 @@ export default function TransactionFormScreen() {
   }>({});
 
   const isTransfer = type === TransactionType.Transfer;
+  // Set when the user leaves to create a category, so we can reopen the picker
+  // (with the refreshed list) when they come back.
+  const reopenPickerRef = useRef(false);
 
   useEffect(() => {
-    category.get({ page: 1, size: 200 });
     wallet.get({ page: 1, size: 100 });
     if (params.id) tx.getById(params.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  // Refetch categories on focus so a category created from the picker shows up,
+  // and reopen the picker if the user just came back from creating one.
+  useFocusEffect(
+    useCallback(() => {
+      category.get({ page: 1, size: 200 });
+      if (reopenPickerRef.current) {
+        reopenPickerRef.current = false;
+        setPickerOpen(true);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   useEffect(() => {
     const t = tx.data;
@@ -203,7 +218,7 @@ export default function TransactionFormScreen() {
   return (
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
         className="flex-1"
       >
         <View className="mb-2 mt-1 flex-row items-center justify-between">
@@ -405,6 +420,11 @@ export default function TransactionFormScreen() {
             setPickerOpen(false);
           }}
           onClose={() => setPickerOpen(false)}
+          onCreate={() => {
+            setPickerOpen(false);
+            reopenPickerRef.current = true;
+            router.push({ pathname: "/category-form", params: { type: String(type) } });
+          }}
         />
       ) : null}
     </Screen>

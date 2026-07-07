@@ -138,7 +138,7 @@ export default function EditProfileScreen() {
   return (
     <Screen orbs={false} className="px-5" edges={["top"]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
         className="flex-1"
       >
         <View className="mb-2 mt-1 flex-row items-center justify-between">
