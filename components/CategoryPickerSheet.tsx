@@ -1,7 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+  type BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 
 import { CategoryBadge } from "./CategoryBadge";
@@ -66,12 +73,32 @@ export function CategoryPickerSheet({
 }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const sheetRef = useRef<BottomSheetModal>(null);
   const [query, setQuery] = useState("");
+  const snapPoints = useMemo(() => ["80%"], []);
 
-  // Reset the search each time the sheet is opened.
+  // Drive the native sheet from the `visible` prop.
   useEffect(() => {
-    if (visible) setQuery("");
+    if (visible) {
+      setQuery("");
+      sheetRef.current?.present();
+    } else {
+      sheetRef.current?.dismiss();
+    }
   }, [visible]);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.6}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   const { topLevel, childrenOf } = useMemo(() => {
     const ofType = categories.filter((c) => c.type === type);
@@ -82,9 +109,7 @@ export function CategoryPickerSheet({
     return { topLevel, childrenOf };
   }, [categories, type]);
 
-  // Filter the tree by the search query while keeping parent/child grouping:
-  // a parent block appears if the parent matches or any of its children match;
-  // matching parents keep all their children, otherwise only matching children show.
+  // Filter the tree by the search query while keeping parent/child grouping.
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
     return topLevel
@@ -103,24 +128,22 @@ export function CategoryPickerSheet({
   }, [topLevel, childrenOf, query]);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={snapPoints}
+      enableDynamicSizing={false}
+      onDismiss={onClose}
+      backdropComponent={renderBackdrop}
+      backgroundStyle={{ backgroundColor: colors.surface }}
+      handleIndicatorStyle={{ backgroundColor: "rgba(255,255,255,0.25)" }}
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustResize"
     >
-      <Pressable className="flex-1 bg-black/60" onPress={onClose} />
-      <View
-        style={{ maxHeight: "78%", paddingBottom: insets.bottom + 8 }}
-        className="rounded-t-3xl bg-surface"
-      >
-        <View className="items-center pt-3">
-          <View className="h-1.5 w-10 rounded-full bg-white/20" />
-        </View>
-        <View className="flex-row items-center justify-between px-5 py-3">
+      <View style={{ flex: 1 }}>
+        <View className="flex-row items-center justify-between px-5 pb-3 pt-1">
           <Text className="text-lg font-bold text-ink">{t("categories.pickTitle")}</Text>
-          <Pressable onPress={onClose} hitSlop={10}>
+          <Pressable onPress={() => sheetRef.current?.dismiss()} hitSlop={10}>
             <Ionicons name="close" size={24} color={colors.muted} />
           </Pressable>
         </View>
@@ -128,7 +151,7 @@ export function CategoryPickerSheet({
           <View className="px-5 pb-2">
             <View className="flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
               <Ionicons name="search" size={18} color={colors.muted} />
-              <TextInput
+              <BottomSheetTextInput
                 value={query}
                 onChangeText={setQuery}
                 placeholder={t("categories.pickSearch")}
@@ -145,9 +168,9 @@ export function CategoryPickerSheet({
             </View>
           </View>
         ) : null}
-        <ScrollView
-          className="px-5"
-          contentContainerClassName="pb-4"
+        <BottomSheetScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -192,8 +215,8 @@ export function CategoryPickerSheet({
               </View>
             ))
           )}
-        </ScrollView>
+        </BottomSheetScrollView>
       </View>
-    </Modal>
+    </BottomSheetModal>
   );
 }

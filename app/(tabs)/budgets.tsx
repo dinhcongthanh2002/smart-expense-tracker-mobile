@@ -1,15 +1,19 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   Pressable,
   ScrollView,
   Text,
-  TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+  type BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -41,6 +45,27 @@ export default function BudgetsScreen() {
   const [shareTarget, setShareTarget] = useState<BudgetViewModel | null>(null);
   const [shareUserName, setShareUserName] = useState("");
   const [unsharingId, setUnsharingId] = useState<string | null>(null);
+  const { height } = useWindowDimensions();
+  const shareSheetRef = useRef<BottomSheetModal>(null);
+
+  // Drive the share bottom sheet from `shareTarget`.
+  useEffect(() => {
+    if (shareTarget) shareSheetRef.current?.present();
+    else shareSheetRef.current?.dismiss();
+  }, [shareTarget]);
+
+  const renderShareBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.6}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   const openShare = (b: BudgetViewModel) => {
     setShareUserName("");
@@ -270,102 +295,92 @@ export default function BudgetsScreen() {
       </ScrollView>
 
       {/* share sheet */}
-      <Modal
-        visible={!!shareTarget}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={closeShare}
+      <BottomSheetModal
+        ref={shareSheetRef}
+        enableDynamicSizing
+        maxDynamicContentSize={height * 0.85}
+        onDismiss={closeShare}
+        backdropComponent={renderShareBackdrop}
+        backgroundStyle={{ backgroundColor: colors.surface }}
+        handleIndicatorStyle={{ backgroundColor: "rgba(255,255,255,0.25)" }}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
       >
-        <View className="flex-1">
-          <Pressable className="flex-1 bg-black/60" onPress={closeShare} />
-          <KeyboardAvoidingView
-            behavior="padding"
-          >
-            <View
-              style={{ paddingBottom: insets.bottom + 16 }}
-              className="rounded-t-3xl bg-surface px-5 pb-4"
-            >
-              <View className="items-center pb-2 pt-3">
-                <View className="h-1.5 w-10 rounded-full bg-white/20" />
-              </View>
-              <View className="flex-row items-center justify-between pt-1">
-                <Text className="text-lg font-bold text-ink">{t("budgets.shareTitle")}</Text>
-                <Pressable onPress={closeShare} hitSlop={10}>
-                  <Ionicons name="close" size={24} color={colors.muted} />
-                </Pressable>
-              </View>
-              <Text className="mt-2 text-sm text-muted">
-                {t("budgets.shareDescBefore")}
-                <Text className="font-semibold text-ink">
-                  {shareTarget?.category?.name}
-                </Text>
-                {t("budgets.shareDescAfter")}
+        <BottomSheetScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="flex-row items-center justify-between pt-1">
+            <Text className="text-lg font-bold text-ink">{t("budgets.shareTitle")}</Text>
+            <Pressable onPress={() => shareSheetRef.current?.dismiss()} hitSlop={10}>
+              <Ionicons name="close" size={24} color={colors.muted} />
+            </Pressable>
+          </View>
+          <Text className="mt-2 text-sm text-muted">
+            {t("budgets.shareDescBefore")}
+            <Text className="font-semibold text-ink">
+              {shareTarget?.category?.name}
+            </Text>
+            {t("budgets.shareDescAfter")}
+          </Text>
+          <GlassSurface radius={16} className="mt-4">
+            <View className="h-14 flex-row items-center px-4">
+              <Ionicons name="person-outline" size={18} color={colors.muted} />
+              <BottomSheetTextInput
+                value={shareUserName}
+                onChangeText={setShareUserName}
+                placeholder={t("budgets.usernamePlaceholder")}
+                placeholderTextColor={colors.muted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor={colors.primary}
+                className="ml-2 flex-1 text-base text-ink"
+                onSubmitEditing={doShare}
+                returnKeyType="done"
+              />
+            </View>
+          </GlassSurface>
+
+          {sharedIds.length > 0 ? (
+            <View className="mt-5">
+              <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                {t("budgets.sharedWith", { count: sharedIds.length })}
               </Text>
-              <GlassSurface radius={16} className="mt-4">
-                <View className="h-14 flex-row items-center px-4">
-                  <Ionicons name="person-outline" size={18} color={colors.muted} />
-                  <TextInput
-                    value={shareUserName}
-                    onChangeText={setShareUserName}
-                    placeholder={t("budgets.usernamePlaceholder")}
-                    placeholderTextColor={colors.muted}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    selectionColor={colors.primary}
-                    className="ml-2 flex-1 text-base text-ink"
-                    onSubmitEditing={doShare}
-                    returnKeyType="done"
-                  />
-                </View>
-              </GlassSurface>
-
-              {sharedIds.length > 0 ? (
-                <View className="mt-5">
-                  <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                    {t("budgets.sharedWith", { count: sharedIds.length })}
-                  </Text>
-                  <ScrollView
-                    style={{ maxHeight: 180 }}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerClassName="gap-2"
-                    keyboardShouldPersistTaps="handled"
+              <View className="gap-2">
+                {sharedIds.map((uid) => (
+                  <View
+                    key={uid}
+                    className="flex-row items-center gap-3 rounded-2xl bg-white/[0.06] px-3 py-2.5"
                   >
-                    {sharedIds.map((uid) => (
-                      <View
-                        key={uid}
-                        className="flex-row items-center gap-3 rounded-2xl bg-white/[0.06] px-3 py-2.5"
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/20">
+                      <Ionicons name="person" size={16} color={colors.primary} />
+                    </View>
+                    <Text className="flex-1 text-sm text-ink" numberOfLines={1}>
+                      {t("budgets.userLabel", { id: uid.slice(-6) })}
+                    </Text>
+                    {unsharingId === uid ? (
+                      <ActivityIndicator size="small" color={colors.muted} />
+                    ) : (
+                      <Pressable
+                        onPress={() => doUnshare(uid)}
+                        hitSlop={8}
+                        className="h-8 w-8 items-center justify-center rounded-full bg-expense/15 active:opacity-70"
                       >
-                        <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/20">
-                          <Ionicons name="person" size={16} color={colors.primary} />
-                        </View>
-                        <Text className="flex-1 text-sm text-ink" numberOfLines={1}>
-                          {t("budgets.userLabel", { id: uid.slice(-6) })}
-                        </Text>
-                        {unsharingId === uid ? (
-                          <ActivityIndicator size="small" color={colors.muted} />
-                        ) : (
-                          <Pressable
-                            onPress={() => doUnshare(uid)}
-                            hitSlop={8}
-                            className="h-8 w-8 items-center justify-center rounded-full bg-expense/15 active:opacity-70"
-                          >
-                            <Ionicons name="close" size={16} color={colors.expense} />
-                          </Pressable>
-                        )}
-                      </View>
-                    ))}
-                  </ScrollView>
-                </View>
-              ) : null}
-
-              <View className="mt-4">
-                <Button title={t("budgets.shareButton")} onPress={doShare} loading={budget.isSubmitting} />
+                        <Ionicons name="close" size={16} color={colors.expense} />
+                      </Pressable>
+                    )}
+                  </View>
+                ))}
               </View>
             </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+          ) : null}
+
+          <View className="mt-4">
+            <Button title={t("budgets.shareButton")} onPress={doShare} loading={budget.isSubmitting} />
+          </View>
+        </BottomSheetScrollView>
+      </BottomSheetModal>
     </Screen>
   );
 }

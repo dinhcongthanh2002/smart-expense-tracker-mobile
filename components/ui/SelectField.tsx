@@ -1,7 +1,13 @@
-import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { useCallback, useRef } from "react";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+  type BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 
 import { GlassSurface } from "./GlassSurface";
@@ -35,17 +41,31 @@ export function SelectField({
 }: SelectFieldProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [open, setOpen] = useState(false);
+  const { height } = useWindowDimensions();
+  const sheetRef = useRef<BottomSheetModal>(null);
   const selected = options.find((o) => o.value === value);
 
   const pick = (v?: string) => {
     onChange(v);
-    setOpen(false);
+    sheetRef.current?.dismiss();
   };
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.6}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   return (
     <>
-      <Pressable onPress={() => setOpen(true)}>
+      <Pressable onPress={() => sheetRef.current?.present()}>
         <GlassSurface radius={16}>
           <View className="h-14 flex-row items-center justify-between px-4">
             <Text
@@ -59,67 +79,62 @@ export function SelectField({
         </GlassSurface>
       </Pressable>
 
-      <Modal
-        visible={open}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setOpen(false)}
+      <BottomSheetModal
+        ref={sheetRef}
+        enableDynamicSizing
+        maxDynamicContentSize={height * 0.75}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={{ backgroundColor: colors.surface }}
+        handleIndicatorStyle={{ backgroundColor: "rgba(255,255,255,0.25)" }}
       >
-        <Pressable className="flex-1 bg-black/60" onPress={() => setOpen(false)} />
-        <View
-          style={{ maxHeight: "70%", paddingBottom: insets.bottom + 8 }}
-          className="rounded-t-3xl bg-surface"
+        <BottomSheetScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}
+          showsVerticalScrollIndicator={false}
         >
-          <View className="items-center pt-3">
-            <View className="h-1.5 w-10 rounded-full bg-white/20" />
-          </View>
-          <View className="flex-row items-center justify-between px-5 py-3">
+          <View className="flex-row items-center justify-between pb-2 pt-1">
             <Text className="text-lg font-bold text-ink">{title ?? placeholder}</Text>
-            <Pressable onPress={() => setOpen(false)} hitSlop={10}>
+            <Pressable onPress={() => sheetRef.current?.dismiss()} hitSlop={10}>
               <Ionicons name="close" size={24} color={colors.muted} />
             </Pressable>
           </View>
-          <ScrollView className="px-5" contentContainerClassName="pb-4">
-            {allowClear ? (
+          {allowClear ? (
+            <Pressable
+              onPress={() => pick(undefined)}
+              className="flex-row items-center justify-between border-b border-white/[0.05] py-3.5 active:opacity-60"
+            >
+              <Text className="text-muted">{t("common.selectNone")}</Text>
+              {!value ? (
+                <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
+              ) : null}
+            </Pressable>
+          ) : null}
+          {options.length === 0 ? (
+            <Text className="py-8 text-center text-muted">
+              {emptyText ?? t("common.noOptions")}
+            </Text>
+          ) : (
+            options.map((o) => (
               <Pressable
-                onPress={() => pick(undefined)}
+                key={o.value}
+                onPress={() => pick(o.value)}
                 className="flex-row items-center justify-between border-b border-white/[0.05] py-3.5 active:opacity-60"
               >
-                <Text className="text-muted">{t("common.selectNone")}</Text>
-                {!value ? (
+                <View className="flex-1">
+                  <Text className="text-base text-ink" numberOfLines={1}>
+                    {o.label}
+                  </Text>
+                  {o.sublabel ? (
+                    <Text className="mt-0.5 text-xs text-muted">{o.sublabel}</Text>
+                  ) : null}
+                </View>
+                {value === o.value ? (
                   <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
                 ) : null}
               </Pressable>
-            ) : null}
-            {options.length === 0 ? (
-              <Text className="py-8 text-center text-muted">
-                {emptyText ?? t("common.noOptions")}
-              </Text>
-            ) : (
-              options.map((o) => (
-                <Pressable
-                  key={o.value}
-                  onPress={() => pick(o.value)}
-                  className="flex-row items-center justify-between border-b border-white/[0.05] py-3.5 active:opacity-60"
-                >
-                  <View className="flex-1">
-                    <Text className="text-base text-ink" numberOfLines={1}>
-                      {o.label}
-                    </Text>
-                    {o.sublabel ? (
-                      <Text className="mt-0.5 text-xs text-muted">{o.sublabel}</Text>
-                    ) : null}
-                  </View>
-                  {value === o.value ? (
-                    <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
-                  ) : null}
-                </Pressable>
-              ))
-            )}
-          </ScrollView>
-        </View>
-      </Modal>
+            ))
+          )}
+        </BottomSheetScrollView>
+      </BottomSheetModal>
     </>
   );
 }

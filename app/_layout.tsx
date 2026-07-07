@@ -3,6 +3,7 @@ import "@/lib/i18n";
 
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -100,10 +101,12 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
         <SafeAreaProvider>
-          <StatusBar style="light" />
-          <RootNavigator />
-          <NotificationWatcher />
-          <ToastHost />
+          <BottomSheetModalProvider>
+            <StatusBar style="light" />
+            <RootNavigator />
+            <NotificationWatcher />
+            <ToastHost />
+          </BottomSheetModalProvider>
         </SafeAreaProvider>
       </Provider>
     </GestureHandlerRootView>
