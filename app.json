@@ -8,11 +8,6 @@
     "scheme": "smartexpense",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0B1020"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "vn.vdcd.smartexpense",
@@ -63,6 +58,20 @@
         {
           "microphonePermission": false,
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B1020",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#0B1020",
+            "image": "./assets/splash-icon.png",
+            "imageWidth": 200
+          }
         }
       ]
     ],

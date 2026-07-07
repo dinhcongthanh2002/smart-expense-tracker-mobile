@@ -1,11 +1,11 @@
 import "../global.css";
 import "@/lib/i18n";
 
-import { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { Provider } from "react-redux";
 
@@ -15,23 +15,18 @@ import { setUnauthorizedHandler } from "@/lib/api";
 import { colors } from "@/theme/colors";
 import { ToastHost } from "@/components/ui/ToastHost";
 import { NotificationWatcher } from "@/components/NotificationWatcher";
+import { AnimatedSplash } from "@/components/AnimatedSplash";
 
-function SplashLoader() {
-  return (
-    <View
-      className="flex-1 items-center justify-center"
-      style={{ backgroundColor: colors.background }}
-    >
-      <ActivityIndicator color={colors.primary} size="large" />
-    </View>
-  );
-}
+// Keep the native splash up until our JS overlay is mounted, so the hand-off to
+// the branded animated splash is seamless (no blank flash).
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
   const global = GlobalFacade();
   const { isAuthenticated, isAuthenticating } = global;
   const segments = useSegments();
   const router = useRouter();
+  const [splashDone, setSplashDone] = useState(false);
 
   // Restore the persisted session once, and wire the 401 -> logout handler.
   useEffect(() => {
@@ -39,6 +34,11 @@ function RootNavigator() {
     setUnauthorizedHandler(() => global.set({ user: null }));
     return () => setUnauthorizedHandler(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Our overlay is now on screen (same look as the native splash) — hide the OS one.
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -51,10 +51,9 @@ function RootNavigator() {
     }
   }, [isAuthenticated, isAuthenticating, segments, router]);
 
-  if (isAuthenticating) return <SplashLoader />;
-
   return (
-    <Stack
+    <>
+      <Stack
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },
@@ -70,6 +69,7 @@ function RootNavigator() {
       <Stack.Screen name="recurring" />
       <Stack.Screen name="settings" />
       <Stack.Screen name="notifications" />
+      <Stack.Screen name="budget-invites" />
       <Stack.Screen name="day-transactions" />
       <Stack.Screen name="transaction-form" options={{ presentation: "modal" }} />
       <Stack.Screen name="category-form" options={{ presentation: "modal" }} />
@@ -82,7 +82,11 @@ function RootNavigator() {
       <Stack.Screen name="recurring-form" options={{ presentation: "modal" }} />
       <Stack.Screen name="edit-profile" options={{ presentation: "modal" }} />
       <Stack.Screen name="change-password" options={{ presentation: "modal" }} />
-    </Stack>
+      </Stack>
+      {!splashDone ? (
+        <AnimatedSplash hold={isAuthenticating} onFinish={() => setSplashDone(true)} />
+      ) : null}
+    </>
   );
 }
 

@@ -8,6 +8,7 @@ import transactions from "./transactions";
 import transactionForm from "./transactionForm";
 import wallets from "./wallets";
 import budgets from "./budgets";
+import budgetInvites from "./budgetInvites";
 import profile from "./profile";
 import settings from "./settings";
 import editProfile from "./editProfile";
@@ -30,6 +31,7 @@ const namespaces: Record<string, Bundle> = {
   transactionForm,
   wallets,
   budgets,
+  budgetInvites,
   profile,
   settings,
   editProfile,

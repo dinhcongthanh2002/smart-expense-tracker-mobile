@@ -8,6 +8,7 @@ import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { NotificationFacade } from "@/store/notification";
 import type { NotificationViewModel } from "@/store/notification/model";
+import { NotificationType } from "@/models/enums";
 import { formatDateTime } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
@@ -30,7 +31,7 @@ function NotificationRow({
           style={{ backgroundColor: item.isRead ? "rgba(255,255,255,0.06)" : `${colors.primary}26` }}
         >
           <Ionicons
-            name="notifications"
+            name={item.type === NotificationType.BudgetShareInvite ? "people" : "notifications"}
             size={20}
             color={item.isRead ? colors.muted : colors.primary}
           />
@@ -130,7 +131,12 @@ export default function NotificationsScreen() {
             <NotificationRow
               key={item.id}
               item={item}
-              onPress={() => !item.isRead && noti.markRead(item.id!)}
+              onPress={() => {
+                if (!item.isRead) noti.markRead(item.id!);
+                if (item.type === NotificationType.BudgetShareInvite) {
+                  router.push("/budget-invites");
+                }
+              }}
             />
           ))
         )}

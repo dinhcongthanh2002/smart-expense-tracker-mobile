@@ -6,6 +6,7 @@ import { notify } from "@/lib/notify";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
 import type { Pagination, QueryParams } from "@/models/api.model";
 import type {
+  BudgetInviteViewModel,
   BudgetProgressViewModel,
   BudgetUpsertModel,
   BudgetViewModel,
@@ -93,19 +94,64 @@ export const budgetUnshare = createAsyncThunk(
   },
 );
 
+// Lời mời chia sẻ ngân sách nhận được (chờ chấp nhận/từ chối).
+export const budgetGetInvites = createAsyncThunk(
+  "Budget/getInvites",
+  async (params: QueryParams = {}) =>
+    API.get<Pagination<BudgetInviteViewModel>>(`${BUDGET}/invites`, { page: 1, size: 50, ...params }),
+);
+
+export const budgetInviteCount = createAsyncThunk(
+  "Budget/inviteCount",
+  async () => API.get<number>(`${BUDGET}/invites/pending-count`),
+);
+
+export const budgetAcceptInvite = createAsyncThunk(
+  "Budget/acceptInvite",
+  async ({ id }: { id: string }, { rejectWithValue }) => {
+    try {
+      const res = await API.post(`${BUDGET}/invites/${id}/accept`);
+      if (res.message) notify.success(res.message);
+      return res;
+    } catch (e) {
+      return rejectWithValue((e as ApiError).message);
+    }
+  },
+);
+
+export const budgetDeclineInvite = createAsyncThunk(
+  "Budget/declineInvite",
+  async ({ id }: { id: string }, { rejectWithValue }) => {
+    try {
+      const res = await API.post(`${BUDGET}/invites/${id}/decline`);
+      if (res.message) notify.success(res.message);
+      return res;
+    } catch (e) {
+      return rejectWithValue((e as ApiError).message);
+    }
+  },
+);
+
 interface BudgetState {
   pagination?: Pagination<BudgetViewModel>;
   progress: BudgetProgressViewModel[];
+  invites?: Pagination<BudgetInviteViewModel>;
+  pendingInviteCount: number;
   isLoading: boolean;
   isSubmitting: boolean;
+  isInviteLoading: boolean;
+  isInviteSubmitting: boolean;
   status: string;
   errorMessage?: string;
 }
 
 const initialState: BudgetState = {
   progress: [],
+  pendingInviteCount: 0,
   isLoading: false,
   isSubmitting: false,
+  isInviteLoading: false,
+  isInviteSubmitting: false,
   status: "idle",
 };
 
@@ -155,6 +201,37 @@ const slice = createSlice({
       })
       .addCase(budgetDelete.fulfilled, (s) => {
         s.status = "delete.fulfilled";
+      })
+      .addCase(budgetGetInvites.pending, (s) => {
+        s.isInviteLoading = true;
+      })
+      .addCase(budgetGetInvites.fulfilled, (s, { payload }) => {
+        s.isInviteLoading = false;
+        s.invites = payload.data;
+      })
+      .addCase(budgetGetInvites.rejected, (s) => {
+        s.isInviteLoading = false;
+      })
+      .addCase(budgetInviteCount.fulfilled, (s, { payload }) => {
+        s.pendingInviteCount = payload.data ?? 0;
+      })
+      .addCase(budgetAcceptInvite.pending, (s) => {
+        s.isInviteSubmitting = true;
+      })
+      .addCase(budgetAcceptInvite.fulfilled, (s) => {
+        s.isInviteSubmitting = false;
+      })
+      .addCase(budgetAcceptInvite.rejected, (s) => {
+        s.isInviteSubmitting = false;
+      })
+      .addCase(budgetDeclineInvite.pending, (s) => {
+        s.isInviteSubmitting = true;
+      })
+      .addCase(budgetDeclineInvite.fulfilled, (s) => {
+        s.isInviteSubmitting = false;
+      })
+      .addCase(budgetDeclineInvite.rejected, (s) => {
+        s.isInviteSubmitting = false;
       });
   },
 });
@@ -174,5 +251,9 @@ export const BudgetFacade = () => {
     delete: (id: string) => dispatch(budgetDelete({ id })),
     share: (id: string, userName: string) => dispatch(budgetShare({ id, userName })),
     unshare: (id: string, userId: string) => dispatch(budgetUnshare({ id, userId })),
+    getInvites: (params?: QueryParams) => dispatch(budgetGetInvites(params ?? {})),
+    getInviteCount: () => dispatch(budgetInviteCount()),
+    acceptInvite: (id: string) => dispatch(budgetAcceptInvite({ id })),
+    declineInvite: (id: string) => dispatch(budgetDeclineInvite({ id })),
   };
 };

@@ -1,5 +1,6 @@
 import type { CommonEntity } from "@/models/api.model";
 import type { CategoryViewModel } from "@/store/category/model";
+import type { BudgetInviteStatus } from "@/models/enums";
 
 export interface BudgetViewModel extends CommonEntity {
   userId?: string;
@@ -17,6 +18,15 @@ export interface BudgetUpsertModel {
   limitAmount: number;
   month: number;
   year: number;
+}
+
+export interface BudgetInviteViewModel extends CommonEntity {
+  budgetId: string;
+  budget?: BudgetViewModel;
+  invitedByUserId?: string;
+  invitedByUserName?: string;
+  invitedUserId?: string;
+  status: BudgetInviteStatus;
 }
 
 export interface BudgetProgressViewModel {

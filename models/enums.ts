@@ -42,3 +42,17 @@ export enum DeviceType {
   Android = 1,
   iOS = 2,
 }
+
+// Mirrors set_Notification.Type on the backend.
+export enum NotificationType {
+  BudgetAlert = 0,
+  RecurringTransaction = 1,
+  Other = 2,
+  BudgetShareInvite = 3,
+}
+
+export enum BudgetInviteStatus {
+  Pending = 0,
+  Accepted = 1,
+  Declined = 2,
+}

@@ -80,6 +80,7 @@ export default function BudgetsScreen() {
     (m: number, y: number) => {
       budget.get({ filter: { month: m, year: y } });
       budget.getProgress({ month: m, year: y });
+      budget.getInviteCount();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [],
@@ -130,12 +131,27 @@ export default function BudgetsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-28">
         <View className="mb-4 mt-2 flex-row items-center justify-between">
           <Text className="text-2xl font-bold text-ink">{t("budgets.title")}</Text>
-          <Pressable
-            onPress={() => router.push({ pathname: "/budget-form", params: { month: String(month), year: String(year) } })}
-            className="h-11 w-11 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
-          >
-            <Ionicons name="add" size={24} color={colors.primary} />
-          </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={() => router.push("/budget-invites")}
+              className="h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] active:opacity-70"
+            >
+              <Ionicons name="mail-outline" size={22} color={colors.primarySoft} />
+              {budget.pendingInviteCount > 0 ? (
+                <View className="absolute right-1 top-1 h-4 min-w-4 items-center justify-center rounded-full bg-expense px-1">
+                  <Text className="text-[10px] font-bold text-white">
+                    {budget.pendingInviteCount > 9 ? "9+" : budget.pendingInviteCount}
+                  </Text>
+                </View>
+              ) : null}
+            </Pressable>
+            <Pressable
+              onPress={() => router.push({ pathname: "/budget-form", params: { month: String(month), year: String(year) } })}
+              className="h-11 w-11 items-center justify-center rounded-full bg-primary/20 active:opacity-70"
+            >
+              <Ionicons name="add" size={24} color={colors.primary} />
+            </Pressable>
+          </View>
         </View>
 
         {/* month selector */}

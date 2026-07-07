@@ -5,6 +5,10 @@ module.exports = {
     "./components/**/*.{js,jsx,ts,tsx}",
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  // App is always dark-themed (fixed hex colors, no `dark:` variants). Use
+  // class-based dark mode so NativeWind's web runtime doesn't throw
+  // "Cannot manually set color scheme, as dark mode is type 'media'".
+  darkMode: "class",
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
