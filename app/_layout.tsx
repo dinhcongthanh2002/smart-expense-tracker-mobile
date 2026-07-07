@@ -53,6 +53,10 @@ function RootNavigator() {
 
   return (
     <>
+      {/* Don't mount routed screens until the session is restored — otherwise a
+          screen can fire an authenticated request before the token is loaded
+          into the sync cache, get a 401, and trigger a logout (e.g. web reload). */}
+      {!isAuthenticating ? (
       <Stack
       screenOptions={{
         headerShown: false,
@@ -83,6 +87,7 @@ function RootNavigator() {
       <Stack.Screen name="edit-profile" options={{ presentation: "modal" }} />
       <Stack.Screen name="change-password" options={{ presentation: "modal" }} />
       </Stack>
+      ) : null}
       {!splashDone ? (
         <AnimatedSplash hold={isAuthenticating} onFinish={() => setSplashDone(true)} />
       ) : null}
