@@ -46,3 +46,8 @@ yarn-error.*
 /android
 .metro.log
 build-apk.log
+
+# build outputs
+*.apk
+*.ipa
+/dist

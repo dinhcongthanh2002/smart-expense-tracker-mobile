@@ -1,0 +1,72 @@
+name: Build unsigned iOS IPA
+
+# Builds an UNSIGNED .ipa on a macOS runner (no Apple account needed).
+# Install the artifact with Sideloadly (re-signs with your Apple ID) or TrollStore.
+# Trigger manually from the Actions tab.
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    runs-on: macos-15
+    env:
+      # Inlined into the JS bundle at build time (EXPO_PUBLIC_* is public by design).
+      EXPO_PUBLIC_API_BASE_URL: http://mk.geneat.pro/api/v1
+      EXPO_NO_TELEMETRY: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Prebuild iOS project
+        run: npx expo prebuild -p ios --clean
+
+      - name: Install CocoaPods
+        run: npx pod-install ios
+
+      - name: Archive (no code signing)
+        run: |
+          set -eo pipefail
+          WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "Workspace: $WORKSPACE | Scheme: $SCHEME"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$RUNNER_TEMP/app.xcarchive" \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            DEVELOPMENT_TEAM="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: Package unsigned IPA
+        run: |
+          set -eo pipefail
+          APP=$(ls -d "$RUNNER_TEMP/app.xcarchive/Products/Applications/"*.app | head -1)
+          echo "App: $APP"
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/Payload/"
+          (cd "$RUNNER_TEMP" && zip -qry app-unsigned.ipa Payload)
+          mkdir -p dist
+          cp "$RUNNER_TEMP/app-unsigned.ipa" dist/SmartExpense-unsigned.ipa
+          ls -lh dist
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartExpense-unsigned-ipa
+          path: dist/SmartExpense-unsigned.ipa
+          if-no-files-found: error
