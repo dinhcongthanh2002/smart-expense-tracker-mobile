@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { ImageViewer } from "@/components/ui/ImageViewer";
 import { FieldError } from "@/components/ui/FieldError";
 import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";
@@ -62,12 +63,16 @@ export default function EditProfileScreen() {
   );
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [nameError, setNameError] = useState<string>();
+  const [preview, setPreview] = useState(false);
 
   const chooseAvatarSource = () => {
     Alert.alert(t("editProfile.avatarTitle"), t("editProfile.avatarMessage"), [
+      ...(avatarUrl
+        ? [{ text: t("editProfile.viewPhoto"), onPress: () => setPreview(true) }]
+        : []),
       { text: t("editProfile.takePhoto"), onPress: () => pickAvatar("camera") },
       { text: t("editProfile.chooseLibrary"), onPress: () => pickAvatar("library") },
-      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.cancel"), style: "cancel" as const },
     ]);
   };
 
@@ -274,6 +279,12 @@ export default function EditProfileScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ImageViewer
+        visible={preview}
+        uri={avatarUrl}
+        onClose={() => setPreview(false)}
+      />
     </Screen>
   );
 }
