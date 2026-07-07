@@ -45,6 +45,7 @@
           "faceIDPermission": "Cho phép $(PRODUCT_NAME) dùng Face ID để đăng nhập nhanh."
         }
       ],
+      "./plugins/withGradleMemory",
       [
         "expo-build-properties",
         {
