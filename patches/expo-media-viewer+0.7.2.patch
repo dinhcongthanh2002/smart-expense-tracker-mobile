@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo-media-viewer/src/MediaViewerThumbnail.tsx b/node_modules/expo-media-viewer/src/MediaViewerThumbnail.tsx
+index 5f931e4..517e4cd 100644
+--- a/node_modules/expo-media-viewer/src/MediaViewerThumbnail.tsx
++++ b/node_modules/expo-media-viewer/src/MediaViewerThumbnail.tsx
+@@ -97,7 +97,7 @@ function LoopingVideoThumbnail({
+         itemJson={itemJson}
+         fit={fit}
+         pointerEvents="none"
+-        style={StyleSheet.absoluteFill}
++        style={StyleSheet.absoluteFillObject}
+       />
+     </View>
+   );

@@ -1,12 +1,11 @@
-import { useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { MediaViewer } from "expo-media-viewer";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
-import { ImageViewer } from "@/components/ui/ImageViewer";
 import { Button } from "@/components/ui/Button";
 import { GlobalFacade } from "@/store/global";
 import { resolveFileUrl } from "@/lib/upload";
@@ -61,7 +60,6 @@ export default function ProfileScreen() {
   const { user, logout } = GlobalFacade();
   const u = user?.userModel;
   const avatarUrl = resolveFileUrl(u?.avatar);
-  const [preview, setPreview] = useState(false);
 
   return (
     <Screen className="px-5">
@@ -73,18 +71,22 @@ export default function ProfileScreen() {
 
         <Pressable onPress={() => router.push("/edit-profile")} className="active:opacity-80">
           <GlassSurface radius={28} className="items-center p-6">
-            <Pressable
-              onPress={() =>
-                avatarUrl ? setPreview(true) : router.push("/edit-profile")
-              }
-              className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-primary/20 active:opacity-80"
-            >
-              {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={{ width: 96, height: 96 }} />
-              ) : (
+            {avatarUrl ? (
+              <MediaViewer
+                items={[{ type: "image", source: avatarUrl }]}
+                config={{ theme: "dark" }}
+                renderLayout={({ renderItem }) =>
+                  renderItem(0, { frame: { width: 96, height: 96, borderRadius: 48 } })
+                }
+              />
+            ) : (
+              <Pressable
+                onPress={() => router.push("/edit-profile")}
+                className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-primary/20 active:opacity-80"
+              >
                 <Ionicons name="person" size={48} color={colors.primary} />
-              )}
-            </Pressable>
+              </Pressable>
+            )}
             <Text className="mt-3 text-xl font-bold text-ink">
               {u?.name ?? t("profile.defaultName")}
             </Text>
@@ -161,12 +163,6 @@ export default function ProfileScreen() {
           Smart Expense • v1.0.0
         </Text>
       </ScrollView>
-
-      <ImageViewer
-        visible={preview}
-        uri={avatarUrl}
-        onClose={() => setPreview(false)}
-      />
     </Screen>
   );
 }
