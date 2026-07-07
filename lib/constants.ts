@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   user: "user",
   language: "i18nextLng",
   biometric: "biometricEnabled",
+  notificationSound: "notificationSoundEnabled",
 } as const;
 
 export const DEFAULT_LANGUAGE = "vi";

@@ -14,6 +14,7 @@ import { GlobalFacade } from "@/store/global";
 import { setUnauthorizedHandler } from "@/lib/api";
 import { colors } from "@/theme/colors";
 import { ToastHost } from "@/components/ui/ToastHost";
+import { NotificationWatcher } from "@/components/NotificationWatcher";
 
 function SplashLoader() {
   return (
@@ -92,6 +93,7 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <StatusBar style="light" />
           <RootNavigator />
+          <NotificationWatcher />
           <ToastHost />
         </SafeAreaProvider>
       </Provider>

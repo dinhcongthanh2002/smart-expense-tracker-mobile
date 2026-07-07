@@ -13,6 +13,10 @@ import {
   isBiometricAvailable,
 } from "@/lib/biometric";
 import { getBiometricEnabled, setBiometricEnabled } from "@/lib/secure-storage";
+import {
+  getNotificationSoundEnabled,
+  setNotificationSoundEnabled,
+} from "@/lib/notification-sound";
 import { notify } from "@/lib/notify";
 import {
   LANGUAGE_LABELS,
@@ -94,6 +98,7 @@ export default function SettingsScreen() {
   const [enabled, setEnabled] = useState(false);
   const [label, setLabel] = useState("Face ID");
   const [hideBalance, setHideBalance] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -101,8 +106,14 @@ export default function SettingsScreen() {
       setEnabled(await getBiometricEnabled());
       setLabel(await getBiometricLabel());
       setHideBalance((await AsyncStorage.getItem("hideBalance")) === "1");
+      setSoundEnabled(await getNotificationSoundEnabled());
     })();
   }, []);
+
+  const onToggleSound = (next: boolean) => {
+    setSoundEnabled(next);
+    setNotificationSoundEnabled(next);
+  };
 
   const onToggleBiometric = async (next: boolean) => {
     if (next) {
@@ -175,6 +186,20 @@ export default function SettingsScreen() {
             value={enabled}
             onValueChange={onToggleBiometric}
             disabled={!available}
+          />
+        </GlassSurface>
+
+        {/* Notifications */}
+        <Text className="mb-2 ml-1 mt-6 text-sm font-medium text-muted">
+          {t("settings.notifications")}
+        </Text>
+        <GlassSurface radius={22} className="px-5 py-1">
+          <ToggleRow
+            icon="notifications-outline"
+            label={t("settings.notificationSound")}
+            sub={t("settings.notificationSoundSub")}
+            value={soundEnabled}
+            onValueChange={onToggleSound}
           />
         </GlassSurface>
 
