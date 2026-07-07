@@ -12,6 +12,21 @@ import { NotificationType } from "@/models/enums";
 import { formatDateTime } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
+function iconForType(type?: number | null) {
+  switch (type) {
+    case NotificationType.RecurringTransaction:
+      return "repeat" as const;
+    case NotificationType.BudgetShareInvite:
+      return "people" as const;
+    case NotificationType.Debt:
+      return "cash-outline" as const;
+    case NotificationType.SavingsGoal:
+      return "flag" as const;
+    default:
+      return "notifications" as const;
+  }
+}
+
 function NotificationRow({
   item,
   onPress,
@@ -31,7 +46,7 @@ function NotificationRow({
           style={{ backgroundColor: item.isRead ? "rgba(255,255,255,0.06)" : `${colors.primary}26` }}
         >
           <Ionicons
-            name={item.type === NotificationType.BudgetShareInvite ? "people" : "notifications"}
+            name={iconForType(item.type)}
             size={20}
             color={item.isRead ? colors.muted : colors.primary}
           />
@@ -133,8 +148,21 @@ export default function NotificationsScreen() {
               item={item}
               onPress={() => {
                 if (!item.isRead) noti.markRead(item.id!);
-                if (item.type === NotificationType.BudgetShareInvite) {
-                  router.push("/budget-invites");
+                switch (item.type) {
+                  case NotificationType.BudgetShareInvite:
+                    router.push("/budget-invites");
+                    break;
+                  case NotificationType.RecurringTransaction:
+                    router.push("/recurring");
+                    break;
+                  case NotificationType.SavingsGoal:
+                    router.push("/goals");
+                    break;
+                  case NotificationType.Debt:
+                    if (item.referenceId) {
+                      router.push({ pathname: "/debt-detail", params: { id: item.referenceId } });
+                    }
+                    break;
                 }
               }}
             />

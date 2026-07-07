@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -24,6 +24,7 @@ import {
   type AppLanguage,
 } from "@/lib/i18n";
 import { GlobalFacade } from "@/store/global";
+import { NotificationSettingFacade } from "@/store/notificationSetting";
 import { colors } from "@/theme/colors";
 
 function NavRow({
@@ -93,12 +94,24 @@ const Divider = () => <View className="border-t border-white/[0.05]" />;
 export default function SettingsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { changeLanguage } = GlobalFacade();
+  const { changeLanguage, user } = GlobalFacade();
+  const notifSetting = NotificationSettingFacade();
+  const userId = user?.userModel?.id;
   const [available, setAvailable] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [label, setLabel] = useState("Face ID");
   const [hideBalance, setHideBalance] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  // Server-side notification toggles. Email-based ones default OFF; the in-app
+  // reminders default ON (until the setting loads from the server).
+  const [notif, setNotif] = useState({
+    budgetAlert: false,
+    monthly: false,
+    debt: true,
+    goal: true,
+    recurring: true,
+  });
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -109,6 +122,46 @@ export default function SettingsScreen() {
       setSoundEnabled(await getNotificationSoundEnabled());
     })();
   }, []);
+
+  useEffect(() => {
+    if (userId) notifSetting.get(userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const s = notifSetting.data;
+  useEffect(() => {
+    if (s) {
+      setNotif({
+        budgetAlert: s.isBudgetAlertEnabled,
+        monthly: s.isMonthlySummaryEnabled,
+        debt: s.isDebtReminderEnabled,
+        goal: s.isSavingsGoalAlertEnabled,
+        recurring: s.isRecurringNotifyEnabled,
+      });
+      setEmail(s.email ?? "");
+    }
+  }, [s]);
+
+  const persist = (n: typeof notif, emailValue: string) =>
+    notifSetting.save({
+      isMonthlySummaryEnabled: n.monthly,
+      isBudgetAlertEnabled: n.budgetAlert,
+      isDebtReminderEnabled: n.debt,
+      isSavingsGoalAlertEnabled: n.goal,
+      isRecurringNotifyEnabled: n.recurring,
+      email: emailValue.trim() || null,
+    });
+
+  const onToggleNotif = (key: keyof typeof notif, next: boolean) => {
+    const prev = notif;
+    const updated = { ...notif, [key]: next };
+    setNotif(updated);
+    persist(updated, email).unwrap().catch(() => setNotif(prev)); // revert on failure
+  };
+
+  const onEmailBlur = () => {
+    if ((s?.email ?? "") !== email.trim()) persist(notif, email);
+  };
 
   const onToggleSound = (next: boolean) => {
     setSoundEnabled(next);
@@ -200,6 +253,73 @@ export default function SettingsScreen() {
             sub={t("settings.notificationSoundSub")}
             value={soundEnabled}
             onValueChange={onToggleSound}
+          />
+          <Divider />
+          <ToggleRow
+            icon="pie-chart-outline"
+            label={t("settings.notifBudgetAlert")}
+            sub={t("settings.notifBudgetAlertSub")}
+            value={notif.budgetAlert}
+            onValueChange={(v) => onToggleNotif("budgetAlert", v)}
+          />
+          <Divider />
+          <ToggleRow
+            icon="calendar-outline"
+            label={t("settings.notifMonthly")}
+            sub={
+              email.trim()
+                ? t("settings.notifMonthlySub")
+                : t("settings.notifMonthlyNeedsEmail")
+            }
+            value={notif.monthly}
+            onValueChange={(v) => onToggleNotif("monthly", v)}
+            disabled={!email.trim()}
+          />
+          <Divider />
+          <View className="flex-row items-center gap-3 py-3.5">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-white/8">
+              <Ionicons name="mail-outline" size={20} color={colors.primarySoft} />
+            </View>
+            <View className="flex-1">
+              <Text className="font-medium text-ink">{t("settings.notifEmail")}</Text>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                onEndEditing={onEmailBlur}
+                onBlur={onEmailBlur}
+                placeholder={t("settings.notifEmailPlaceholder")}
+                placeholderTextColor={colors.muted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor={colors.primary}
+                className="mt-0.5 p-0 text-sm text-muted"
+              />
+            </View>
+          </View>
+          <Divider />
+          <ToggleRow
+            icon="cash-outline"
+            label={t("settings.notifDebtReminder")}
+            sub={t("settings.notifDebtReminderSub")}
+            value={notif.debt}
+            onValueChange={(v) => onToggleNotif("debt", v)}
+          />
+          <Divider />
+          <ToggleRow
+            icon="flag-outline"
+            label={t("settings.notifGoalAlert")}
+            sub={t("settings.notifGoalAlertSub")}
+            value={notif.goal}
+            onValueChange={(v) => onToggleNotif("goal", v)}
+          />
+          <Divider />
+          <ToggleRow
+            icon="repeat"
+            label={t("settings.notifRecurring")}
+            sub={t("settings.notifRecurringSub")}
+            value={notif.recurring}
+            onValueChange={(v) => onToggleNotif("recurring", v)}
           />
         </GlassSurface>
 

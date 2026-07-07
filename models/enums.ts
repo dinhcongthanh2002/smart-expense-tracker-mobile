@@ -49,6 +49,8 @@ export enum NotificationType {
   RecurringTransaction = 1,
   Other = 2,
   BudgetShareInvite = 3,
+  Debt = 4,
+  SavingsGoal = 5,
 }
 
 export enum BudgetInviteStatus {
