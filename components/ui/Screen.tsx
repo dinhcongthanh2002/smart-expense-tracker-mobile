@@ -1,5 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 import { cn } from "@/lib/cn";
@@ -21,6 +22,10 @@ export function Screen({
   orbs = true,
 }: ScreenProps) {
   return (
+    // A per-screen provider so sheets render inside this screen's view — the
+    // root provider sits behind native modal screens (transaction-form, etc.),
+    // which would leave the sheet hidden under the form.
+    <BottomSheetModalProvider>
     <View className="flex-1 bg-background">
       <LinearGradient
         colors={gradients.screen}
@@ -62,5 +67,6 @@ export function Screen({
         <View className={cn("flex-1", className)}>{children}</View>
       </SafeAreaView>
     </View>
+    </BottomSheetModalProvider>
   );
 }
