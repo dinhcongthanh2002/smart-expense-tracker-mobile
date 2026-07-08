@@ -64,7 +64,7 @@ function GoalCard({
           )}
         </View>
 
-        <View className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/[0.08]">
+        <View className="mt-3 h-2.5 overflow-hidden rounded-full bg-glass-light">
           <View style={{ width: `${percent}%`, height: "100%", backgroundColor: barColor }} />
         </View>
 

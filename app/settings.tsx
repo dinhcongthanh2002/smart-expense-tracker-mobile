@@ -89,12 +89,39 @@ function ToggleRow({
   );
 }
 
-const Divider = () => <View className="border-t border-white/[0.05]" />;
+function ChoiceRow({
+  icon,
+  label,
+  sub,
+  active,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  sub: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable onPress={onPress} className="flex-row items-center gap-3 py-3.5 active:opacity-60">
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-white/8">
+        <Ionicons name={icon} size={20} color={active ? colors.primary : colors.primarySoft} />
+      </View>
+      <View className="flex-1">
+        <Text className="font-medium text-ink">{label}</Text>
+        <Text className="text-xs text-muted">{sub}</Text>
+      </View>
+      {active ? <Ionicons name="checkmark-circle" size={22} color={colors.primary} /> : null}
+    </Pressable>
+  );
+}
+
+const Divider = () => <View className="border-t border-glass-border" />;
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { changeLanguage, user } = GlobalFacade();
+  const { changeLanguage, setThemeMode, themeMode, user } = GlobalFacade();
   const notifSetting = NotificationSettingFacade();
   const userId = user?.userModel?.id;
   const [available, setAvailable] = useState(false);
@@ -326,6 +353,31 @@ export default function SettingsScreen() {
         {/* Display */}
         <Text className="mb-2 ml-1 mt-6 text-sm font-medium text-muted">{t("settings.display")}</Text>
         <GlassSurface radius={22} className="px-5 py-1">
+          <ChoiceRow
+            icon="phone-portrait-outline"
+            label={t("settings.themeSystem")}
+            sub={t("settings.themeSystemSub")}
+            active={themeMode === "system"}
+            onPress={() => setThemeMode("system")}
+          />
+          <Divider />
+          <ChoiceRow
+            icon="sunny-outline"
+            label={t("settings.themeLight")}
+            sub={t("settings.themeLightSub")}
+            active={themeMode === "light"}
+            onPress={() => setThemeMode("light")}
+          />
+          <Divider />
+          <ChoiceRow
+            icon="moon-outline"
+            label={t("settings.themeDark")}
+            sub={t("settings.themeDarkSub")}
+            active={themeMode === "dark"}
+            onPress={() => setThemeMode("dark")}
+          />
+        </GlassSurface>
+        <GlassSurface radius={22} className="px-5 py-1 mt-3">
           <ToggleRow
             icon="eye-off-outline"
             label={t("settings.hideBalance")}

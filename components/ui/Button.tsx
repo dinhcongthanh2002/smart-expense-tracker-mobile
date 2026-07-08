@@ -7,6 +7,7 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 
 import { cn } from "@/lib/cn";
+import { colors } from "@/theme/colors";
 import { gradients } from "@/theme/colors";
 import { GlassSurface } from "./GlassSurface";
 
@@ -52,7 +53,7 @@ export function Button({
         className={cn(
           "h-14 items-center justify-center overflow-hidden rounded-2xl",
           fullWidth && "w-full",
-          variant === "ghost" && "border border-white/15",
+          variant === "ghost" && "border border-glass-border",
           isDisabled && "opacity-50",
           className,
         )}
@@ -84,7 +85,7 @@ export function Button({
 
         <View className="flex-row items-center justify-center gap-2 px-5">
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={variant === "ghost" ? colors.ink : "#fff"} />
           ) : (
             <>
               {leftIcon}

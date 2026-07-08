@@ -169,7 +169,7 @@ export default function WalletFormScreen() {
               <Pressable
                 key={wt}
                 onPress={() => onType(wt)}
-                className={`rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-white/[0.06]"}`}
+                className={`rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-glass-light"}`}
               >
                 <Text className={active ? "font-semibold text-white" : "text-muted"}>
                   {t("common.enums.walletType." + WALLET_TYPE_KEY[wt])}
@@ -188,7 +188,7 @@ export default function WalletFormScreen() {
               <Pressable
                 key={c}
                 onPress={() => setCurrency(c)}
-                className={`rounded-full border px-4 py-2.5 ${active ? "border-primary bg-primary/20" : "border-white/15"}`}
+                className={`rounded-full border px-4 py-2.5 ${active ? "border-primary bg-primary/20" : "border-glass-border"}`}
               >
                 <Text className={active ? "font-semibold text-primary" : "text-muted"}>{c}</Text>
               </Pressable>

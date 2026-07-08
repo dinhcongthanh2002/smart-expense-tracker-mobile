@@ -122,7 +122,7 @@ export default function BudgetFormScreen() {
 
         {/* category */}
         {isEdit ? (
-          <View className="mt-2 flex-row items-center gap-3 rounded-2xl bg-white/[0.06] p-4">
+          <View className="mt-2 flex-row items-center gap-3 rounded-2xl bg-glass-light p-4">
             <CategoryBadge
               icon={existing?.category?.icon}
               color={existing?.category?.color || colors.primary}

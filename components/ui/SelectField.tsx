@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { GlassSurface } from "./GlassSurface";
 import { colors } from "@/theme/colors";
+import { useThemePalette } from "@/lib/theme";
 
 export interface SelectOption {
   value: string;
@@ -42,6 +43,7 @@ export function SelectField({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
+  const { scheme } = useThemePalette();
   const sheetRef = useRef<BottomSheetModal>(null);
   const selected = options.find((o) => o.value === value);
 
@@ -80,12 +82,13 @@ export function SelectField({
       </Pressable>
 
       <BottomSheetModal
+        key={scheme}
         ref={sheetRef}
         enableDynamicSizing
         maxDynamicContentSize={height * 0.75}
         backdropComponent={renderBackdrop}
         backgroundStyle={{ backgroundColor: colors.surface }}
-        handleIndicatorStyle={{ backgroundColor: "rgba(255,255,255,0.25)" }}
+        handleIndicatorStyle={{ backgroundColor: colors.glassBorder }}
       >
         <BottomSheetScrollView
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}
@@ -100,7 +103,7 @@ export function SelectField({
           {allowClear ? (
             <Pressable
               onPress={() => pick(undefined)}
-              className="flex-row items-center justify-between border-b border-white/[0.05] py-3.5 active:opacity-60"
+              className="flex-row items-center justify-between border-b border-glass-border py-3.5 active:opacity-60"
             >
               <Text className="text-muted">{t("common.selectNone")}</Text>
               {!value ? (
@@ -117,7 +120,7 @@ export function SelectField({
               <Pressable
                 key={o.value}
                 onPress={() => pick(o.value)}
-                className="flex-row items-center justify-between border-b border-white/[0.05] py-3.5 active:opacity-60"
+                className="flex-row items-center justify-between border-b border-glass-border py-3.5 active:opacity-60"
               >
                 <View className="flex-1">
                   <Text className="text-base text-ink" numberOfLines={1}>

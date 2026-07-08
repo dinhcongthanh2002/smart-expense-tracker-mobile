@@ -6,10 +6,6 @@ import { colors } from "@/theme/colors";
 // Whether the OS can render Apple's real Liquid Glass (iOS 26+, dev build).
 const canUseLiquidGlass = isLiquidGlassAvailable();
 
-/** Clean solid card used where Apple Liquid Glass isn't available. */
-const SURFACE = "#171E36";
-const BORDER = "rgba(255,255,255,0.08)";
-
 /**
  * Split className into margin utilities (applied to the OUTER container so they
  * space this surface from siblings) and the rest (padding/layout for the inner
@@ -69,7 +65,10 @@ export function GlassSurface({
       className={margin || undefined}
       style={[
         { borderRadius: radius, overflow: "hidden" },
-        bordered && { borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
+        bordered && {
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.glassBorder,
+        },
         style,
       ]}
     >
@@ -84,7 +83,7 @@ export function GlassSurface({
         <View
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: surfaceColor ?? SURFACE },
+            { backgroundColor: surfaceColor ?? colors.glassSurface },
           ]}
         />
       )}

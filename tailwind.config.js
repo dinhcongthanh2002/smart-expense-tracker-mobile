@@ -5,35 +5,29 @@ module.exports = {
     "./components/**/*.{js,jsx,ts,tsx}",
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  // App is always dark-themed (fixed hex colors, no `dark:` variants). Use
-  // class-based dark mode so NativeWind's web runtime doesn't throw
-  // "Cannot manually set color scheme, as dark mode is type 'media'".
+  // Colors resolve from CSS variables so the app can switch between system,
+  // light and dark without changing component classNames.
   darkMode: "class",
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        // App base (dark, so Liquid Glass reads best)
-        background: "#0B1020",
-        surface: "#141A2E",
-        // Brand
+        background: "var(--background)",
+        surface: "var(--surface)",
         primary: {
-          DEFAULT: "#6C7CFF",
-          soft: "#8B96FF",
-          dark: "#4C5BD4",
+          DEFAULT: "var(--primary)",
+          soft: "var(--primary-soft)",
+          dark: "var(--primary-dark)",
         },
-        // Semantic finance colors
-        income: "#34D399",
-        expense: "#FB7185",
-        transfer: "#38BDF8",
-        warning: "#FBBF24",
-        // Text
-        ink: "#F5F7FF",
-        muted: "#9AA3BE",
-        // Glass tints
+        income: "var(--income)",
+        expense: "var(--expense)",
+        transfer: "var(--transfer)",
+        warning: "var(--warning)",
+        ink: "var(--ink)",
+        muted: "var(--muted)",
         glass: {
-          light: "rgba(255,255,255,0.10)",
-          border: "rgba(255,255,255,0.18)",
+          light: "var(--glass-tint)",
+          border: "var(--glass-border)",
         },
       },
       borderRadius: {

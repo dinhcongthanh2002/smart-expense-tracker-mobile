@@ -252,7 +252,7 @@ export default function RecurringFormScreen() {
               <Pressable
                 key={f}
                 onPress={() => setFrequency(f)}
-                className={`rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-white/[0.06]"}`}
+                className={`rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-glass-light"}`}
               >
                 <Text className={active ? "font-semibold text-white" : "text-muted"}>
                   {t("common.enums.frequency." + FREQUENCY_KEY[f])}
@@ -279,7 +279,7 @@ export default function RecurringFormScreen() {
         {hasEndDate ? <DateField value={endDate} onChange={setEndDate} /> : null}
 
         {/* active */}
-        <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-white/[0.06] px-4 py-3">
+        <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-glass-light px-4 py-3">
           <View>
             <Text className="font-medium text-ink">{t("recurring.activeTitle")}</Text>
             <Text className="text-xs text-muted">{t("recurring.activeHint")}</Text>

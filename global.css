@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+	--background: #f2f6fa;
+	--surface: #ffffff;
+	--scrim: rgba(15, 23, 41, 0.46);
+	--primary: #1d9e75;
+	--primary-soft: #3fbf94;
+	--primary-dark: #15795a;
+	--income: #10b981;
+	--expense: #e11d48;
+	--transfer: #0284c7;
+	--warning: #d97706;
+	--ink: #0f1729;
+	--muted: #5b6478;
+	--glass-surface: #ffffff;
+	--glass-border: rgba(15, 23, 41, 0.08);
+	--glass-tint: rgba(15, 23, 41, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--background: #0b1020;
+		--surface: #141a2e;
+		--scrim: rgba(7, 10, 20, 0.64);
+		--primary: #1d9e75;
+		--primary-soft: #3fbf94;
+		--primary-dark: #15795a;
+		--income: #34d399;
+		--expense: #fb7185;
+		--transfer: #38bdf8;
+		--warning: #fbbf24;
+		--ink: #f5f7ff;
+		--muted: #9aa3be;
+		--glass-surface: #171e36;
+		--glass-border: rgba(255, 255, 255, 0.08);
+		--glass-tint: rgba(255, 255, 255, 0.06);
+	}
+}

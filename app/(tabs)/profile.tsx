@@ -9,6 +9,7 @@ import { GlassSurface } from "@/components/ui/GlassSurface";
 import { Button } from "@/components/ui/Button";
 import { GlobalFacade } from "@/store/global";
 import { resolveFileUrl } from "@/lib/upload";
+import { useThemePalette } from "@/lib/theme";
 import { colors } from "@/theme/colors";
 
 function MenuRow({
@@ -58,6 +59,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user, logout } = GlobalFacade();
+  const { scheme } = useThemePalette();
   const u = user?.userModel;
   const avatarUrl = resolveFileUrl(u?.avatar);
 
@@ -74,7 +76,7 @@ export default function ProfileScreen() {
           {avatarUrl ? (
             <MediaViewer
               items={[{ type: "image", source: avatarUrl }]}
-              config={{ theme: "dark" }}
+              config={{ theme: scheme }}
               renderLayout={({ renderItem }) =>
                 renderItem(0, { frame: { width: 96, height: 96, borderRadius: 48 } })
               }
@@ -95,7 +97,7 @@ export default function ProfileScreen() {
               {u?.name ?? t("profile.defaultName")}
             </Text>
             <Text className="text-sm text-muted">{u?.email}</Text>
-            <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-white/[0.08] px-4 py-1.5">
+            <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-glass-light px-4 py-1.5">
               <Ionicons name="create-outline" size={15} color={colors.primarySoft} />
               <Text className="text-xs font-medium text-primarySoft">{t("profile.editProfile")}</Text>
             </View>
@@ -122,31 +124,31 @@ export default function ProfileScreen() {
             label={t("profile.menu.notifications")}
             onPress={() => router.push("/notifications")}
           />
-          <View className="border-t border-white/[0.05]" />
+          <View className="border-t border-glass-border" />
           <MenuRow
             icon="albums-outline"
             label={t("profile.menu.categories")}
             onPress={() => router.push("/categories")}
           />
-          <View className="border-t border-white/[0.05]" />
+          <View className="border-t border-glass-border" />
           <MenuRow
             icon="cash-outline"
             label={t("profile.menu.debts")}
             onPress={() => router.push("/debts")}
           />
-          <View className="border-t border-white/[0.05]" />
+          <View className="border-t border-glass-border" />
           <MenuRow
             icon="flag-outline"
             label={t("profile.menu.goals")}
             onPress={() => router.push("/goals")}
           />
-          <View className="border-t border-white/[0.05]" />
+          <View className="border-t border-glass-border" />
           <MenuRow
             icon="repeat-outline"
             label={t("profile.menu.recurring")}
             onPress={() => router.push("/recurring")}
           />
-          <View className="border-t border-white/[0.05]" />
+          <View className="border-t border-glass-border" />
           <MenuRow
             icon="settings-outline"
             label={t("profile.menu.settings")}

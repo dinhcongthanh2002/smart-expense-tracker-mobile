@@ -194,7 +194,7 @@ export function MonthCalendarReport({ hidden }: Props) {
 
       {/* selected day detail */}
       {selectedDay ? (
-        <View className="mt-3 rounded-2xl bg-white/[0.05] p-4">
+        <View className="mt-3 rounded-2xl bg-glass-light p-4">
           <Text className="text-sm font-semibold text-ink">
             {t("dashboard.dayTitle", {
               day: pad2(selectedDay),

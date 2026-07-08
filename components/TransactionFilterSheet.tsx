@@ -84,7 +84,7 @@ function Chip({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center gap-1.5 rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-white/[0.06]"}`}
+      className={`flex-row items-center gap-1.5 rounded-full px-4 py-2.5 ${active ? "bg-primary" : "bg-glass-light"}`}
     >
       {color ? (
         <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
@@ -159,13 +159,13 @@ export function TransactionFilterSheet({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Pressable className="flex-1 bg-black/60" onPress={onClose} />
+      <Pressable className="flex-1" style={{ backgroundColor: colors.scrim }} onPress={onClose} />
       <View
         style={{ maxHeight: "88%", paddingBottom: insets.bottom + 8 }}
         className="rounded-t-3xl bg-surface"
       >
         <View className="items-center pt-3">
-          <View className="h-1.5 w-10 rounded-full bg-white/20" />
+          <View className="h-1.5 w-10 rounded-full bg-glass-light" />
         </View>
         <View className="flex-row items-center justify-between px-5 py-3">
           <Text className="text-lg font-bold text-ink">{t("transactions.filterTitle")}</Text>
@@ -274,10 +274,10 @@ export function TransactionFilterSheet({
         </ScrollView>
 
         {/* footer */}
-        <View className="flex-row gap-3 border-t border-white/[0.06] px-5 pt-3">
+        <View className="flex-row gap-3 border-t border-glass-border px-5 pt-3">
           <Pressable
             onPress={() => setDraft(emptyTxFilter())}
-            className="flex-1 items-center justify-center rounded-2xl border border-white/15 py-3.5 active:opacity-70"
+            className="flex-1 items-center justify-center rounded-2xl border border-glass-border py-3.5 active:opacity-70"
           >
             <Text className="text-base font-semibold text-ink">{t("transactions.reset")}</Text>
           </Pressable>

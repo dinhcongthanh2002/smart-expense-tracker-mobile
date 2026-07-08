@@ -21,14 +21,14 @@ export function transactionTypeMeta(type: TransactionType): TypeMeta {
 
 /** Fallback palette for category chips when the backend color is missing. */
 export const CATEGORY_FALLBACK_COLORS = [
-  "#6C7CFF",
-  "#34D399",
-  "#FB7185",
-  "#38BDF8",
-  "#FBBF24",
-  "#A78BFA",
-  "#F472B6",
-  "#2DD4BF",
+  "#1D9E75",
+  "#3FBF94",
+  "#15795A",
+  "#10B981",
+  "#059669",
+  "#0284C7",
+  "#E11D48",
+  "#D97706",
 ];
 
 export function colorForIndex(index: number): string {

@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { API, ApiError } from "@/lib/api";
+import { STORAGE_KEYS } from "@/lib/constants";
 import { routerLinks } from "@/lib/router-links";
 import { notify } from "@/lib/notify";
 import i18n, { applyLanguage, type AppLanguage } from "@/lib/i18n";
@@ -15,6 +17,7 @@ import {
 } from "@/lib/secure-storage";
 import type { Gender } from "@/models/enums";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
+import type { ThemePreference } from "@/theme/themes";
 import type {
   AttachmentViewModel,
   UserProfileUpdateModel,
@@ -88,6 +91,7 @@ interface GlobalState {
   /** A saved session gated behind biometric unlock. */
   biometricLocked: boolean;
   pendingAuth: Auth | null;
+  themeMode: ThemePreference;
 }
 
 const initialState: GlobalState = {
@@ -97,19 +101,30 @@ const initialState: GlobalState = {
   status: EStatusGlobal.idle,
   biometricLocked: false,
   pendingAuth: null,
+  themeMode: "system",
 };
 
 // --- Thunks ----------------------------------------------------------------
 
 /** Restore session from secure storage on app launch. */
 export const bootstrap = createAsyncThunk("Auth/bootstrap", async () => {
-  const token = await bootstrapToken();
-  if (!token) return { auth: null, biometricEnabled: false };
+  const [token, themeMode] = await Promise.all([
+    bootstrapToken(),
+    AsyncStorage.getItem(STORAGE_KEYS.themeMode),
+  ]);
+  if (!token) {
+    return {
+      auth: null,
+      biometricEnabled: false,
+      themeMode: (themeMode as ThemePreference | null) ?? "system",
+    };
+  }
   const userModel = await getUser();
   const biometricEnabled = await getBiometricEnabled();
   return {
     auth: { tokenString: token, userModel } as Auth,
     biometricEnabled,
+    themeMode: (themeMode as ThemePreference | null) ?? "system",
   };
 });
 
@@ -282,6 +297,9 @@ const slice = createSlice({
     set: (state, { payload }: PayloadAction<Partial<GlobalState>>) => {
       Object.assign(state, payload);
     },
+    setThemeMode: (state, { payload }: PayloadAction<ThemePreference>) => {
+      state.themeMode = payload;
+    },
     updateUserModel: (state, { payload }: PayloadAction<UserViewModel>) => {
       if (state.user) state.user.userModel = payload;
     },
@@ -299,6 +317,7 @@ const slice = createSlice({
       .addCase(bootstrap.fulfilled, (s, { payload }) => {
         s.isAuthenticating = false;
         s.status = EStatusGlobal.bootstrapDone;
+        s.themeMode = payload.themeMode;
         if (payload.auth && payload.biometricEnabled) {
           s.pendingAuth = payload.auth;
           s.biometricLocked = true;
@@ -419,6 +438,10 @@ export const GlobalFacade = () => {
     logout: () => dispatch(logout()),
     bootstrap: () => dispatch(bootstrap()),
     set: (payload: Partial<GlobalState>) => dispatch(slice.actions.set(payload)),
+    setThemeMode: (mode: ThemePreference) => {
+      dispatch(slice.actions.setThemeMode(mode));
+      void AsyncStorage.setItem(STORAGE_KEYS.themeMode, mode);
+    },
     updateUserModel: (u: UserViewModel) => dispatch(slice.actions.updateUserModel(u)),
     unlockBiometric: () => dispatch(slice.actions.unlockBiometric()),
   };

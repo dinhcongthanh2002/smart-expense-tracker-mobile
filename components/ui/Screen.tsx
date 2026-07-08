@@ -57,8 +57,8 @@ export function Screen({
               width: 220,
               height: 220,
               borderRadius: 110,
-              backgroundColor: "#8B5CF6",
-              opacity: 0.25,
+              backgroundColor: colors.primarySoft,
+              opacity: 0.18,
             }}
           />
         </>

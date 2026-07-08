@@ -174,7 +174,7 @@ export default function DebtDetailScreen() {
             {payments.map((p, i) => (
               <View
                 key={p.id ?? i}
-                className={i > 0 ? "border-t border-white/[0.05]" : ""}
+                className={i > 0 ? "border-t border-glass-border" : ""}
               >
                 <View className="flex-row items-center justify-between py-3">
                   <View>

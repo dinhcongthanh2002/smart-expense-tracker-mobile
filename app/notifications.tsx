@@ -124,7 +124,7 @@ export default function NotificationsScreen() {
             <Pressable
               key={f.label}
               onPress={() => setUnreadOnly(f.unreadOnly)}
-              className={`rounded-full px-4 py-2 ${active ? "bg-primary" : "bg-white/[0.06]"}`}
+              className={`rounded-full px-4 py-2 ${active ? "bg-primary" : "bg-glass-light"}`}
             >
               <Text className={`text-sm font-medium ${active ? "text-white" : "text-muted"}`}>
                 {f.label}

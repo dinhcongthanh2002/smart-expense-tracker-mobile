@@ -22,6 +22,7 @@ import { CategoryBadge } from "./CategoryBadge";
 import type { CategoryViewModel } from "@/store/category/model";
 import type { TransactionType } from "@/models/enums";
 import { colors } from "@/theme/colors";
+import { useThemePalette } from "@/lib/theme";
 
 export interface CategoryPickerSheetRef {
   present: () => void;
@@ -80,6 +81,7 @@ export const CategoryPickerSheet = forwardRef<CategoryPickerSheetRef, Props>(
   const insets = useSafeAreaInsets();
   const sheetRef = useRef<BottomSheetModal>(null);
   const { height } = useWindowDimensions();
+  const { scheme } = useThemePalette();
   const [query, setQuery] = useState("");
 
   useImperativeHandle(ref, () => ({
@@ -132,13 +134,14 @@ export const CategoryPickerSheet = forwardRef<CategoryPickerSheetRef, Props>(
 
   return (
     <BottomSheetModal
+      key={scheme}
       ref={sheetRef}
       enableDynamicSizing
       maxDynamicContentSize={height * 0.85}
       onDismiss={onClose}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.surface }}
-      handleIndicatorStyle={{ backgroundColor: "rgba(255,255,255,0.25)" }}
+      handleIndicatorStyle={{ backgroundColor: colors.glassBorder }}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
@@ -155,7 +158,7 @@ export const CategoryPickerSheet = forwardRef<CategoryPickerSheetRef, Props>(
           </Pressable>
         </View>
         {topLevel.length > 0 ? (
-          <View className="mb-1 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
+          <View className="mb-1 flex-row items-center gap-2 rounded-2xl bg-glass-light px-3.5">
             <Ionicons name="search" size={18} color={colors.muted} />
             <BottomSheetTextInput
               value={query}
@@ -176,7 +179,7 @@ export const CategoryPickerSheet = forwardRef<CategoryPickerSheetRef, Props>(
         {onCreate ? (
             <Pressable
               onPress={onCreate}
-              className="mb-1 flex-row items-center gap-3 border-b border-white/[0.05] py-3 active:opacity-60"
+              className="mb-1 flex-row items-center gap-3 border-b border-glass-border py-3 active:opacity-60"
             >
               <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/20">
                 <Ionicons name="add" size={22} color={colors.primary} />
@@ -196,7 +199,7 @@ export const CategoryPickerSheet = forwardRef<CategoryPickerSheetRef, Props>(
             </Text>
           ) : (
             groups.map(({ parent, children }) => (
-              <View key={parent.id} className="border-b border-white/[0.05] py-1">
+              <View key={parent.id} className="border-b border-glass-border py-1">
                 <Row
                   category={parent}
                   selected={value === parent.id}

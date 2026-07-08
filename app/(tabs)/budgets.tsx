@@ -154,7 +154,7 @@ export default function BudgetsScreen() {
           <View className="flex-row items-center gap-2">
             <Pressable
               onPress={() => router.push("/budget-invites")}
-              className="h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] active:opacity-70"
+              className="h-11 w-11 items-center justify-center rounded-full bg-glass-light active:opacity-70"
             >
               <Ionicons name="mail-outline" size={22} color={colors.primarySoft} />
               {budget.pendingInviteCount > 0 ? (
@@ -175,7 +175,7 @@ export default function BudgetsScreen() {
         </View>
 
         {/* month selector */}
-        <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-white/[0.06] px-2 py-2">
+        <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-glass-light px-2 py-2">
           <Pressable onPress={() => shift(-1)} hitSlop={8} className="h-9 w-9 items-center justify-center">
             <Ionicons name="chevron-back" size={22} color={colors.ink} />
           </Pressable>
@@ -256,7 +256,7 @@ export default function BudgetsScreen() {
                     <Pressable
                       onPress={() => openShare(b)}
                       hitSlop={8}
-                      className="ml-2 h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] active:opacity-70"
+                      className="ml-2 h-8 w-8 items-center justify-center rounded-full bg-glass-light active:opacity-70"
                     >
                       <Ionicons
                         name="share-social-outline"
@@ -267,7 +267,7 @@ export default function BudgetsScreen() {
                   </View>
 
                   {/* progress bar */}
-                  <View className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/[0.08]">
+                  <View className="mt-3 h-2.5 overflow-hidden rounded-full bg-glass-light">
                     <View
                       style={{
                         width: `${Math.min(percent, 100)}%`,
@@ -346,7 +346,7 @@ export default function BudgetsScreen() {
                 {sharedIds.map((uid) => (
                   <View
                     key={uid}
-                    className="flex-row items-center gap-3 rounded-2xl bg-white/[0.06] px-3 py-2.5"
+                    className="flex-row items-center gap-3 rounded-2xl bg-glass-light px-3 py-2.5"
                   >
                     <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/20">
                       <Ionicons name="person" size={16} color={colors.primary} />

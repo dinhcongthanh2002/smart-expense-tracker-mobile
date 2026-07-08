@@ -166,7 +166,7 @@ export default function CategoryFormScreen() {
           <Pressable
             onPress={() => setParentId(undefined)}
             className={`rounded-full border px-4 py-2.5 ${
-              !parentId ? "border-primary bg-primary/20" : "border-white/15"
+              !parentId ? "border-primary bg-primary/20" : "border-glass-border"
             }`}
           >
             <Text className={!parentId ? "font-semibold text-primary" : "text-muted"}>
@@ -183,7 +183,7 @@ export default function CategoryFormScreen() {
                   if (p.type !== undefined) setType(p.type);
                 }}
                 className={`flex-row items-center gap-2 rounded-full border px-3 py-2 ${
-                  active ? "border-primary bg-primary/20" : "border-white/15"
+                  active ? "border-primary bg-primary/20" : "border-glass-border"
                 }`}
               >
                 <CategoryBadge icon={p.icon} color={p.color || colors.primary} size={26} />
@@ -197,7 +197,7 @@ export default function CategoryFormScreen() {
 
         {/* Type — only when top-level (children inherit the parent's type) */}
         {isChild ? (
-          <View className="mt-4 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-4 py-3">
+          <View className="mt-4 flex-row items-center gap-2 rounded-2xl bg-glass-light px-4 py-3">
             <Ionicons name="git-branch-outline" size={18} color={colors.muted} />
             <Text className="text-sm text-muted">
               {t("categories.childInheritType")}

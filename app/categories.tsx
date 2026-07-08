@@ -95,10 +95,10 @@ function ParentCard({
       {open ? (
         <Animated.View
           entering={FadeIn.duration(160)}
-          className="border-t border-white/[0.06] pb-2 pt-1"
+          className="border-t border-glass-border pb-2 pt-1"
         >
           {items.map((c, i) => (
-            <View key={c.id} className={i > 0 ? "border-t border-white/[0.05]" : ""}>
+            <View key={c.id} className={i > 0 ? "border-t border-glass-border" : ""}>
               <ChildRow category={c} onPress={() => onEditChild(c)} />
             </View>
           ))}
@@ -201,7 +201,7 @@ export default function CategoriesScreen() {
         </View>
 
         {/* type toggle */}
-        <View className="mb-5 flex-row rounded-2xl bg-white/[0.06] p-1">
+        <View className="mb-5 flex-row rounded-2xl bg-glass-light p-1">
           {TYPES.map((opt) => {
             const active = type === opt.value;
             return (
@@ -222,7 +222,7 @@ export default function CategoriesScreen() {
 
         {/* search */}
         {topLevel.length > 0 ? (
-          <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
+          <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-glass-light px-3.5">
             <Ionicons name="search" size={18} color={colors.muted} />
             <TextInput
               value={query}

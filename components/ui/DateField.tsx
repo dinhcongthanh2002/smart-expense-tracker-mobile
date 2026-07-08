@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassSurface } from "./GlassSurface";
 import { formatDate } from "@/lib/format";
 import { colors } from "@/theme/colors";
+import { useThemePalette } from "@/lib/theme";
 
 interface DateFieldProps {
   value: Date;
@@ -24,6 +25,7 @@ interface DateFieldProps {
 export function DateField({ value, onChange, maximumDate }: DateFieldProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { scheme } = useThemePalette();
   const [show, setShow] = useState(false);
 
   const onAndroidChange = (e: DateTimePickerEvent, d?: Date) => {
@@ -60,7 +62,7 @@ export function DateField({ value, onChange, maximumDate }: DateFieldProps) {
           statusBarTranslucent
           onRequestClose={() => setShow(false)}
         >
-          <Pressable className="flex-1 bg-black/60" onPress={() => setShow(false)} />
+          <Pressable className="flex-1" style={{ backgroundColor: colors.scrim }} onPress={() => setShow(false)} />
           <View
             style={{ paddingBottom: insets.bottom + 8 }}
             className="rounded-t-3xl bg-surface"
@@ -78,7 +80,7 @@ export function DateField({ value, onChange, maximumDate }: DateFieldProps) {
                 value={value}
                 mode="date"
                 display="spinner"
-                themeVariant="dark"
+                themeVariant={scheme}
                 maximumDate={maximumDate}
                 onChange={(_, d) => {
                   if (d) onChange(d);

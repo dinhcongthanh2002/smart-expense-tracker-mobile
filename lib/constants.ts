@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   user: "user",
   language: "i18nextLng",
   biometric: "biometricEnabled",
+  themeMode: "themeMode",
   notificationSound: "notificationSoundEnabled",
 } as const;
 

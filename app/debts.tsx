@@ -93,7 +93,7 @@ function DebtCard({ debt, onPress }: { debt: DebtViewModel; onPress: () => void 
           </View>
         </View>
 
-        <View className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.08]">
+        <View className="mt-3 h-2 overflow-hidden rounded-full bg-glass-light">
           <View
             style={{
               width: `${Math.min(percent, 100)}%`,
@@ -207,7 +207,7 @@ export default function DebtsScreen() {
         </GlassSurface>
 
         {/* search */}
-        <View className="mb-3 flex-row items-center gap-2 rounded-2xl bg-white/[0.06] px-3.5">
+        <View className="mb-3 flex-row items-center gap-2 rounded-2xl bg-glass-light px-3.5">
           <Ionicons name="search" size={18} color={colors.muted} />
           <TextInput
             value={search}
@@ -234,7 +234,7 @@ export default function DebtsScreen() {
               <Pressable
                 key={f.key}
                 onPress={() => setFilter(f.value)}
-                className={`rounded-full px-4 py-2 ${active ? "bg-primary" : "bg-white/[0.06]"}`}
+                className={`rounded-full px-4 py-2 ${active ? "bg-primary" : "bg-glass-light"}`}
               >
                 <Text className={`text-sm font-medium ${active ? "text-white" : "text-muted"}`}>
                   {t(f.key)}
@@ -257,7 +257,7 @@ export default function DebtsScreen() {
               <Pressable
                 key={f.key + String(f.value)}
                 onPress={() => setStatus(f.value)}
-                className={`rounded-full border px-4 py-2 ${active ? "border-primary bg-primary/20" : "border-white/15"}`}
+                className={`rounded-full border px-4 py-2 ${active ? "border-primary bg-primary/20" : "border-glass-border"}`}
               >
                 <Text className={`text-sm font-medium ${active ? "text-primary" : "text-muted"}`}>
                   {t(f.key)}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
@@ -12,7 +12,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
 
-import { colors } from "@/theme/colors";
+import { useThemePalette } from "@/lib/theme";
 
 // Minimum time the branded splash stays on screen, so a fast session-restore
 // doesn't make it flash for a single frame.
@@ -35,6 +35,7 @@ export function AnimatedSplash({
   onFinish: () => void;
 }) {
   const { t } = useTranslation();
+  const { palette } = useThemePalette();
   const startRef = useRef(Date.now());
   const [exiting, setExiting] = useState(false);
 
@@ -93,6 +94,40 @@ export function AnimatedSplash({
     transform: [{ translateY: textShift.value }],
   }));
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          backgroundColor: palette.background,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        logo: { width: 200, height: 200 },
+        textWrap: { marginTop: 8, alignItems: "center" },
+        title: {
+          color: palette.ink,
+          fontSize: 26,
+          fontWeight: "800",
+          letterSpacing: 0.3,
+        },
+        tagline: { color: palette.muted, fontSize: 14, marginTop: 6 },
+        footer: {
+          position: "absolute",
+          bottom: 64,
+          flexDirection: "row",
+          gap: 6,
+        },
+        dot: {
+          width: 6,
+          height: 6,
+          borderRadius: 3,
+          backgroundColor: palette.glassBorder,
+        },
+        dotMid: { backgroundColor: palette.primary },
+      }),
+    [palette],
+  );
+
   return (
     <Animated.View
       pointerEvents={exiting ? "none" : "auto"}
@@ -119,33 +154,3 @@ export function AnimatedSplash({
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logo: { width: 200, height: 200 },
-  textWrap: { marginTop: 8, alignItems: "center" },
-  title: {
-    color: colors.ink,
-    fontSize: 26,
-    fontWeight: "800",
-    letterSpacing: 0.3,
-  },
-  tagline: { color: colors.muted, fontSize: 14, marginTop: 6 },
-  footer: {
-    position: "absolute",
-    bottom: 64,
-    flexDirection: "row",
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.glassBorder,
-  },
-  dotMid: { backgroundColor: colors.primary },
-});

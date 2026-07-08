@@ -82,7 +82,7 @@ export default function GoalContributeScreen() {
           {remaining > 0 ? (
             <Pressable
               onPress={() => setAmount(String(Math.round(remaining)))}
-              className="mt-3 rounded-full bg-white/[0.08] px-4 py-2 active:opacity-70"
+              className="mt-3 rounded-full bg-glass-light px-4 py-2 active:opacity-70"
             >
               <Text className="text-sm font-medium text-primarySoft">
                 {t("goals.contributeFull", { amount: formatCurrency(remaining) })}

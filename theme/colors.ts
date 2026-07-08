@@ -1,25 +1,67 @@
-// Kept in sync with tailwind.config.js. Used where a raw color value is needed
-// (charts, gradients, vector icons, native props) instead of a className.
-export const colors = {
-  background: "#0B1020",
-  surface: "#141A2E",
-  primary: "#6C7CFF",
-  primarySoft: "#8B96FF",
-  primaryDark: "#4C5BD4",
-  income: "#34D399",
-  expense: "#FB7185",
-  transfer: "#38BDF8",
-  warning: "#FBBF24",
-  ink: "#F5F7FF",
-  muted: "#9AA3BE",
-  glassTint: "rgba(255,255,255,0.06)",
-  glassBorder: "rgba(255,255,255,0.14)",
-} as const;
+import { vars } from "nativewind";
 
-export const gradients = {
-  screen: ["#0B1020", "#131A33", "#0B1020"] as const,
-  primary: ["#6C7CFF", "#8B5CF6"] as const,
-  income: ["#34D399", "#10B981"] as const,
-  expense: ["#FB7185", "#F43F5E"] as const,
-  card: ["rgba(108,124,255,0.25)", "rgba(139,92,246,0.10)"] as const,
-};
+import {
+  dark,
+  gradients as themeGradients,
+  light,
+  themes,
+  type ThemeColors,
+  type ThemeGradients,
+  type ThemeScheme,
+} from "./themes";
+
+let activeScheme: ThemeScheme = "dark";
+let activeColors: ThemeColors = dark;
+let activeGradients: ThemeGradients = themeGradients.dark;
+
+export function setActiveThemeScheme(scheme: ThemeScheme) {
+  if (scheme === activeScheme) return;
+  activeScheme = scheme;
+  activeColors = themes[scheme];
+  activeGradients = themeGradients[scheme];
+}
+
+export function getActiveThemeScheme(): ThemeScheme {
+  return activeScheme;
+}
+
+function getThemeValue<T extends object>(current: T, key: keyof T) {
+  return current[key];
+}
+
+export const colors = new Proxy({} as ThemeColors, {
+  get(_target, prop: string | symbol) {
+    if (typeof prop !== "string") return undefined;
+    return getThemeValue(activeColors, prop as keyof ThemeColors);
+  },
+}) as ThemeColors;
+
+export const gradients = new Proxy({} as ThemeGradients, {
+  get(_target, prop: string | symbol) {
+    if (typeof prop !== "string") return undefined;
+    return getThemeValue(activeGradients, prop as keyof ThemeGradients);
+  },
+}) as ThemeGradients;
+
+export function themeToVars(theme: ThemeColors) {
+  return vars({
+    "--background": theme.background,
+    "--surface": theme.surface,
+    "--scrim": theme.scrim,
+    "--primary": theme.primary,
+    "--primary-soft": theme.primarySoft,
+    "--primary-dark": theme.primaryDark,
+    "--income": theme.income,
+    "--expense": theme.expense,
+    "--transfer": theme.transfer,
+    "--warning": theme.warning,
+    "--ink": theme.ink,
+    "--muted": theme.muted,
+    "--glass-surface": theme.glassSurface,
+    "--glass-border": theme.glassBorder,
+    "--glass-tint": theme.glassTint,
+  });
+}
+
+export { dark, light, themes };
+export type { ThemeColors, ThemeGradients, ThemeScheme } from "./themes";

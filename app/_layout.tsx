@@ -9,11 +9,14 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { Provider } from "react-redux";
+import { View } from "react-native";
+import { useColorScheme as useNativeWindColorScheme } from "nativewind";
 
+import { setActiveThemeScheme } from "@/theme/colors";
+import { useThemePalette } from "@/lib/theme";
 import { store } from "@/store";
 import { GlobalFacade } from "@/store/global";
 import { setUnauthorizedHandler } from "@/lib/api";
-import { colors } from "@/theme/colors";
 import { ToastHost } from "@/components/ui/ToastHost";
 import { NotificationWatcher } from "@/components/NotificationWatcher";
 import { AnimatedSplash } from "@/components/AnimatedSplash";
@@ -25,9 +28,13 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 function RootNavigator() {
   const global = GlobalFacade();
   const { isAuthenticated, isAuthenticating } = global;
+  const { preference, scheme, palette, themeVars } = useThemePalette();
+  const { setColorScheme } = useNativeWindColorScheme();
   const segments = useSegments();
   const router = useRouter();
   const [splashDone, setSplashDone] = useState(false);
+
+  setActiveThemeScheme(scheme);
 
   // Restore the persisted session once, and wire the 401 -> logout handler.
   useEffect(() => {
@@ -43,6 +50,10 @@ function RootNavigator() {
   }, []);
 
   useEffect(() => {
+    setColorScheme(preference);
+  }, [preference, setColorScheme]);
+
+  useEffect(() => {
     if (isAuthenticating) return;
     const inAuthGroup = segments[0] === "(auth)";
     if (!isAuthenticated && !inAuthGroup) {
@@ -53,46 +64,49 @@ function RootNavigator() {
   }, [isAuthenticated, isAuthenticating, segments, router]);
 
   return (
-    <>
+    <View key={scheme} className="flex-1 bg-background" style={themeVars}>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} backgroundColor={palette.background} />
       {/* Don't mount routed screens until the session is restored — otherwise a
           screen can fire an authenticated request before the token is loaded
           into the sync cache, get a 401, and trigger a logout (e.g. web reload). */}
       {!isAuthenticating ? (
-      <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
-        animation: "fade",
-      }}
-    >
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="categories" />
-      <Stack.Screen name="debts" />
-      <Stack.Screen name="debt-detail" />
-      <Stack.Screen name="goals" />
-      <Stack.Screen name="recurring" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="notifications" />
-      <Stack.Screen name="budget-invites" />
-      <Stack.Screen name="day-transactions" />
-      <Stack.Screen name="transaction-form" options={{ presentation: "modal" }} />
-      <Stack.Screen name="category-form" options={{ presentation: "modal" }} />
-      <Stack.Screen name="wallet-form" options={{ presentation: "modal" }} />
-      <Stack.Screen name="budget-form" options={{ presentation: "modal" }} />
-      <Stack.Screen name="debt-form" options={{ presentation: "modal" }} />
-      <Stack.Screen name="debt-pay" options={{ presentation: "modal" }} />
-      <Stack.Screen name="goal-form" options={{ presentation: "modal" }} />
-      <Stack.Screen name="goal-contribute" options={{ presentation: "modal" }} />
-      <Stack.Screen name="recurring-form" options={{ presentation: "modal" }} />
-      <Stack.Screen name="edit-profile" options={{ presentation: "modal" }} />
-      <Stack.Screen name="change-password" options={{ presentation: "modal" }} />
-      </Stack>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: palette.background },
+            animation: "fade",
+          }}
+        >
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="categories" />
+          <Stack.Screen name="debts" />
+          <Stack.Screen name="debt-detail" />
+          <Stack.Screen name="goals" />
+          <Stack.Screen name="recurring" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen name="budget-invites" />
+          <Stack.Screen name="day-transactions" />
+          <Stack.Screen name="transaction-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="category-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="wallet-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="budget-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="debt-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="debt-pay" options={{ presentation: "modal" }} />
+          <Stack.Screen name="goal-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="goal-contribute" options={{ presentation: "modal" }} />
+          <Stack.Screen name="recurring-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="edit-profile" options={{ presentation: "modal" }} />
+          <Stack.Screen name="change-password" options={{ presentation: "modal" }} />
+        </Stack>
       ) : null}
       {!splashDone ? (
         <AnimatedSplash hold={isAuthenticating} onFinish={() => setSplashDone(true)} />
       ) : null}
-    </>
+      <NotificationWatcher />
+      <ToastHost />
+    </View>
   );
 }
 
@@ -102,10 +116,7 @@ export default function RootLayout() {
       <Provider store={store}>
         <SafeAreaProvider>
           <BottomSheetModalProvider>
-            <StatusBar style="light" />
             <RootNavigator />
-            <NotificationWatcher />
-            <ToastHost />
           </BottomSheetModalProvider>
         </SafeAreaProvider>
       </Provider>

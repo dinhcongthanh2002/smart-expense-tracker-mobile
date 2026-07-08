@@ -53,9 +53,9 @@ export function SwipeableTransactionRow({ tx, onEdit, onDelete }: Props) {
         className="px-3"
         style={{
           borderRadius: 18,
-          backgroundColor: "#171E36",
+          backgroundColor: colors.glassSurface,
           borderWidth: StyleSheet.hairlineWidth,
-          borderColor: "rgba(255,255,255,0.08)",
+          borderColor: colors.glassBorder,
           overflow: "hidden",
         }}
       >
