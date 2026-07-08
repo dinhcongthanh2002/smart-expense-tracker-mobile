@@ -1,31 +1,31 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  BottomSheetTextInput,
-  type BottomSheetBackdropProps,
-} from "@gorhom/bottom-sheet";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import {
+    BottomSheetBackdrop,
+    BottomSheetModal,
+    BottomSheetScrollView,
+    BottomSheetTextInput,
+    type BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
+    Text,
+    useWindowDimensions,
+    View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Screen } from "@/components/ui/Screen";
-import { GlassSurface } from "@/components/ui/GlassSurface";
-import { Button } from "@/components/ui/Button";
 import { CategoryBadge } from "@/components/CategoryBadge";
+import { Button } from "@/components/ui/Button";
+import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
+import { formatCurrency } from "@/lib/format";
 import { BudgetFacade } from "@/store/budget";
 import type { BudgetViewModel } from "@/store/budget/model";
-import { formatCurrency } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
 function progressColor(percent: number) {

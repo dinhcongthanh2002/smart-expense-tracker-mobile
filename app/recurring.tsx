@@ -1,17 +1,17 @@
-import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { Screen } from "@/components/ui/Screen";
-import { GlassSurface } from "@/components/ui/GlassSurface";
 import { CategoryBadge } from "@/components/CategoryBadge";
+import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { transactionTypeMeta } from "@/lib/ui-helpers";
+import { RecurringFrequency, TransactionType } from "@/models/enums";
 import { RecurringFacade } from "@/store/recurring";
 import type { RecurringViewModel } from "@/store/recurring/model";
-import { RecurringFrequency, TransactionType } from "@/models/enums";
-import { transactionTypeMeta } from "@/lib/ui-helpers";
-import { formatCurrency, formatDate } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
 const FREQUENCY_KEY: Record<RecurringFrequency, string> = {

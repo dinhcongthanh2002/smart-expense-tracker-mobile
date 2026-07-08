@@ -1,14 +1,13 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
 
 import { cn } from "@/lib/cn";
-import { colors } from "@/theme/colors";
-import { gradients } from "@/theme/colors";
+import { colors, gradients } from "@/theme/colors";
 import { GlassSurface } from "./GlassSurface";
 
 export type ButtonVariant = "primary" | "glass" | "ghost" | "danger";

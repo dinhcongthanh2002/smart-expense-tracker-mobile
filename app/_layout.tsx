@@ -1,25 +1,25 @@
-import "../global.css";
 import "@/lib/i18n";
+import "../global.css";
 
-import { useEffect, useState } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { Provider } from "react-redux";
-import { View } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme as useNativeWindColorScheme } from "nativewind";
+import { useEffect, useState } from "react";
+import { View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Provider } from "react-redux";
 
-import { setActiveThemeScheme } from "@/theme/colors";
+import { AnimatedSplash } from "@/components/AnimatedSplash";
+import { NotificationWatcher } from "@/components/NotificationWatcher";
+import { ToastHost } from "@/components/ui/ToastHost";
+import { setUnauthorizedHandler } from "@/lib/api";
 import { useThemePalette } from "@/lib/theme";
 import { store } from "@/store";
 import { GlobalFacade } from "@/store/global";
-import { setUnauthorizedHandler } from "@/lib/api";
-import { ToastHost } from "@/components/ui/ToastHost";
-import { NotificationWatcher } from "@/components/NotificationWatcher";
-import { AnimatedSplash } from "@/components/AnimatedSplash";
+import { setActiveThemeScheme } from "@/theme/colors";
 
 // Keep the native splash up until our JS overlay is mounted, so the hand-off to
 // the branded animated splash is seamless (no blank flash).

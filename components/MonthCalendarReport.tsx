@@ -1,12 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
-import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Pressable, Text, View } from "react-native";
 
 import { GlassCard } from "@/components/ui/GlassCard";
-import { StatisticFacade } from "@/store/statistic";
 import { formatCurrency } from "@/lib/format";
+import { StatisticFacade } from "@/store/statistic";
 import { colors } from "@/theme/colors";
 
 const MASK = "******";

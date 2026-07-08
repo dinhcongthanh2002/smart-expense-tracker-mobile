@@ -1,22 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import { Screen } from "@/components/ui/Screen";
-import { Button } from "@/components/ui/Button";
-import { GlassSurface } from "@/components/ui/GlassSurface";
-import { FieldError } from "@/components/ui/FieldError";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import {
-  CategoryPickerSheet,
-  type CategoryPickerSheetRef,
+    CategoryPickerSheet,
+    type CategoryPickerSheetRef,
 } from "@/components/CategoryPickerSheet";
+import { Button } from "@/components/ui/Button";
+import { FieldError } from "@/components/ui/FieldError";
+import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
+import { groupThousands, onlyDigits } from "@/lib/format";
+import { TransactionType } from "@/models/enums";
 import { BudgetFacade } from "@/store/budget";
 import { CategoryFacade } from "@/store/category";
-import { TransactionType } from "@/models/enums";
-import { groupThousands, onlyDigits } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
 export default function BudgetFormScreen() {

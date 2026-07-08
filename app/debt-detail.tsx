@@ -1,17 +1,17 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
-import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
-import { DebtFacade } from "@/store/debt";
-import { DEBT_STATUS_META, DEBT_TYPE_META } from "@/store/debt/model";
-import { DebtStatus, DebtType } from "@/models/enums";
+import { Screen } from "@/components/ui/Screen";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { DebtStatus, DebtType } from "@/models/enums";
+import { DebtFacade } from "@/store/debt";
+import { DEBT_STATUS_META, DEBT_TYPE_META } from "@/store/debt/model";
 import { colors } from "@/theme/colors";
 
 // Maps debt enum values to shared enum-label keys (common.enums.*).

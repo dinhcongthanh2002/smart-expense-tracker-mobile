@@ -1,18 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
+import {
+    BottomSheetBackdrop,
+    BottomSheetModal,
+    BottomSheetScrollView,
+    type BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
 import { useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  type BottomSheetBackdropProps,
-} from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
 
-import { GlassSurface } from "./GlassSurface";
-import { colors } from "@/theme/colors";
 import { useThemePalette } from "@/lib/theme";
+import { colors } from "@/theme/colors";
+import { GlassSurface } from "./GlassSurface";
 
 export interface SelectOption {
   value: string;

@@ -1,11 +1,11 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
-import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
 
-import { TransactionRow } from "./TransactionRow";
-import { colors } from "@/theme/colors";
 import type { TransactionViewModel } from "@/store/transaction/model";
+import { colors } from "@/theme/colors";
+import { TransactionRow } from "./TransactionRow";
 
 interface Props {
   tx: TransactionViewModel;

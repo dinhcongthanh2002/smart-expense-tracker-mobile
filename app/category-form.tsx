@@ -1,22 +1,22 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
-import { Screen } from "@/components/ui/Screen";
-import { Input } from "@/components/ui/Input";
+import { CategoryBadge } from "@/components/CategoryBadge";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
-import { CategoryBadge } from "@/components/CategoryBadge";
-import { CategoryFacade } from "@/store/category";
-import { TransactionType } from "@/models/enums";
-import { CATEGORY_FALLBACK_COLORS } from "@/lib/ui-helpers";
+import { Input } from "@/components/ui/Input";
+import { Screen } from "@/components/ui/Screen";
 import {
-  CATEGORY_ICON_NAMES,
-  DEFAULT_CATEGORY_ICON,
-  getCategoryIcon,
+    CATEGORY_ICON_NAMES,
+    DEFAULT_CATEGORY_ICON,
+    getCategoryIcon,
 } from "@/lib/category-icons";
+import { CATEGORY_FALLBACK_COLORS } from "@/lib/ui-helpers";
+import { TransactionType } from "@/models/enums";
+import { CategoryFacade } from "@/store/category";
 import { colors } from "@/theme/colors";
 
 const TYPE_TABS = [

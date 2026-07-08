@@ -1,18 +1,18 @@
-import { useMemo } from "react";
 import { useColorScheme as useNativeWindColorScheme } from "nativewind";
+import { useMemo } from "react";
 
+import { useTypedSelector } from "@/store/hooks";
 import {
-  colors,
-  gradients,
-  setActiveThemeScheme,
-  themeToVars,
+    colors,
+    gradients,
+    setActiveThemeScheme,
+    themeToVars,
 } from "@/theme/colors";
 import {
-  themes,
-  type ThemePreference,
-  type ThemeScheme,
+    themes,
+    type ThemePreference,
+    type ThemeScheme,
 } from "@/theme/themes";
-import { useTypedSelector } from "@/store/hooks";
 
 export type { ThemePreference, ThemeScheme } from "@/theme/themes";
 

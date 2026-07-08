@@ -1,20 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import Animated, {
-  FadeIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
+    FadeIn,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from "react-native-reanimated";
-import { useFocusEffect, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
-import { Screen } from "@/components/ui/Screen";
-import { GlassSurface } from "@/components/ui/GlassSurface";
 import { CategoryBadge } from "@/components/CategoryBadge";
-import { CategoryFacade } from "@/store/category";
+import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
 import { TransactionType } from "@/models/enums";
+import { CategoryFacade } from "@/store/category";
 import type { CategoryViewModel } from "@/store/category/model";
 import { colors } from "@/theme/colors";
 

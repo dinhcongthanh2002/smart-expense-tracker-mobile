@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { Modal, Platform, Pressable, Text, View } from "react-native";
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker, {
+    type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Modal, Platform, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { GlassSurface } from "./GlassSurface";
 import { formatDate } from "@/lib/format";
-import { colors } from "@/theme/colors";
 import { useThemePalette } from "@/lib/theme";
+import { colors } from "@/theme/colors";
+import { GlassSurface } from "./GlassSurface";
 
 interface DateFieldProps {
   value: Date;

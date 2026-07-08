@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
-import { GlassSurface } from "@/components/ui/GlassSurface";
 import { FieldError } from "@/components/ui/FieldError";
-import { SavingsGoalFacade } from "@/store/savingsGoal";
+import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
 import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
+import { SavingsGoalFacade } from "@/store/savingsGoal";
 import { colors } from "@/theme/colors";
 
 export default function GoalContributeScreen() {

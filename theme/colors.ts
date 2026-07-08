@@ -1,13 +1,13 @@
 import { vars } from "nativewind";
 
 import {
-  dark,
-  gradients as themeGradients,
-  light,
-  themes,
-  type ThemeColors,
-  type ThemeGradients,
-  type ThemeScheme,
+    dark,
+    light,
+    gradients as themeGradients,
+    themes,
+    type ThemeColors,
+    type ThemeGradients,
+    type ThemeScheme,
 } from "./themes";
 
 let activeScheme: ThemeScheme = "dark";
@@ -63,5 +63,6 @@ export function themeToVars(theme: ThemeColors) {
   });
 }
 
-export { dark, light, themes };
 export type { ThemeColors, ThemeGradients, ThemeScheme } from "./themes";
+export { dark, light, themes };
+

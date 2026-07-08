@@ -1,5 +1,5 @@
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { colors } from "@/theme/colors";
 
@@ -93,3 +93,4 @@ export function GlassSurface({
 }
 
 export { colors };
+

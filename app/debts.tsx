@@ -1,23 +1,23 @@
+import { Ionicons } from "@expo/vector-icons";
+import dayjs from "dayjs";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import dayjs from "dayjs";
 
-import { Screen } from "@/components/ui/Screen";
-import { GlassSurface } from "@/components/ui/GlassSurface";
 import { DateField } from "@/components/ui/DateField";
-import { DebtFacade } from "@/store/debt";
-import {
-  DEBT_STATUS_META,
-  DEBT_TYPE_META,
-  type DebtViewModel,
-} from "@/store/debt/model";
-import { DebtStatus, DebtType } from "@/models/enums";
-import type { QueryParams } from "@/models/api.model";
+import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { formatCurrency, formatDate } from "@/lib/format";
+import type { QueryParams } from "@/models/api.model";
+import { DebtStatus, DebtType } from "@/models/enums";
+import { DebtFacade } from "@/store/debt";
+import {
+    DEBT_STATUS_META,
+    DEBT_TYPE_META,
+    type DebtViewModel,
+} from "@/store/debt/model";
 import { colors } from "@/theme/colors";
 
 // Maps debt enum values to shared enum-label keys (common.enums.*).

@@ -1,25 +1,25 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import { Screen } from "@/components/ui/Screen";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GlassSurface } from "@/components/ui/GlassSurface";
-import { WalletFacade } from "@/store/wallet";
+import { Input } from "@/components/ui/Input";
+import { Screen } from "@/components/ui/Screen";
 import {
-  CURRENCIES,
-  WALLET_TYPE_META,
-  type WalletUpsertModel,
-} from "@/store/wallet/model";
-import { WalletType } from "@/models/enums";
-import { CATEGORY_FALLBACK_COLORS } from "@/lib/ui-helpers";
-import {
-  CATEGORY_ICON_NAMES,
-  getCategoryIcon,
+    CATEGORY_ICON_NAMES,
+    getCategoryIcon,
 } from "@/lib/category-icons";
 import { groupThousands, onlyDigits } from "@/lib/format";
+import { CATEGORY_FALLBACK_COLORS } from "@/lib/ui-helpers";
+import { WalletType } from "@/models/enums";
+import { WalletFacade } from "@/store/wallet";
+import {
+    CURRENCIES,
+    WALLET_TYPE_META,
+    type WalletUpsertModel,
+} from "@/store/wallet/model";
 import { colors } from "@/theme/colors";
 
 const TYPES = [

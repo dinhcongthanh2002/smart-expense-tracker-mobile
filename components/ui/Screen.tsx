@@ -1,6 +1,6 @@
-import { StyleSheet, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 import { cn } from "@/lib/cn";

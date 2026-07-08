@@ -1,28 +1,28 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
-  forwardRef,
-  useCallback,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
+    BottomSheetBackdrop,
+    BottomSheetModal,
+    BottomSheetScrollView,
+    BottomSheetTextInput,
+    type BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
+import {
+    forwardRef,
+    useCallback,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  BottomSheetTextInput,
-  type BottomSheetBackdropProps,
-} from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
 
-import { CategoryBadge } from "./CategoryBadge";
-import type { CategoryViewModel } from "@/store/category/model";
-import type { TransactionType } from "@/models/enums";
-import { colors } from "@/theme/colors";
 import { useThemePalette } from "@/lib/theme";
+import type { TransactionType } from "@/models/enums";
+import type { CategoryViewModel } from "@/store/category/model";
+import { colors } from "@/theme/colors";
+import { CategoryBadge } from "./CategoryBadge";
 
 export interface CategoryPickerSheetRef {
   present: () => void;

@@ -1,15 +1,15 @@
-import { useCallback } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
-import { SavingsGoalFacade } from "@/store/savingsGoal";
-import type { SavingsGoalViewModel } from "@/store/savingsGoal/model";
+import { Screen } from "@/components/ui/Screen";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { SavingsGoalFacade } from "@/store/savingsGoal";
+import type { SavingsGoalViewModel } from "@/store/savingsGoal/model";
 import { colors } from "@/theme/colors";
 
 function GoalCard({

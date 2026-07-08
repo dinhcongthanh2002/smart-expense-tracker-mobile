@@ -1,15 +1,15 @@
-import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
+import { formatDateTime } from "@/lib/format";
+import { NotificationType } from "@/models/enums";
 import { NotificationFacade } from "@/store/notification";
 import type { NotificationViewModel } from "@/store/notification/model";
-import { NotificationType } from "@/models/enums";
-import { formatDateTime } from "@/lib/format";
 import { colors } from "@/theme/colors";
 
 function iconForType(type?: number | null) {

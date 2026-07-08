@@ -1,28 +1,28 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
+import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 
-import { Screen } from "@/components/ui/Screen";
 import { GlassSurface } from "@/components/ui/GlassSurface";
+import { Screen } from "@/components/ui/Screen";
 import {
-  authenticateBiometric,
-  getBiometricLabel,
-  isBiometricAvailable,
+    authenticateBiometric,
+    getBiometricLabel,
+    isBiometricAvailable,
 } from "@/lib/biometric";
-import { getBiometricEnabled, setBiometricEnabled } from "@/lib/secure-storage";
 import {
-  getNotificationSoundEnabled,
-  setNotificationSoundEnabled,
+    LANGUAGE_LABELS,
+    SUPPORTED_LANGUAGES,
+    type AppLanguage,
+} from "@/lib/i18n";
+import {
+    getNotificationSoundEnabled,
+    setNotificationSoundEnabled,
 } from "@/lib/notification-sound";
 import { notify } from "@/lib/notify";
-import {
-  LANGUAGE_LABELS,
-  SUPPORTED_LANGUAGES,
-  type AppLanguage,
-} from "@/lib/i18n";
+import { getBiometricEnabled, setBiometricEnabled } from "@/lib/secure-storage";
 import { GlobalFacade } from "@/store/global";
 import { NotificationSettingFacade } from "@/store/notificationSetting";
 import { colors } from "@/theme/colors";

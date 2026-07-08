@@ -1,28 +1,28 @@
-import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import { API, ApiError } from "@/lib/api";
 import { STORAGE_KEYS } from "@/lib/constants";
-import { routerLinks } from "@/lib/router-links";
-import { notify } from "@/lib/notify";
 import i18n, { applyLanguage, type AppLanguage } from "@/lib/i18n";
+import { notify } from "@/lib/notify";
+import { routerLinks } from "@/lib/router-links";
 import {
-  bootstrapToken,
-  clearAuthStorage,
-  getAuthTokenSync,
-  getBiometricEnabled,
-  getUser,
-  setAuthTokens,
-  setUser,
+    bootstrapToken,
+    clearAuthStorage,
+    getAuthTokenSync,
+    getBiometricEnabled,
+    getUser,
+    setAuthTokens,
+    setUser,
 } from "@/lib/secure-storage";
 import type { Gender } from "@/models/enums";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
-import type { ThemePreference } from "@/theme/themes";
 import type {
-  AttachmentViewModel,
-  UserProfileUpdateModel,
-  UserViewModel,
+    AttachmentViewModel,
+    UserProfileUpdateModel,
+    UserViewModel,
 } from "@/store/user/model";
+import type { ThemePreference } from "@/theme/themes";
 
 const AUTH = routerLinks("Auth");
 const USER = routerLinks("User");
