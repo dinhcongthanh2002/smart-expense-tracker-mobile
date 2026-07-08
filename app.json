@@ -21,7 +21,7 @@
       "package": "vn.vdcd.smartexpense",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0B1020"
+        "backgroundColor": "#1d9e75"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
