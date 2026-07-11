@@ -14,7 +14,10 @@
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
-        }
+        },
+        "NSSpeechRecognitionUsageDescription": "Cho phép $(PRODUCT_NAME) nhận dạng giọng nói để tạo giao dịch nhanh.",
+        "NSMicrophoneUsageDescription": "Cho phép $(PRODUCT_NAME) dùng micro để nhập giao dịch bằng giọng nói.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -27,8 +30,8 @@
       "permissions": [
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
-        "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT"
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -75,7 +78,23 @@
           }
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "color": "#1d9e75"
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Cho phép $(PRODUCT_NAME) dùng micro để nhập giao dịch bằng giọng nói.",
+          "speechRecognitionPermission": "Cho phép $(PRODUCT_NAME) nhận dạng giọng nói để tạo giao dịch nhanh.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

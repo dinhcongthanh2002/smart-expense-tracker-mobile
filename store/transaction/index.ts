@@ -1,10 +1,31 @@
 import { Action } from "@/store/action";
 import { Slice, type State } from "@/store/slice";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
+import { API } from "@/lib/api";
 import type { QueryParams } from "@/models/api.model";
-import type { TransactionUpsertModel, TransactionViewModel } from "./model";
+import type {
+  TransactionParseResult,
+  TransactionUpsertModel,
+  TransactionViewModel,
+} from "./model";
 
 const action = new Action<TransactionViewModel>("Transaction");
+
+/**
+ * Ask the backend to parse a spoken/typed phrase into a draft transaction.
+ * Not a redux thunk — the quick-add sheet consumes the draft locally and only
+ * persists via `TransactionFacade.post` after the user confirms.
+ */
+export async function parseTransactionText(
+  text: string,
+  walletId?: string,
+): Promise<TransactionParseResult | undefined> {
+  const res = await API.post<TransactionParseResult>("/transactions/parse", {
+    text,
+    walletId,
+  });
+  return res.data;
+}
 export const transactionAction = action;
 export const transactionSlice = new Slice<TransactionViewModel>(action);
 

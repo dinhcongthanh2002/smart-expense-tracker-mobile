@@ -14,6 +14,7 @@ import { Provider } from "react-redux";
 
 import { AnimatedSplash } from "@/components/AnimatedSplash";
 import { NotificationWatcher } from "@/components/NotificationWatcher";
+import { PushRegistrar } from "@/components/PushRegistrar";
 import { ToastHost } from "@/components/ui/ToastHost";
 import { setUnauthorizedHandler } from "@/lib/api";
 import { useThemePalette } from "@/lib/theme";
@@ -105,6 +106,7 @@ function RootNavigator() {
         <AnimatedSplash hold={isAuthenticating} onFinish={() => setSplashDone(true)} />
       ) : null}
       <NotificationWatcher />
+      <PushRegistrar />
       <ToastHost />
     </View>
   );

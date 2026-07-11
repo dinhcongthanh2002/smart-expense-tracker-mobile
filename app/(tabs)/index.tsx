@@ -1,6 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -12,6 +20,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { MonthCalendarReport } from "@/components/MonthCalendarReport";
 import { TransactionRow, RowDivider } from "@/components/TransactionRow";
+import { QuickAddSheet, type QuickAddSheetRef } from "@/components/QuickAddSheet";
 import { StatisticFacade } from "@/store/statistic";
 import { TransactionFacade } from "@/store/transaction";
 import { GlobalFacade } from "@/store/global";
@@ -36,6 +45,8 @@ export default function DashboardScreen() {
   const { user } = GlobalFacade();
   const noti = NotificationFacade();
   const [hideBalance, setHideBalance] = useState(false);
+  const quickAddRef = useRef<QuickAddSheetRef>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     AsyncStorage.getItem("hideBalance").then((v) => setHideBalance(v === "1"));
@@ -231,6 +242,34 @@ export default function DashboardScreen() {
           )}
         </GlassSurface>
       </ScrollView>
+
+      {/* Voice quick-add FAB — offset above the native tab bar */}
+      <View
+        className="absolute right-5"
+        style={{ bottom: insets.bottom + 84 }}
+      >
+        <Pressable
+          onPress={() => quickAddRef.current?.present()}
+          className="h-16 w-16 items-center justify-center overflow-hidden rounded-full active:opacity-80"
+          style={{
+            shadowColor: colors.primary,
+            shadowOpacity: 0.4,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 8,
+          }}
+        >
+          <LinearGradient
+            colors={gradients.primary}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <Ionicons name="mic" size={28} color="#fff" />
+        </Pressable>
+      </View>
+
+      <QuickAddSheet ref={quickAddRef} onSaved={refresh} />
     </Screen>
   );
 }

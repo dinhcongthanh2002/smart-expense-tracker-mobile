@@ -2,12 +2,19 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
     type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useState } from "react";
+import {
+    BottomSheetBackdrop,
+    BottomSheetModal,
+    BottomSheetView,
+    type BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
+import { createElement, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import dayjs from "dayjs";
 
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { useThemePalette } from "@/lib/theme";
 import { colors } from "@/theme/colors";
 import { GlassSurface } from "./GlassSurface";
@@ -16,71 +23,157 @@ interface DateFieldProps {
   value: Date;
   onChange: (d: Date) => void;
   maximumDate?: Date;
+  /** "date" (default) or "datetime" to also pick the time. */
+  mode?: "date" | "datetime";
 }
 
 /**
- * Date field that pops up a picker. On iOS it shows Apple's native inline
- * calendar in a bottom sheet; on Android the native date dialog.
+ * Date (and optionally time) field that pops up a picker. On iOS the native wheel
+ * is shown in a @gorhom/bottom-sheet modal (same sheet chrome as the rest of the
+ * app); on Android the native dialog(s) — date then time for "datetime". The wheel
+ * is localized to the app language via the `locale` prop.
  */
-export function DateField({ value, onChange, maximumDate }: DateFieldProps) {
-  const { t } = useTranslation();
+export function DateField({ value, onChange, maximumDate, mode = "date" }: DateFieldProps) {
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { scheme } = useThemePalette();
-  const [show, setShow] = useState(false);
+  const sheetRef = useRef<BottomSheetModal>(null);
+  // Android runs date then time as separate dialogs; hold the in-progress value.
+  const [androidStep, setAndroidStep] = useState<null | "date" | "time">(null);
+  const pendingRef = useRef<Date>(value);
+
+  const isDateTime = mode === "datetime";
+  const locale = i18n.language === "vi" ? "vi-VN" : "en-US";
+
+  const openAndroid = () => {
+    pendingRef.current = value;
+    setAndroidStep("date");
+  };
 
   const onAndroidChange = (e: DateTimePickerEvent, d?: Date) => {
-    setShow(false);
-    if (e.type !== "dismissed" && d) onChange(d);
+    if (e.type === "dismissed" || !d) {
+      setAndroidStep(null);
+      return;
+    }
+    if (androidStep === "date") {
+      // Keep the picked date, carry the existing time.
+      const merged = new Date(pendingRef.current);
+      merged.setFullYear(d.getFullYear(), d.getMonth(), d.getDate());
+      pendingRef.current = merged;
+      if (isDateTime) {
+        setAndroidStep("time");
+      } else {
+        setAndroidStep(null);
+        onChange(merged);
+      }
+    } else {
+      // Time step: apply hours/minutes to the date chosen above.
+      const merged = new Date(pendingRef.current);
+      merged.setHours(d.getHours(), d.getMinutes(), 0, 0);
+      setAndroidStep(null);
+      onChange(merged);
+    }
   };
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.6}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
+
+  // Web: the native RN datetimepicker doesn't render — use the browser's input.
+  if (Platform.OS === "web") {
+    const fmt = isDateTime ? "YYYY-MM-DDTHH:mm" : "YYYY-MM-DD";
+    return (
+      <GlassSurface radius={16}>
+        <View className="h-14 flex-row items-center justify-between px-4">
+          {createElement("input", {
+            type: isDateTime ? "datetime-local" : "date",
+            value: dayjs(value).format(fmt),
+            max: maximumDate ? dayjs(maximumDate).format(fmt) : undefined,
+            onChange: (e: { target: { value: string } }) => {
+              const v = e?.target?.value;
+              if (v) onChange(dayjs(v).toDate());
+            },
+            style: {
+              flex: 1,
+              border: "none",
+              outline: "none",
+              background: "transparent",
+              color: colors.ink,
+              fontSize: 16,
+              // Make the browser's calendar popup follow the app theme.
+              colorScheme: scheme,
+            },
+          })}
+          <Ionicons name="calendar-outline" size={20} color={colors.muted} />
+        </View>
+      </GlassSurface>
+    );
+  }
 
   return (
     <>
-      <Pressable onPress={() => setShow(true)}>
+      <Pressable
+        onPress={() =>
+          Platform.OS === "android" ? openAndroid() : sheetRef.current?.present()
+        }
+      >
         <GlassSurface radius={16}>
           <View className="h-14 flex-row items-center justify-between px-4">
-            <Text className="text-base text-ink">{formatDate(value)}</Text>
+            <Text className="text-base text-ink">
+              {isDateTime ? formatDateTime(value) : formatDate(value)}
+            </Text>
             <Ionicons name="calendar-outline" size={20} color={colors.muted} />
           </View>
         </GlassSurface>
       </Pressable>
 
-      {Platform.OS === "android" && show ? (
+      {Platform.OS === "android" && androidStep ? (
         <DateTimePicker
-          value={value}
-          mode="date"
+          value={androidStep === "time" ? pendingRef.current : value}
+          mode={androidStep}
           display="default"
-          maximumDate={maximumDate}
+          is24Hour
+          maximumDate={androidStep === "date" ? maximumDate : undefined}
           onChange={onAndroidChange}
         />
       ) : null}
 
       {Platform.OS !== "android" ? (
-        <Modal
-          visible={show}
-          transparent
-          animationType="slide"
-          statusBarTranslucent
-          onRequestClose={() => setShow(false)}
+        <BottomSheetModal
+          key={scheme}
+          ref={sheetRef}
+          enableDynamicSizing
+          // Only pan from the handle so the wheel keeps its vertical gestures.
+          enableContentPanningGesture={false}
+          backdropComponent={renderBackdrop}
+          backgroundStyle={{ backgroundColor: colors.surface }}
+          handleIndicatorStyle={{ backgroundColor: colors.glassBorder }}
         >
-          <Pressable className="flex-1" style={{ backgroundColor: colors.scrim }} onPress={() => setShow(false)} />
-          <View
-            style={{ paddingBottom: insets.bottom + 8 }}
-            className="rounded-t-3xl bg-surface"
-          >
+          <BottomSheetView style={{ paddingBottom: insets.bottom + 8 }}>
             <View className="flex-row items-center justify-between px-5 py-3">
-              <Text className="text-lg font-bold text-ink">{t("common.selectDate")}</Text>
-              <Pressable onPress={() => setShow(false)} hitSlop={10}>
+              <Text className="text-lg font-bold text-ink">
+                {t(isDateTime ? "common.selectDateTime" : "common.selectDate")}
+              </Text>
+              <Pressable onPress={() => sheetRef.current?.dismiss()} hitSlop={10}>
                 <Text className="text-base font-semibold text-primary">{t("common.done")}</Text>
               </Pressable>
             </View>
             <View className="items-center pb-4">
-              {/* `spinner` (Apple wheel) receives touches reliably inside a
-                  Modal, unlike `inline` which can be unresponsive. */}
               <DateTimePicker
                 value={value}
-                mode="date"
+                mode={mode}
                 display="spinner"
                 themeVariant={scheme}
+                locale={locale}
                 maximumDate={maximumDate}
                 onChange={(_, d) => {
                   if (d) onChange(d);
@@ -88,8 +181,8 @@ export function DateField({ value, onChange, maximumDate }: DateFieldProps) {
                 style={{ width: "100%" }}
               />
             </View>
-          </View>
-        </Modal>
+          </BottomSheetView>
+        </BottomSheetModal>
       ) : null}
     </>
   );

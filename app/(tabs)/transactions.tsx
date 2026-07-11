@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Screen } from "@/components/ui/Screen";
@@ -48,6 +49,7 @@ const PAGE_SIZE = 20;
 export default function TransactionsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const tx = TransactionFacade();
   const category = CategoryFacade();
 
@@ -290,8 +292,9 @@ export default function TransactionsScreen() {
 
       <Pressable
         onPress={() => router.push("/transaction-form")}
-        className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center rounded-full"
+        className="absolute right-6 h-16 w-16 items-center justify-center rounded-full"
         style={{
+          bottom: insets.bottom + 84,
           backgroundColor: colors.primary,
           shadowColor: colors.primary,
           shadowOpacity: 0.5,

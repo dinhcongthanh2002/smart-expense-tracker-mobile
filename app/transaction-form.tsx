@@ -347,7 +347,7 @@ export default function TransactionFormScreen() {
 
           {/* date */}
           <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{translate("transactionForm.transactionDate")}</Text>
-          <DateField value={date} onChange={setDate} maximumDate={new Date()} />
+          <DateField value={date} onChange={setDate} maximumDate={new Date()} mode="datetime" />
 
           {/* note */}
           <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{translate("common.note")}</Text>
