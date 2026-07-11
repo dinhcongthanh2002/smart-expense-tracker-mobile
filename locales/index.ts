@@ -20,6 +20,7 @@ import goals from "./goals";
 import recurring from "./recurring";
 import notifications from "./notifications";
 import quickAdd from "./quickAdd";
+import quickActions from "./quickActions";
 
 type Bundle = { vi: Record<string, unknown>; en: Record<string, unknown> };
 
@@ -44,6 +45,7 @@ const namespaces: Record<string, Bundle> = {
   recurring,
   notifications,
   quickAdd,
+  quickActions,
 };
 
 function build(lang: "vi" | "en") {

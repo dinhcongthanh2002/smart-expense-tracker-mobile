@@ -22,6 +22,8 @@ import { MonthCalendarReport } from "@/components/MonthCalendarReport";
 import { TransactionRow, RowDivider } from "@/components/TransactionRow";
 import { QuickAddSheet, type QuickAddSheetRef } from "@/components/QuickAddSheet";
 import { updateWidget } from "@/lib/widget";
+import { useQuickActionRouting } from "expo-quick-actions/router";
+import { registerQuickActions, QUICK_ACTION } from "@/lib/quick-actions";
 import { StatisticFacade } from "@/store/statistic";
 import { TransactionFacade } from "@/store/transaction";
 import { GlobalFacade } from "@/store/global";
@@ -71,6 +73,18 @@ export default function DashboardScreen() {
   }, []);
 
   useFocusEffect(refresh);
+
+  // Home-screen quick actions (long-press the app icon).
+  useEffect(() => {
+    registerQuickActions(t);
+  }, [t]);
+  useQuickActionRouting((action) => {
+    if (action.id === QUICK_ACTION.voice) {
+      quickAddRef.current?.present();
+      return true; // handled — don't let the router navigate
+    }
+    return false; // other actions navigate via params.href
+  });
 
   const donut = dashboard?.donutChartCategoryExpense;
   const pieData =

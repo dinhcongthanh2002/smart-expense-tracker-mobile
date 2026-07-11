@@ -39,6 +39,7 @@
     "expo-local-authentication": "~17.0.8",
     "expo-media-viewer": "^0.7.2",
     "expo-notifications": "~0.32.17",
+    "expo-quick-actions": "^6.0.2",
     "expo-router": "~6.0.24",
     "expo-secure-store": "~15.0.8",
     "expo-speech-recognition": "^56.0.1",
