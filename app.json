@@ -11,6 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "vn.vdcd.smartexpense",
+      "appleTeamId": "X24M6Z6RJ6",
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.vn.vdcd.smartexpense"]
+      },
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
@@ -79,6 +83,7 @@
         }
       ],
       "expo-asset",
+      "@bacons/apple-targets",
       [
         "expo-notifications",
         {

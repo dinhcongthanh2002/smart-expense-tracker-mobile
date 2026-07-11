@@ -2,6 +2,7 @@ import { Action } from "@/store/action";
 import { Slice, type State } from "@/store/slice";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
 import { API } from "@/lib/api";
+import { refreshWidget } from "@/lib/widget";
 import type { QueryParams } from "@/models/api.model";
 import type {
   TransactionParseResult,
@@ -36,11 +37,29 @@ export const TransactionFacade = () => {
     ...state,
     get: (params?: QueryParams) => dispatch(action.get(params ?? {})),
     getById: (id: string) => dispatch(action.getById({ id })),
-    post: (values: TransactionUpsertModel) =>
-      dispatch(action.post({ values: values as Partial<TransactionViewModel> })),
-    put: (values: TransactionUpsertModel & { id: string }) =>
-      dispatch(action.put({ values: values as Partial<TransactionViewModel> & { id: string } })),
-    delete: (id: string) => dispatch(action.delete({ id })),
+    post: (values: TransactionUpsertModel) => {
+      const p = dispatch(action.post({ values: values as Partial<TransactionViewModel> }));
+      p.then((res) => {
+        if (res.meta.requestStatus === "fulfilled") refreshWidget();
+      });
+      return p;
+    },
+    put: (values: TransactionUpsertModel & { id: string }) => {
+      const p = dispatch(
+        action.put({ values: values as Partial<TransactionViewModel> & { id: string } }),
+      );
+      p.then((res) => {
+        if (res.meta.requestStatus === "fulfilled") refreshWidget();
+      });
+      return p;
+    },
+    delete: (id: string) => {
+      const p = dispatch(action.delete({ id }));
+      p.then((res) => {
+        if (res.meta.requestStatus === "fulfilled") refreshWidget();
+      });
+      return p;
+    },
     set: (payload: Partial<State<TransactionViewModel>>) =>
       dispatch(transactionSlice.setAction(payload)),
   };

@@ -21,6 +21,7 @@ import { GlassSurface } from "@/components/ui/GlassSurface";
 import { MonthCalendarReport } from "@/components/MonthCalendarReport";
 import { TransactionRow, RowDivider } from "@/components/TransactionRow";
 import { QuickAddSheet, type QuickAddSheetRef } from "@/components/QuickAddSheet";
+import { updateWidget } from "@/lib/widget";
 import { StatisticFacade } from "@/store/statistic";
 import { TransactionFacade } from "@/store/transaction";
 import { GlobalFacade } from "@/store/global";
@@ -78,6 +79,23 @@ export default function DashboardScreen() {
       color: donut.colors?.[i] || colorForIndex(i),
     })) ?? [];
   const recent = tx.pagination?.content ?? [];
+
+  // Keep the iOS home-screen widget in sync with the latest month summary.
+  useEffect(() => {
+    if (!dashboard) return;
+    updateWidget({
+      balance: dashboard.balance ?? 0,
+      income: dashboard.totalIncome ?? 0,
+      expense: dashboard.totalExpense ?? 0,
+      currency: "VND",
+      recent: recent.slice(0, 5).map((item) => ({
+        name: item.category?.name || item.note || "",
+        amount: item.amount ?? 0,
+        type: item.type ?? 0,
+      })),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dashboard, tx.pagination]);
 
   return (
     <Screen className="px-5">
