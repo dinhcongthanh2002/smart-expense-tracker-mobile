@@ -12,6 +12,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "vn.vdcd.smartexpense",
       "appleTeamId": "X24M6Z6RJ6",
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/ios-icon-dark.png",
+        "tinted": "./assets/ios-icon-dark.png"
+      },
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.vn.vdcd.smartexpense"
