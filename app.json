@@ -28,6 +28,7 @@
         },
         "NSSpeechRecognitionUsageDescription": "Cho phép $(PRODUCT_NAME) nhận dạng giọng nói để tạo giao dịch nhanh.",
         "NSMicrophoneUsageDescription": "Cho phép $(PRODUCT_NAME) dùng micro để nhập giao dịch bằng giọng nói.",
+        "NSSupportsLiveActivities": true,
         "ITSAppUsesNonExemptEncryption": false
       }
     },

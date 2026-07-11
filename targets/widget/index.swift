@@ -26,6 +26,12 @@ struct Summary {
     var expense: Double
     var currency: String
     var recent: [RecentItem]
+    // Daily budget: limit for today (monthly budget ÷ days) and today's spend.
+    var dailyLimit: Double
+    var spentToday: Double
+
+    var remainingToday: Double { max(0, dailyLimit - spentToday) }
+    var dailyRatio: Double { dailyLimit > 0 ? min(spentToday / dailyLimit, 1.5) : 0 }
 
     static let placeholder = Summary(
         balance: 5_230_000, income: 12_000_000, expense: 6_770_000,
@@ -34,7 +40,8 @@ struct Summary {
             RecentItem(name: "Cà phê", amount: 35_000, type: 0),
             RecentItem(name: "Lương", amount: 12_000_000, type: 1),
             RecentItem(name: "Đi chợ", amount: 250_000, type: 0),
-        ])
+        ],
+        dailyLimit: 300_000, spentToday: 150_000)
 }
 
 func loadSummary() -> Summary {
@@ -51,7 +58,9 @@ func loadSummary() -> Summary {
         income: (json["income"] as? NSNumber)?.doubleValue ?? 0,
         expense: (json["expense"] as? NSNumber)?.doubleValue ?? 0,
         currency: json["currency"] as? String ?? "VND",
-        recent: [])
+        recent: [],
+        dailyLimit: (json["dailyLimit"] as? NSNumber)?.doubleValue ?? 0,
+        spentToday: (json["spentToday"] as? NSNumber)?.doubleValue ?? 0)
 
     if let rdata = defaults?.data(forKey: RECENT_KEY),
        let arr = try? JSONSerialization.jsonObject(with: rdata) as? [[String: Any]] {
@@ -243,5 +252,9 @@ struct SmartExpenseWidget: Widget {
 struct SmartExpenseWidgetBundle: WidgetBundle {
     var body: some Widget {
         SmartExpenseWidget()
+        DailyBudgetWidget()
+        if #available(iOS 16.2, *) {
+            DailyBudgetLiveActivity()
+        }
     }
 }

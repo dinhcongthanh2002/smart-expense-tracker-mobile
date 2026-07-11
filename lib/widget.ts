@@ -2,7 +2,9 @@ import { Platform } from "react-native";
 import { ExtensionStorage } from "@bacons/apple-targets";
 
 import { API } from "@/lib/api";
+import { computeDailyBudget } from "@/lib/daily-budget";
 import { startOfMonthISO, endOfMonthISO } from "@/lib/format";
+import { updateDailyBudgetActivity } from "@/lib/live-activity";
 import type { Pagination } from "@/models/api.model";
 import type { StatisticsDashboard } from "@/store/statistic/model";
 import type { TransactionViewModel } from "@/store/transaction/model";
@@ -28,6 +30,10 @@ export interface WidgetSummary {
   expense: number;
   currency?: string;
   recent?: WidgetRecentItem[];
+  /** Daily spending limit = this month's total budget ÷ days in month. */
+  dailyLimit?: number;
+  /** Amount already spent today. */
+  spentToday?: number;
 }
 
 /**
@@ -43,6 +49,8 @@ export function updateWidget(summary: WidgetSummary): void {
       income: Math.round(summary.income || 0),
       expense: Math.round(summary.expense || 0),
       currency: summary.currency || "VND",
+      dailyLimit: Math.round(summary.dailyLimit || 0),
+      spentToday: Math.round(summary.spentToday || 0),
       updatedAt: new Date().toISOString(),
     });
 
@@ -68,7 +76,7 @@ export function updateWidget(summary: WidgetSummary): void {
 export async function refreshWidget(): Promise<void> {
   if (Platform.OS !== "ios") return;
   try {
-    const [stat, txs] = await Promise.all([
+    const [stat, txs, budget] = await Promise.all([
       API.get<StatisticsDashboard>("/statistics/dashboard", {
         StartDate: startOfMonthISO(),
         EndDate: endOfMonthISO(),
@@ -78,20 +86,27 @@ export async function refreshWidget(): Promise<void> {
         size: 5,
         sort: "-transactionDate",
       }),
+      computeDailyBudget(),
     ]);
     const d = stat.data;
     if (!d) return;
+
     updateWidget({
       balance: d.balance ?? 0,
       income: d.totalIncome ?? 0,
       expense: d.totalExpense ?? 0,
       currency: "VND",
+      dailyLimit: budget.dailyLimit,
+      spentToday: budget.spentToday,
       recent: (txs.data?.content ?? []).slice(0, 5).map((t) => ({
         name: t.category?.name || t.note || "",
         amount: t.amount ?? 0,
         type: t.type ?? 0,
       })),
     });
+
+    // Keep the Live Activity (if running) in sync with the same numbers.
+    updateDailyBudgetActivity(budget.spentToday, budget.dailyLimit);
   } catch {
     // Best-effort — leave the last-known widget data in place.
   }

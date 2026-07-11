@@ -21,9 +21,15 @@ import { GlassSurface } from "@/components/ui/GlassSurface";
 import { MonthCalendarReport } from "@/components/MonthCalendarReport";
 import { TransactionRow, RowDivider } from "@/components/TransactionRow";
 import { QuickAddSheet, type QuickAddSheetRef } from "@/components/QuickAddSheet";
-import { updateWidget } from "@/lib/widget";
+import { refreshWidget } from "@/lib/widget";
 import { useQuickActionRouting } from "expo-quick-actions/router";
 import { registerQuickActions, QUICK_ACTION } from "@/lib/quick-actions";
+import {
+  isLiveActivitySupported,
+  isTrackingDailyBudget,
+  startDailyBudgetTracking,
+  stopDailyBudgetTracking,
+} from "@/lib/live-activity";
 import { StatisticFacade } from "@/store/statistic";
 import { TransactionFacade } from "@/store/transaction";
 import { GlobalFacade } from "@/store/global";
@@ -50,6 +56,21 @@ export default function DashboardScreen() {
   const [hideBalance, setHideBalance] = useState(false);
   const quickAddRef = useRef<QuickAddSheetRef>(null);
   const insets = useSafeAreaInsets();
+  const [liveSupported] = useState(isLiveActivitySupported());
+  const [tracking, setTracking] = useState(false);
+
+  useEffect(() => {
+    if (liveSupported) isTrackingDailyBudget().then(setTracking);
+  }, [liveSupported]);
+
+  const toggleLive = async () => {
+    if (tracking) {
+      await stopDailyBudgetTracking();
+      setTracking(false);
+    } else {
+      setTracking(await startDailyBudgetTracking("VND"));
+    }
+  };
 
   useEffect(() => {
     AsyncStorage.getItem("hideBalance").then((v) => setHideBalance(v === "1"));
@@ -69,6 +90,7 @@ export default function DashboardScreen() {
     getStatistic({ startDate: startOfMonthISO(), endDate: endOfMonthISO() });
     tx.get({ page: 1, size: 5, sort: "-transactionDate" });
     noti.getUnreadCount();
+    refreshWidget(); // sync the home/lock-screen widgets (iOS)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -93,23 +115,6 @@ export default function DashboardScreen() {
       color: donut.colors?.[i] || colorForIndex(i),
     })) ?? [];
   const recent = tx.pagination?.content ?? [];
-
-  // Keep the iOS home-screen widget in sync with the latest month summary.
-  useEffect(() => {
-    if (!dashboard) return;
-    updateWidget({
-      balance: dashboard.balance ?? 0,
-      income: dashboard.totalIncome ?? 0,
-      expense: dashboard.totalExpense ?? 0,
-      currency: "VND",
-      recent: recent.slice(0, 5).map((item) => ({
-        name: item.category?.name || item.note || "",
-        amount: item.amount ?? 0,
-        type: item.type ?? 0,
-      })),
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dashboard, tx.pagination]);
 
   return (
     <Screen className="px-5">
@@ -200,6 +205,32 @@ export default function DashboardScreen() {
             </View>
           </LinearGradient>
         </View>
+
+        {/* Daily budget Live Activity toggle (iOS) */}
+        {liveSupported ? (
+          <Pressable
+            onPress={toggleLive}
+            className="mt-3 flex-row items-center justify-between rounded-2xl bg-glass-light px-4 py-3 active:opacity-70"
+          >
+            <View className="flex-1 flex-row items-center gap-2">
+              <Ionicons
+                name={tracking ? "pause-circle" : "play-circle"}
+                size={20}
+                color={colors.primary}
+              />
+              <Text className="flex-1 text-sm font-medium text-ink" numberOfLines={1}>
+                {t(tracking ? "dashboard.liveActivityStop" : "dashboard.liveActivityStart")}
+              </Text>
+            </View>
+            <View
+              className={`h-6 w-11 justify-center rounded-full px-0.5 ${tracking ? "bg-primary" : "bg-glass-border"}`}
+            >
+              <View
+                className={`h-5 w-5 rounded-full bg-white ${tracking ? "self-end" : "self-start"}`}
+              />
+            </View>
+          </Pressable>
+        ) : null}
 
         {/* Spending by category */}
         {pieData.length > 0 && (

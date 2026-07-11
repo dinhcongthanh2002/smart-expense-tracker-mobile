@@ -1,0 +1,7 @@
+{
+  "name": "expo-daily-budget-activity",
+  "version": "1.0.0",
+  "description": "Local Expo module: controls the daily-budget Live Activity via ActivityKit (iOS).",
+  "main": "index.ts",
+  "private": true
+}
