@@ -85,8 +85,14 @@ function RootNavigator() {
           <Stack.Screen name="debt-detail" />
           <Stack.Screen name="goals" />
           <Stack.Screen name="recurring" />
+          <Stack.Screen name="subscriptions" />
+          <Stack.Screen name="reports" />
+          <Stack.Screen name="bill-splits" />
+          <Stack.Screen name="bill-split-form" options={{ presentation: "modal" }} />
           <Stack.Screen name="settings" />
           <Stack.Screen name="notifications" />
+          <Stack.Screen name="net-worth" />
+          <Stack.Screen name="forecast" />
           <Stack.Screen name="budget-invites" />
           <Stack.Screen name="day-transactions" />
           <Stack.Screen name="transaction-form" options={{ presentation: "modal" }} />

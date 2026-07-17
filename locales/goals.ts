@@ -27,6 +27,10 @@ export default {
     contributeAmount: "Số tiền góp",
     contributeFull: "Góp đủ ({{amount}})",
     confirmContribute: "Xác nhận góp",
+    fromWallet: "Trừ tiền từ ví",
+    selectWallet: "Chọn ví",
+    noWallet: "Chưa có ví. Tạo ở tab Ví.",
+    walletRequired: "Chọn ví để trừ tiền",
   },
   en: {
     title: "Savings goals",
@@ -55,5 +59,9 @@ export default {
     contributeAmount: "Contribution amount",
     contributeFull: "Contribute full ({{amount}})",
     confirmContribute: "Confirm contribution",
+    fromWallet: "Deduct from wallet",
+    selectWallet: "Select wallet",
+    noWallet: "No wallet yet. Create one in the Wallets tab.",
+    walletRequired: "Pick a wallet to deduct from",
   },
 };

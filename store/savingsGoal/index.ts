@@ -16,11 +16,14 @@ export const savingsGoalSlice = new Slice<SavingsGoalViewModel>(action);
 /** Add money toward a savings goal. */
 export const savingsGoalContribute = createAsyncThunk(
   "SavingsGoal/contribute",
-  async ({ id, amount }: { id: string; amount: number }, { rejectWithValue }) => {
+  async (
+    { id, amount, walletId }: { id: string; amount: number; walletId?: string },
+    { rejectWithValue },
+  ) => {
     try {
       const res = await API.post(
         `${routerLinks("SavingsGoal")}/${id}/contribute`,
-        { amount },
+        { amount, walletId },
       );
       if (res.message) notify.success(res.message);
       return res;
@@ -42,8 +45,8 @@ export const SavingsGoalFacade = () => {
     put: (values: SavingsGoalUpsertModel & { id: string }) =>
       dispatch(action.put({ values: values as Partial<SavingsGoalViewModel> & { id: string } })),
     delete: (id: string) => dispatch(action.delete({ id })),
-    contribute: (id: string, amount: number) =>
-      dispatch(savingsGoalContribute({ id, amount })),
+    contribute: (id: string, amount: number, walletId?: string) =>
+      dispatch(savingsGoalContribute({ id, amount, walletId })),
     set: (payload: Partial<State<SavingsGoalViewModel>>) =>
       dispatch(savingsGoalSlice.setAction(payload)),
   };

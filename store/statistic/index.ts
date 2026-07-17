@@ -3,7 +3,12 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { API } from "@/lib/api";
 import { routerLinks } from "@/lib/router-links";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
-import type { DailyBreakdown, StatisticsDashboard } from "./model";
+import type {
+  CashFlowForecast,
+  DailyBreakdown,
+  NetWorth,
+  StatisticsDashboard,
+} from "./model";
 
 const STAT = routerLinks("Statistic");
 
@@ -27,11 +32,22 @@ export const getDailyBreakdown = createAsyncThunk(
   },
 );
 
+export const getNetWorth = createAsyncThunk("Statistic/netWorth", async () => {
+  return await API.get<NetWorth>(`${STAT}/net-worth`);
+});
+
+export const getForecast = createAsyncThunk("Statistic/forecast", async () => {
+  return await API.get<CashFlowForecast>(`${STAT}/cash-flow-forecast`);
+});
+
 interface StatisticState {
   dashboard?: StatisticsDashboard;
   dailyBreakdown: DailyBreakdown[];
+  netWorth?: NetWorth;
+  forecast?: CashFlowForecast;
   isLoading: boolean;
   isDailyLoading: boolean;
+  isNetWorthLoading: boolean;
   errorMessage?: string;
 }
 
@@ -39,6 +55,7 @@ const initialState: StatisticState = {
   dailyBreakdown: [],
   isLoading: false,
   isDailyLoading: false,
+  isNetWorthLoading: false,
 };
 
 const slice = createSlice({
@@ -67,6 +84,19 @@ const slice = createSlice({
       })
       .addCase(getDailyBreakdown.rejected, (s) => {
         s.isDailyLoading = false;
+      })
+      .addCase(getNetWorth.pending, (s) => {
+        s.isNetWorthLoading = true;
+      })
+      .addCase(getNetWorth.fulfilled, (s, { payload }) => {
+        s.isNetWorthLoading = false;
+        s.netWorth = payload.data;
+      })
+      .addCase(getNetWorth.rejected, (s) => {
+        s.isNetWorthLoading = false;
+      })
+      .addCase(getForecast.fulfilled, (s, { payload }) => {
+        s.forecast = payload.data;
       });
   },
 });
@@ -82,5 +112,7 @@ export const StatisticFacade = () => {
       dispatch(getStatistic(params)),
     getDailyBreakdown: (params: { month: number; year: number }) =>
       dispatch(getDailyBreakdown(params)),
+    getNetWorth: () => dispatch(getNetWorth()),
+    getForecast: () => dispatch(getForecast()),
   };
 };

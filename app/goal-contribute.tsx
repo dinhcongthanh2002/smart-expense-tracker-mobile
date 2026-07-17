@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { FieldError } from "@/components/ui/FieldError";
 import { GlassSurface } from "@/components/ui/GlassSurface";
 import { Screen } from "@/components/ui/Screen";
+import { SelectField } from "@/components/ui/SelectField";
 import { formatCurrency, groupThousands, onlyDigits } from "@/lib/format";
 import { SavingsGoalFacade } from "@/store/savingsGoal";
+import { WalletFacade } from "@/store/wallet";
 import { colors } from "@/theme/colors";
 
 export default function GoalContributeScreen() {
@@ -22,19 +24,50 @@ export default function GoalContributeScreen() {
     ? Math.max(goal.targetAmount - goal.currentAmount, 0)
     : 0;
 
+  const wallet = WalletFacade();
+  const wallets = wallet.pagination?.content ?? [];
+
   const [amount, setAmount] = useState("");
   const [amountError, setAmountError] = useState<string>();
+  const [walletId, setWalletId] = useState<string | undefined>();
+  const [walletError, setWalletError] = useState<string>();
+
+  useEffect(() => {
+    wallet.get({ page: 1, size: 100 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pre-select the default wallet once loaded.
+  useEffect(() => {
+    if (!walletId && wallets.length > 0)
+      setWalletId((wallets.find((w) => w.isDefault) ?? wallets[0]).id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallet.pagination]);
+
+  const walletOptions = useMemo(
+    () =>
+      wallets.map((w) => ({
+        value: w.id!,
+        label: w.name ?? "",
+        sublabel: formatCurrency(w.currentBalance, w.currency),
+      })),
+    [wallets],
+  );
 
   const onSave = async () => {
     const value = Number(onlyDigits(amount)) || 0;
+    let ok = true;
     if (value <= 0) {
       setAmountError(t("common.validation.amountRequired"));
-      return;
-    }
-    setAmountError(undefined);
-    if (!params.id) return;
+      ok = false;
+    } else setAmountError(undefined);
+    if (!walletId) {
+      setWalletError(t("goals.walletRequired"));
+      ok = false;
+    } else setWalletError(undefined);
+    if (!ok || !params.id) return;
     try {
-      await facade.contribute(params.id, value).unwrap();
+      await facade.contribute(params.id, value, walletId).unwrap();
       router.back();
     } catch {
       // toast surfaced by API layer
@@ -91,6 +124,21 @@ export default function GoalContributeScreen() {
           ) : null}
         </GlassSurface>
         <FieldError error={amountError} />
+
+        {/* Nguồn tiền: trừ từ ví này (tạo giao dịch Chuyển khoản) */}
+        <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">
+          {t("goals.fromWallet")}
+        </Text>
+        <SelectField
+          placeholder={t("goals.selectWallet")}
+          title={t("goals.selectWallet")}
+          value={walletId}
+          options={walletOptions}
+          onChange={setWalletId}
+          allowClear={false}
+          emptyText={t("goals.noWallet")}
+        />
+        <FieldError error={walletError} />
 
         <View className="mt-6">
           <Button title={t("goals.confirmContribute")} onPress={onSave} loading={facade.isSubmitting} />

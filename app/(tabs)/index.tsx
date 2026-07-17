@@ -49,7 +49,8 @@ function greetingKey(): string {
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { getStatistic, dashboard, isLoading } = StatisticFacade();
+  const { getStatistic, dashboard, isLoading, netWorth, getNetWorth, forecast, getForecast } =
+    StatisticFacade();
   const tx = TransactionFacade();
   const { user } = GlobalFacade();
   const noti = NotificationFacade();
@@ -90,6 +91,8 @@ export default function DashboardScreen() {
     getStatistic({ startDate: startOfMonthISO(), endDate: endOfMonthISO() });
     tx.get({ page: 1, size: 5, sort: "-transactionDate" });
     noti.getUnreadCount();
+    getNetWorth();
+    getForecast();
     refreshWidget(); // sync the home/lock-screen widgets (iOS)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -205,6 +208,48 @@ export default function DashboardScreen() {
             </View>
           </LinearGradient>
         </View>
+
+        {/* Net worth */}
+        <Pressable
+          onPress={() => router.push("/net-worth")}
+          className="mt-3 flex-row items-center justify-between rounded-2xl bg-glass-light px-4 py-3 active:opacity-70"
+        >
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="trending-up" size={20} color={colors.primary} />
+            <Text className="text-sm font-medium text-ink">{t("netWorth.cardTitle")}</Text>
+          </View>
+          <View className="flex-row items-center gap-1">
+            <Text
+              className="text-sm font-bold"
+              style={{ color: (netWorth?.netWorth ?? 0) >= 0 ? colors.primary : colors.expense }}
+            >
+              {money(netWorth?.netWorth)}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+          </View>
+        </Pressable>
+
+        {/* Cash-flow forecast */}
+        <Pressable
+          onPress={() => router.push("/forecast")}
+          className="mt-3 flex-row items-center justify-between rounded-2xl bg-glass-light px-4 py-3 active:opacity-70"
+        >
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+            <Text className="text-sm font-medium text-ink">{t("forecast.cardTitle")}</Text>
+          </View>
+          <View className="flex-row items-center gap-1">
+            <Text
+              className="text-sm font-bold"
+              style={{
+                color: (forecast?.projectedEndBalance ?? 0) >= 0 ? colors.primary : colors.expense,
+              }}
+            >
+              {money(forecast?.projectedEndBalance)}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+          </View>
+        </Pressable>
 
         {/* Daily budget Live Activity toggle (iOS) */}
         {liveSupported ? (

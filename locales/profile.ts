@@ -11,6 +11,7 @@ export default {
     notVerified: "Chưa",
     manage: "Quản lý",
     menu: {
+      reports: "Báo cáo",
       notifications: "Thông báo",
       categories: "Quản lý danh mục",
       debts: "Khoản nợ / Cho vay",
@@ -32,6 +33,7 @@ export default {
     notVerified: "Not yet",
     manage: "Manage",
     menu: {
+      reports: "Reports",
       notifications: "Notifications",
       categories: "Manage categories",
       debts: "Debts / Loans",

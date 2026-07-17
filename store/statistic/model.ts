@@ -68,3 +68,33 @@ export interface DailyBreakdown {
   income: number;
   expense: number;
 }
+
+export interface NetWorthPoint {
+  label: string;
+  value: number;
+}
+
+export interface NetWorth {
+  netWorth: number;
+  assets: number;
+  liabilities: number;
+  walletBalance: number;
+  savingsBalance: number;
+  /** Money lent out, still outstanding (an asset). */
+  debtLent: number;
+  /** Money borrowed, still owed (a liability). */
+  debtBorrowed: number;
+  trend: NetWorthPoint[];
+}
+
+export interface CashFlowForecast {
+  currentBalance: number;
+  daysInMonth: number;
+  daysElapsed: number;
+  daysRemaining: number;
+  spentSoFar: number;
+  avgDailyExpense: number;
+  projectedRemainingExpense: number;
+  expectedRecurringIncome: number;
+  projectedEndBalance: number;
+}

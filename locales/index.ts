@@ -21,6 +21,11 @@ import recurring from "./recurring";
 import notifications from "./notifications";
 import quickAdd from "./quickAdd";
 import quickActions from "./quickActions";
+import netWorth from "./netWorth";
+import forecast from "./forecast";
+import subscriptions from "./subscriptions";
+import reports from "./reports";
+import billSplit from "./billSplit";
 
 type Bundle = { vi: Record<string, unknown>; en: Record<string, unknown> };
 
@@ -46,6 +51,11 @@ const namespaces: Record<string, Bundle> = {
   notifications,
   quickAdd,
   quickActions,
+  netWorth,
+  forecast,
+  subscriptions,
+  reports,
+  billSplit,
 };
 
 function build(lang: "vi" | "en") {

@@ -11,6 +11,7 @@ export const apiRoutes: Record<string, string> = {
   Wallet: "/wallets",
   Debt: "/debts",
   SavingsGoal: "/savings-goals",
+  BillSplit: "/bill-splits",
   Recurring: "/recurring-transactions",
   Statistic: "/statistics",
   Setting: "/settings",

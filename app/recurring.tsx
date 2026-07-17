@@ -108,6 +108,18 @@ export default function RecurringScreen() {
           </Pressable>
         </View>
 
+        {/* Recurring-spend overview */}
+        <Pressable
+          onPress={() => router.push("/subscriptions")}
+          className="mb-4 flex-row items-center justify-between rounded-2xl bg-glass-light px-4 py-3 active:opacity-70"
+        >
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="pie-chart-outline" size={20} color={colors.primary} />
+            <Text className="text-sm font-medium text-ink">{t("subscriptions.entry")}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+        </Pressable>
+
         <View className="mb-4 flex-row gap-2">
           {FILTERS.map((f) => {
             const active = filter === f.value;

@@ -120,6 +120,12 @@ export default function ProfileScreen() {
         </Text>
         <GlassSurface radius={24} className="px-5 py-1">
           <MenuRow
+            icon="bar-chart-outline"
+            label={t("profile.menu.reports")}
+            onPress={() => router.push("/reports")}
+          />
+          <View className="border-t border-glass-border" />
+          <MenuRow
             icon="notifications-outline"
             label={t("profile.menu.notifications")}
             onPress={() => router.push("/notifications")}
@@ -135,6 +141,12 @@ export default function ProfileScreen() {
             icon="cash-outline"
             label={t("profile.menu.debts")}
             onPress={() => router.push("/debts")}
+          />
+          <View className="border-t border-glass-border" />
+          <MenuRow
+            icon="people-outline"
+            label={t("billSplit.menuEntry")}
+            onPress={() => router.push("/bill-splits")}
           />
           <View className="border-t border-glass-border" />
           <MenuRow
