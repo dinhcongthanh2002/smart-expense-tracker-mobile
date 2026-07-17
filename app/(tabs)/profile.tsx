@@ -120,6 +120,12 @@ export default function ProfileScreen() {
         </Text>
         <GlassSurface radius={24} className="px-5 py-1">
           <MenuRow
+            icon="stats-chart-outline"
+            label={t("tabs.budgets")}
+            onPress={() => router.push("/budgets")}
+          />
+          <View className="border-t border-glass-border" />
+          <MenuRow
             icon="bar-chart-outline"
             label={t("profile.menu.reports")}
             onPress={() => router.push("/reports")}

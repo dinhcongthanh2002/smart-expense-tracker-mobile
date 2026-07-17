@@ -150,7 +150,16 @@ export default function BudgetsScreen() {
     <Screen className="px-5">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-28">
         <View className="mb-4 mt-2 flex-row items-center justify-between">
-          <Text className="text-2xl font-bold text-ink">{t("budgets.title")}</Text>
+          <View className="flex-1 flex-row items-center gap-2">
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={8}
+              className="h-9 w-9 items-center justify-center rounded-full bg-glass-light active:opacity-70"
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.ink} />
+            </Pressable>
+            <Text className="text-2xl font-bold text-ink">{t("budgets.title")}</Text>
+          </View>
           <View className="flex-row items-center gap-2">
             <Pressable
               onPress={() => router.push("/budget-invites")}

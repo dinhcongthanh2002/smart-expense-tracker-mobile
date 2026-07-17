@@ -31,7 +31,7 @@ export function registerQuickActions(t: (key: string) => string): void {
       id: QUICK_ACTION.budgets,
       title: t("quickActions.budgets"),
       icon: "symbol:chart.pie.fill",
-      params: { href: "/(tabs)/budgets" },
+      params: { href: "/budgets" },
     },
   ]).catch(() => {
     // Unsupported platform / not built — ignore.

@@ -34,13 +34,6 @@ export default function TabsLayout() {
           androidSrc={<VectorIcon family={Ionicons} name="list" />}
         />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="budgets">
-        <Label>{t("tabs.budgets")}</Label>
-        <Icon
-          sf="chart.bar.fill"
-          androidSrc={<VectorIcon family={Ionicons} name="stats-chart" />}
-        />
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="wallets">
         <Label>{t("tabs.wallets")}</Label>
         <Icon
@@ -53,6 +46,14 @@ export default function TabsLayout() {
         <Icon
           sf="person.crop.circle.fill"
           androidSrc={<VectorIcon family={Ionicons} name="person-circle" />}
+        />
+      </NativeTabs.Trigger>
+      {/* iOS 26+ renders role="search" as a dedicated, separated search tab. */}
+      <NativeTabs.Trigger name="search" role="search">
+        <Label>{t("movies.tab")}</Label>
+        <Icon
+          sf="magnifyingglass"
+          androidSrc={<VectorIcon family={Ionicons} name="search" />}
         />
       </NativeTabs.Trigger>
     </NativeTabs>

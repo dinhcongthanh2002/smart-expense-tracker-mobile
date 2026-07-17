@@ -26,6 +26,7 @@ import forecast from "./forecast";
 import subscriptions from "./subscriptions";
 import reports from "./reports";
 import billSplit from "./billSplit";
+import movies from "./movies";
 
 type Bundle = { vi: Record<string, unknown>; en: Record<string, unknown> };
 
@@ -56,6 +57,7 @@ const namespaces: Record<string, Bundle> = {
   subscriptions,
   reports,
   billSplit,
+  movies,
 };
 
 function build(lang: "vi" | "en") {

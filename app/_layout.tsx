@@ -3,6 +3,7 @@ import "../global.css";
 
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack, useRouter, useSegments } from "expo-router";
+import * as ScreenOrientation from "expo-screen-orientation";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme as useNativeWindColorScheme } from "nativewind";
@@ -50,6 +51,14 @@ function RootNavigator() {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
+  // App is portrait everywhere; the video player unlocks rotation for itself and
+  // re-locks portrait on exit. `orientation: "default"` in app.json allows this.
+  useEffect(() => {
+    ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.PORTRAIT_UP,
+    ).catch(() => {});
+  }, []);
+
   useEffect(() => {
     setColorScheme(preference);
   }, [preference, setColorScheme]);
@@ -87,8 +96,11 @@ function RootNavigator() {
           <Stack.Screen name="recurring" />
           <Stack.Screen name="subscriptions" />
           <Stack.Screen name="reports" />
+          <Stack.Screen name="budgets" />
           <Stack.Screen name="bill-splits" />
           <Stack.Screen name="bill-split-form" options={{ presentation: "modal" }} />
+          <Stack.Screen name="movie/[slug]" />
+          <Stack.Screen name="watch" options={{ presentation: "fullScreenModal" }} />
           <Stack.Screen name="settings" />
           <Stack.Screen name="notifications" />
           <Stack.Screen name="net-worth" />

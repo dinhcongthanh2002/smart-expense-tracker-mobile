@@ -3,7 +3,7 @@
     "name": "Smart Expense",
     "slug": "smart-expense-tracker-mobile",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "smartexpense",
     "userInterfaceStyle": "automatic",
@@ -108,7 +108,8 @@
           ]
         }
       ],
-      "expo-quick-actions"
+      "expo-quick-actions",
+      "react-native-video"
     ],
     "experiments": {
       "typedRoutes": true
