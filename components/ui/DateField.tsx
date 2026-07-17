@@ -41,6 +41,10 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
   // Android runs date then time as separate dialogs; hold the in-progress value.
   const [androidStep, setAndroidStep] = useState<null | "date" | "time">(null);
   const pendingRef = useRef<Date>(value);
+  // iOS: local value while the wheel is spinning — committed on close. Feeding
+  // onChange on every tick re-renders the parent mid-spin and makes the wheel
+  // jump back to the old date, so we isolate it here.
+  const [tempDate, setTempDate] = useState<Date>(value);
 
   const isDateTime = mode === "datetime";
   const locale = i18n.language === "vi" ? "vi-VN" : "en-US";
@@ -48,6 +52,11 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
   const openAndroid = () => {
     pendingRef.current = value;
     setAndroidStep("date");
+  };
+
+  const openIOS = () => {
+    setTempDate(value);
+    sheetRef.current?.present();
   };
 
   const onAndroidChange = (e: DateTimePickerEvent, d?: Date) => {
@@ -122,9 +131,7 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
   return (
     <>
       <Pressable
-        onPress={() =>
-          Platform.OS === "android" ? openAndroid() : sheetRef.current?.present()
-        }
+        onPress={() => (Platform.OS === "android" ? openAndroid() : openIOS())}
       >
         <GlassSurface radius={16}>
           <View className="h-14 flex-row items-center justify-between px-4">
@@ -154,6 +161,7 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
           enableDynamicSizing
           // Only pan from the handle so the wheel keeps its vertical gestures.
           enableContentPanningGesture={false}
+          onDismiss={() => onChange(tempDate)}
           backdropComponent={renderBackdrop}
           backgroundStyle={{ backgroundColor: colors.surface }}
           handleIndicatorStyle={{ backgroundColor: colors.glassBorder }}
@@ -169,14 +177,14 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
             </View>
             <View className="items-center pb-4">
               <DateTimePicker
-                value={value}
+                value={tempDate}
                 mode={mode}
                 display="spinner"
                 themeVariant={scheme}
                 locale={locale}
                 maximumDate={maximumDate}
                 onChange={(_, d) => {
-                  if (d) onChange(d);
+                  if (d) setTempDate(d);
                 }}
                 style={{ width: "100%" }}
               />

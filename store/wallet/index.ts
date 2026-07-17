@@ -1,10 +1,21 @@
 import { Action } from "@/store/action";
 import { Slice, type State } from "@/store/slice";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
+import { API } from "@/lib/api";
 import type { QueryParams } from "@/models/api.model";
 import type { WalletUpsertModel, WalletViewModel } from "./model";
 
 const action = new Action<WalletViewModel>("Wallet");
+
+/** Mark a wallet as the default (backend unsets the flag on the others). */
+export async function setDefaultWallet(id: string): Promise<void> {
+  await API.put(`/wallets/${id}/default`);
+}
+
+/** Persist a new wallet priority order (array of ids, top-first). */
+export async function reorderWallets(ids: string[]): Promise<void> {
+  await API.put("/wallets/reorder", { ids });
+}
 export const walletAction = action;
 export const walletSlice = new Slice<WalletViewModel>(action);
 

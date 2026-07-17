@@ -10,6 +10,10 @@ export interface WalletViewModel extends CommonEntity {
   icon?: string;
   color?: string;
   note?: string;
+  /** Default wallet — pre-selected when creating a transaction. */
+  isDefault?: boolean;
+  /** Display priority (lower = higher). Set by drag-to-reorder. */
+  sortOrder?: number;
   currentBalance: number;
   currentBalanceInBase: number;
   baseCurrency: string;

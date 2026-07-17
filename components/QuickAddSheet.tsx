@@ -164,9 +164,10 @@ export const QuickAddSheet = forwardRef<QuickAddSheetRef, Props>(
     const categories = category.pagination?.content ?? [];
     const wallets = wallet.pagination?.content ?? [];
 
-    // Default wallet once loaded.
+    // Default wallet once loaded — prefer the user's default, else the first.
     useEffect(() => {
-      if (!walletId && wallets.length > 0) setWalletId(wallets[0].id);
+      if (!walletId && wallets.length > 0)
+        setWalletId((wallets.find((w) => w.isDefault) ?? wallets[0]).id);
     }, [wallets, walletId]);
 
     const categoriesOfType = useMemo(

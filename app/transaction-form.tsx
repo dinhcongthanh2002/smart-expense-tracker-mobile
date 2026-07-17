@@ -120,6 +120,13 @@ export default function TransactionFormScreen() {
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const wallets = wallet.pagination?.content ?? [];
 
+  // On a new transaction, pre-select the default wallet (falls back to the first).
+  useEffect(() => {
+    if (isEdit || walletId || wallets.length === 0) return;
+    setWalletId((wallets.find((w) => w.isDefault) ?? wallets[0]).id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallet.pagination, isEdit, walletId]);
+
   const walletOptions = useMemo(
     () =>
       wallets.map((w) => ({
