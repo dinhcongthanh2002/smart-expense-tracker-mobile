@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { Ionicons } from "@expo/vector-icons";
 import Video, {
   ResizeMode,
@@ -50,6 +51,18 @@ export default function WatchScreen() {
   const hasUrl = !!url && url.length > 0;
   const videoRef = useRef<VideoRef>(null);
 
+  // Force landscape while watching; restore portrait lock on exit.
+  useEffect(() => {
+    ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.LANDSCAPE,
+    ).catch(() => {});
+    return () => {
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP,
+      ).catch(() => {});
+    };
+  }, []);
+
   // ---- track selection --------------------------------------------------
   const [videoTracks, setVideoTracks] = useState<VideoTrack[]>([]);
   const [textTracks, setTextTracks] = useState<TextTrack[]>([]);
@@ -62,6 +75,10 @@ export default function WatchScreen() {
   });
   const [selAudio, setSelAudio] = useState<SelectedTrack | undefined>();
   const [menuOpen, setMenuOpen] = useState(false);
+  // The native player controls occupy the same corners as our custom chrome
+  // (back / title / settings). Toggle ours off while the native ones show so
+  // they never overlap the native close / audio / AirPlay buttons.
+  const [nativeControls, setNativeControls] = useState(false);
 
   const hasConfig =
     videoTracks.length > 1 || textTracks.length > 0 || audioTracks.length > 1;
@@ -124,6 +141,9 @@ export default function WatchScreen() {
           fullscreenOrientation="all"
           controlsStyles={{ seekIncrementMS: 10000 }}
           progressUpdateInterval={1000}
+          onControlsVisibilityChange={(e: { isVisible: boolean }) =>
+            setNativeControls(e.isVisible)
+          }
           selectedVideoTrack={selVideo}
           selectedTextTrack={selText}
           selectedAudioTrack={selAudio}
@@ -163,41 +183,52 @@ export default function WatchScreen() {
     );
   };
 
+  // Native controls only exist for the direct-URL player; keep our chrome up
+  // for the embed/WebView and whenever the native controls are hidden.
+  const showChrome = !hasUrl || !nativeControls;
+
   return (
     <View className="flex-1 bg-black">
       <StatusBar style="light" hidden />
       {renderPlayer()}
 
-      {/* Close the watch screen (native controls have no app-level back). */}
-      <Pressable
-        onPress={() => router.back()}
-        hitSlop={12}
-        style={{ position: "absolute", top: insets.top + 6, left: 12 }}
-        className="h-10 w-10 items-center justify-center rounded-full bg-black/50"
-      >
-        <Ionicons name="chevron-back" size={24} color="#fff" />
-      </Pressable>
+      {/* Our chrome shares the top corners with the native player controls, so
+          only show it while those are hidden (the embed/WebView has no native
+          controls, so keep it always visible there). */}
+      {showChrome ? (
+        <>
+          {/* Close the watch screen (native controls have no app-level back). */}
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={{ position: "absolute", top: insets.top + 6, left: 12 }}
+            className="h-10 w-10 items-center justify-center rounded-full bg-black/50"
+          >
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
 
-      {title ? (
-        <Text
-          style={{ position: "absolute", top: insets.top + 12, left: 60, right: 60 }}
-          className="text-sm font-semibold text-white/90"
-          numberOfLines={1}
-        >
-          {title}
-        </Text>
-      ) : null}
+          {title ? (
+            <Text
+              style={{ position: "absolute", top: insets.top + 12, left: 60, right: 60 }}
+              className="text-sm font-semibold text-white/90"
+              numberOfLines={1}
+            >
+              {title}
+            </Text>
+          ) : null}
 
-      {/* Settings (quality / subtitle / audio) — native controls can't host this. */}
-      {hasUrl && hasConfig ? (
-        <Pressable
-          onPress={() => setMenuOpen(true)}
-          hitSlop={12}
-          style={{ position: "absolute", top: insets.top + 6, right: 12 }}
-          className="h-10 w-10 items-center justify-center rounded-full bg-black/50"
-        >
-          <Ionicons name="settings-outline" size={20} color="#fff" />
-        </Pressable>
+          {/* Settings (quality / subtitle / audio) — native controls can't host this. */}
+          {hasUrl && hasConfig ? (
+            <Pressable
+              onPress={() => setMenuOpen(true)}
+              hitSlop={12}
+              style={{ position: "absolute", top: insets.top + 6, right: 12 }}
+              className="h-10 w-10 items-center justify-center rounded-full bg-black/50"
+            >
+              <Ionicons name="settings-outline" size={20} color="#fff" />
+            </Pressable>
+          ) : null}
+        </>
       ) : null}
 
       {/* Settings sheet */}
