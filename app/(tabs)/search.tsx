@@ -40,11 +40,21 @@ const GAP = 12;
 const CARD_W = 116;
 const CARD_H = 174;
 
-// Discover rows. `hot` rows are sorted by view count (most-watched first);
-// the rest use the default newest-first order. `key` is unique because a slug
-// can appear twice (e.g. phim-moi-cap-nhat as both "trending" and "new").
-const SECTIONS: { key: string; slug: string; titleKey: string; hot?: boolean }[] = [
-  { key: "trending", slug: "phim-moi-cap-nhat", titleKey: "movies.discover.trending", hot: true },
+const CURRENT_YEAR = new Date().getFullYear();
+
+// Discover rows. `hot` rows are sorted by view count (most-watched first).
+// "trending" additionally restricts to the current year so it reflects what's
+// hot NOW (not all-time old blockbusters); "blockbuster" stays all-time.
+// `key` is unique because a slug can appear twice (phim-moi-cap-nhat is both
+// "trending" and "new").
+const SECTIONS: {
+  key: string;
+  slug: string;
+  titleKey: string;
+  hot?: boolean;
+  year?: number;
+}[] = [
+  { key: "trending", slug: "phim-moi-cap-nhat", titleKey: "movies.discover.trending", hot: true, year: CURRENT_YEAR },
   { key: "blockbuster", slug: "phim-le", titleKey: "movies.discover.blockbuster", hot: true },
   { key: "new", slug: "phim-moi-cap-nhat", titleKey: "movies.discover.new" },
   { key: "cinema", slug: "phim-chieu-rap", titleKey: "movies.discover.cinema" },
@@ -110,7 +120,9 @@ export default function SearchScreen() {
     let alive = true;
     setSectionsLoading(true);
     Promise.all(
-      SECTIONS.map((s) => getMovieList(s.slug, 1, s.hot ? { sort: "hot" } : undefined)),
+      SECTIONS.map((s) =>
+        getMovieList(s.slug, 1, s.hot ? { sort: "hot", year: s.year } : undefined),
+      ),
     ).then((res) => {
       if (!alive) return;
       const map: Record<string, OphimMovieListItem[]> = {};
@@ -199,10 +211,16 @@ export default function SearchScreen() {
 
   const openMovie = (slug: string) =>
     router.push({ pathname: "/movie/[slug]", params: { slug } });
-  const openList = (slug: string, title: string, hot?: boolean) =>
+  const openList = (slug: string, title: string, hot?: boolean, year?: number) =>
     router.push({
       pathname: "/movies-list",
-      params: { source: "list", slug, title, sort: hot ? "hot" : "newest" },
+      params: {
+        source: "list",
+        slug,
+        title,
+        sort: hot ? "hot" : "newest",
+        ...(year ? { year: String(year) } : {}),
+      },
     });
   const openGenre = (g: OphimCategory) =>
     router.push({ pathname: "/movies-list", params: { source: "genre", slug: g.slug, title: g.name } });
@@ -390,7 +408,7 @@ export default function SearchScreen() {
               return (
                 <View key={s.key} className="mb-6">
                   <Pressable
-                    onPress={() => openList(s.slug, t(s.titleKey), s.hot)}
+                    onPress={() => openList(s.slug, t(s.titleKey), s.hot, s.year)}
                     className="mb-2 ml-1 flex-row items-center justify-between pr-1 active:opacity-70"
                   >
                     <Text className="text-base font-bold text-ink">{t(s.titleKey)}</Text>

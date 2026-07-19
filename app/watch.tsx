@@ -16,6 +16,7 @@ import {
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
+import * as ScreenOrientation from "expo-screen-orientation";
 
 import { getMovie, imageUrl, type OphimMovieDetail } from "@/lib/ophim";
 import {
@@ -77,6 +78,17 @@ export default function WatchScreen() {
   }>();
 
   const videoRef = useRef<VideoRef>(null);
+
+  // Follow the device orientation while watching (the app is otherwise locked
+  // to portrait by the root layout); re-lock portrait when leaving.
+  useEffect(() => {
+    ScreenOrientation.unlockAsync().catch(() => {});
+    return () => {
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP,
+      ).catch(() => {});
+    };
+  }, []);
 
   // ---- playlist (auto-next / episode panel) ----------------------------
   const [playlist, setPlaylist] = useState<Episode[]>([{ name: epName, url, embed }]);
@@ -204,6 +216,10 @@ export default function WatchScreen() {
           preventsDisplaySleepDuringVideoPlayback
           enterPictureInPictureOnLeave
           playInBackground
+          paused={false}
+          muted={false}
+          ignoreSilentSwitch="ignore"
+          playWhenInactive
           onLoad={(e) => {
             durationRef.current = e.duration;
             if (!didResume.current && resumePos.current > 5) {

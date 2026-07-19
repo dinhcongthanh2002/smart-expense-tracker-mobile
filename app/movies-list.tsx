@@ -38,7 +38,7 @@ import { colors } from "@/theme/colors";
 
 const COLS = 3;
 const GAP = 12;
-const YEARS = Array.from({ length: 12 }, (_, i) => 2026 - i); // 2026..2015
+const YEARS = Array.from({ length: 12 }, (_, i) => new Date().getFullYear() - i);
 
 export default function MoviesListScreen() {
   const { t } = useTranslation();
@@ -47,11 +47,12 @@ export default function MoviesListScreen() {
   const { width, height } = useWindowDimensions();
   const { scheme } = useThemePalette();
   const sheetRef = useRef<BottomSheetModal>(null);
-  const { source, slug, title, sort } = useLocalSearchParams<{
+  const { source, slug, title, sort, year: yearParam } = useLocalSearchParams<{
     source?: string; // "list" | "genre"
     slug?: string;
     title?: string;
     sort?: string; // "hot" | "newest"
+    year?: string; // pre-selected year filter
   }>();
   const isGenreSource = source === "genre";
 
@@ -59,7 +60,7 @@ export default function MoviesListScreen() {
   const [sortBy, setSortBy] = useState<MovieSort>(sort === "hot" ? "hot" : "newest");
   const [category, setCategory] = useState(""); // genre slug (list source only)
   const [country, setCountry] = useState("");
-  const [year, setYear] = useState(0);
+  const [year, setYear] = useState(yearParam ? Number(yearParam) : 0);
   const filters: ListFilters = useMemo(
     () => ({
       sort: sortBy,
