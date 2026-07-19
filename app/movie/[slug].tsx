@@ -33,11 +33,34 @@ import {
 } from "@/lib/watch-history";
 import { colors } from "@/theme/colors";
 
-/** A coloured pill used for status / type badges. */
-function Badge({ label, color }: { label: string; color: string }) {
+/**
+ * A pill used for status / type badges. Coloured badges keep white text;
+ * neutral badges (glassSurface bg) need theme-aware ink text + a border so they
+ * stay legible in light mode (where glassSurface is white).
+ */
+function Badge({
+  label,
+  color,
+  textColor = "#fff",
+  bordered = false,
+}: {
+  label: string;
+  color: string;
+  textColor?: string;
+  bordered?: boolean;
+}) {
   return (
-    <View style={{ backgroundColor: color, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
-      <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{label}</Text>
+    <View
+      style={{
+        backgroundColor: color,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderWidth: bordered ? 1 : 0,
+        borderColor: colors.glassBorder,
+      }}
+    >
+      <Text style={{ color: textColor, fontSize: 11, fontWeight: "700" }}>{label}</Text>
     </View>
   );
 }
@@ -268,15 +291,17 @@ export default function MovieDetailScreen() {
               <Badge label={t("movies.badgeCinema")} color={colors.primary} />
             ) : null}
             {availability === "trailer" ? (
-              <Badge label={t("movies.badgeTrailer")} color={colors.warning} />
+              <Badge label={t("movies.badgeTrailer")} color={colors.warning} textColor="#1A1A1A" />
             ) : movie.status === "ongoing" ? (
               <Badge label={t("movies.badgeOngoing")} color={colors.transfer} />
             ) : movie.status === "completed" ? (
               <Badge label={t("movies.badgeCompleted")} color={colors.income} />
             ) : null}
-            {typeKey ? <Badge label={t(`movies.type.${typeKey}`)} color={colors.glassSurface} /> : null}
+            {typeKey ? (
+              <Badge label={t(`movies.type.${typeKey}`)} color={colors.glassSurface} textColor={colors.ink} bordered />
+            ) : null}
             {movie.episode_current && availability !== "trailer" ? (
-              <Badge label={movie.episode_current} color={colors.glassSurface} />
+              <Badge label={movie.episode_current} color={colors.glassSurface} textColor={colors.ink} bordered />
             ) : null}
           </View>
 

@@ -90,8 +90,8 @@ export function Button({
               {leftIcon}
               <Text
                 className={cn(
-                  "text-base font-semibold text-white",
-                  variant === "ghost" && "text-ink",
+                  "text-base font-semibold",
+                  variant === "ghost" ? "text-ink" : "text-white",
                   textClassName,
                 )}
               >

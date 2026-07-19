@@ -18,6 +18,14 @@ export interface OphimMovieListItem {
   episode_current?: string;
   chieurap?: boolean;
   sub_docquyen?: boolean;
+  modified?: { time?: string };
+}
+
+/** Sort a list newest-first by `modified.time` (falls back to year). */
+export function sortByNewest(items: OphimMovieListItem[]): OphimMovieListItem[] {
+  const ts = (m: OphimMovieListItem) =>
+    (m.modified?.time ? Date.parse(m.modified.time) : 0) || (m.year ?? 0);
+  return [...items].sort((a, b) => ts(b) - ts(a));
 }
 
 export interface OphimPagination {
@@ -116,15 +124,81 @@ async function fetchList(url: string): Promise<OphimPagedResult> {
   }
 }
 
+// OPhim sort/filter params (honoured by list endpoints; `tim-kiem` ignores
+// sort so callers also sortByNewest client-side). "view" desc == hot.
+export type MovieSort = "newest" | "hot" | "year";
+const SORT_MAP: Record<MovieSort, string> = {
+  newest: "sort_field=modified.time&sort_type=desc",
+  hot: "sort_field=view&sort_type=desc",
+  year: "sort_field=year&sort_type=desc",
+};
+
+export interface ListFilters {
+  sort?: MovieSort; // default "newest"
+  category?: string; // the-loai slug (danh-sach lists only)
+  country?: string; // quoc-gia slug
+  year?: number;
+}
+
+function filterQuery(f?: ListFilters): string {
+  const parts = [SORT_MAP[f?.sort ?? "newest"]];
+  if (f?.category) parts.push(`category=${encodeURIComponent(f.category)}`);
+  if (f?.country) parts.push(`country=${encodeURIComponent(f.country)}`);
+  if (f?.year) parts.push(`year=${f.year}`);
+  return parts.join("&");
+}
+
 export function searchMovies(keyword: string, page = 1): Promise<OphimPagedResult> {
   return fetchList(
-    `${BASE}/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${page}`,
+    `${BASE}/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${page}&${SORT_MAP.newest}`,
   );
 }
 
 /** Latest cinema movies (phim chiếu rạp). */
 export function getCinemaMovies(page = 1): Promise<OphimPagedResult> {
-  return fetchList(`${BASE}/v1/api/danh-sach/phim-chieu-rap?page=${page}`);
+  return fetchList(`${BASE}/v1/api/danh-sach/phim-chieu-rap?page=${page}&${SORT_MAP.newest}`);
+}
+
+/**
+ * Generic OPhim list by slug: phim-moi-cap-nhat, phim-le, phim-bo, hoat-hinh,
+ * tv-shows, phim-chieu-rap. Supports sort + category/country/year filters.
+ */
+export function getMovieList(
+  listSlug: string,
+  page = 1,
+  filters?: ListFilters,
+): Promise<OphimPagedResult> {
+  return fetchList(`${BASE}/v1/api/danh-sach/${listSlug}?page=${page}&${filterQuery(filters)}`);
+}
+
+/** Movies of a genre (the-loai/{slug}), paged; supports country/year/sort. */
+export function getGenreMovies(
+  genreSlug: string,
+  page = 1,
+  filters?: ListFilters,
+): Promise<OphimPagedResult> {
+  return fetchList(`${BASE}/v1/api/the-loai/${genreSlug}?page=${page}&${filterQuery(filters)}`);
+}
+
+async function fetchTaxonomy(path: string): Promise<OphimCategory[]> {
+  try {
+    const res = await fetch(`${BASE}/v1/api/${path}`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return (json?.data?.items as OphimCategory[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** The full genre list (name + slug). */
+export function getGenres(): Promise<OphimCategory[]> {
+  return fetchTaxonomy("the-loai");
+}
+
+/** The full country list (name + slug). */
+export function getCountries(): Promise<OphimCategory[]> {
+  return fetchTaxonomy("quoc-gia");
 }
 
 /** Extract the 11-char video id from a YouTube watch/short/embed URL. */

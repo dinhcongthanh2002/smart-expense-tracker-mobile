@@ -109,7 +109,13 @@
         }
       ],
       "expo-quick-actions",
-      "react-native-video"
+      [
+        "react-native-video",
+        {
+          "enableAndroidPictureInPicture": true,
+          "enableBackgroundAudio": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

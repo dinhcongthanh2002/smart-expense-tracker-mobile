@@ -136,7 +136,10 @@ export function MonthCalendarReport({ hidden }: Props) {
       <View className="mt-4 flex-row">
         {weekdays.map((w, i) => (
           <View key={w} className="flex-1 items-center">
-            <Text className={`text-xs font-medium ${i === 6 ? "text-expense/70" : "text-muted"}`}>
+            <Text
+              className={`text-xs font-medium ${i >= 5 ? "text-expense" : "text-muted"}`}
+              style={i >= 5 ? { opacity: 0.7 } : undefined}
+            >
               {w}
             </Text>
           </View>
@@ -154,6 +157,7 @@ export function MonthCalendarReport({ hidden }: Props) {
               const data = byDay.get(day);
               const isSelected = day === selectedDay;
               const isToday = isCurrentMonth && day === today.getDate();
+              const isWeekend = di >= 5; // Saturday (5) & Sunday (6), Monday-first
               return (
                 <Pressable
                   key={day}
@@ -168,11 +172,13 @@ export function MonthCalendarReport({ hidden }: Props) {
                 >
                   <View
                     className={`h-8 w-8 items-center justify-center rounded-full ${
-                      isSelected ? "bg-primary" : isToday ? "border border-primary/50" : ""
+                      isSelected ? "bg-primary" : isToday ? "border border-primary" : ""
                     }`}
                   >
                     <Text
-                      className={`text-sm ${isSelected ? "font-bold text-white" : "text-ink"}`}
+                      className={`text-sm ${
+                        isSelected ? "font-bold text-white" : isWeekend ? "text-expense" : "text-ink"
+                      }`}
                     >
                       {day}
                     </Text>

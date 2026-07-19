@@ -83,37 +83,43 @@ function WalletRow({
         </View>
 
         <View className="flex-1">
+          {/* line 1: name + default badge */}
           <View className="flex-row items-center gap-1.5">
-            <Text className="text-base font-semibold text-ink" numberOfLines={1}>
+            <Text className="shrink text-base font-semibold text-ink" numberOfLines={1}>
               {wallet.name}
             </Text>
             {wallet.isDefault ? (
-              <View className="rounded-full bg-primary/15 px-2 py-0.5">
+              <View
+                className="shrink-0 rounded-full px-2 py-0.5"
+                style={{ backgroundColor: `${colors.primary}26` }}
+              >
                 <Text className="text-[10px] font-semibold text-primary">
                   {t("wallets.defaultBadge")}
                 </Text>
               </View>
             ) : null}
           </View>
-          <Text className="mt-0.5 text-xs text-muted">
-            {t("common.enums.walletType." + WALLET_TYPE_KEY[wallet.type])} · {wallet.currency}
-          </Text>
+          {/* line 2: type · currency (left) + balance (right) */}
+          <View className="mt-1 flex-row items-center justify-between gap-2">
+            <Text className="shrink text-xs text-muted" numberOfLines={1}>
+              {t("common.enums.walletType." + WALLET_TYPE_KEY[wallet.type])} · {wallet.currency}
+            </Text>
+            {!editing ? (
+              <Text className="shrink-0 text-sm font-bold text-ink">
+                {hidden ? "******" : formatCurrency(wallet.currentBalance, wallet.currency)}
+              </Text>
+            ) : null}
+          </View>
         </View>
 
         {/* Star: tap to set default */}
-        <Pressable onPress={onSetDefault} hitSlop={8} className="px-1 active:opacity-60">
+        <Pressable onPress={onSetDefault} hitSlop={8} className="pl-1 active:opacity-60">
           <Ionicons
             name={wallet.isDefault ? "star" : "star-outline"}
             size={22}
             color={wallet.isDefault ? "#F5B301" : colors.muted}
           />
         </Pressable>
-
-        {!editing ? (
-          <Text className="text-base font-bold text-ink">
-            {hidden ? "******" : formatCurrency(wallet.currentBalance, wallet.currency)}
-          </Text>
-        ) : null}
       </GlassSurface>
     </Pressable>
   );

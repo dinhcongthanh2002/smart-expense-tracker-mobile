@@ -97,6 +97,7 @@ function RootNavigator() {
           <Stack.Screen name="subscriptions" />
           <Stack.Screen name="reports" />
           <Stack.Screen name="budgets" />
+          <Stack.Screen name="movies-list" />
           <Stack.Screen name="bill-splits" />
           <Stack.Screen name="bill-split-form" options={{ presentation: "modal" }} />
           <Stack.Screen name="movie/[slug]" />

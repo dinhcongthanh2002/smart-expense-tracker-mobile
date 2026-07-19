@@ -19,6 +19,10 @@ module.exports = {
           soft: "var(--primary-soft)",
           dark: "var(--primary-dark)",
         },
+        // camelCase aliases matching the JS `colors.*` proxy — several screens
+        // use `text-primarySoft` which otherwise wouldn't resolve (→ black text).
+        primarySoft: "var(--primary-soft)",
+        primaryDark: "var(--primary-dark)",
         income: "var(--income)",
         expense: "var(--expense)",
         transfer: "var(--transfer)",
