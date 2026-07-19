@@ -27,6 +27,10 @@ import {
 } from "@/lib/watch-history";
 import { colors } from "@/theme/colors";
 
+// Show the floating "next episode" button only within this many seconds of the
+// end (Netflix-style). Jumping earlier is still possible via the episode panel.
+const NEAR_END_SECONDS = 90;
+
 interface Episode {
   name?: string;
   url?: string;
@@ -96,6 +100,7 @@ export default function WatchScreen() {
   const [playlist, setPlaylist] = useState<Episode[]>([{ name: epName, url, embed }]);
   const [idx, setIdx] = useState(0);
   const [ended, setEnded] = useState(false);
+  const [nearEnd, setNearEnd] = useState(false); // within last ~90s → show "next"
   const [epThumb, setEpThumb] = useState<string | undefined>(
     poster ? imageUrl(poster) : undefined,
   );
@@ -158,6 +163,7 @@ export default function WatchScreen() {
     resumePos.current = 0;
     lastSaved.current = 0;
     setEnded(false);
+    setNearEnd(false);
     if (!hasUrl || !slug) return;
     getEntry(slug, current.name || undefined).then((e) => {
       if (e?.position && e.position > 5) resumePos.current = e.position;
@@ -230,7 +236,12 @@ export default function WatchScreen() {
               videoRef.current?.seek(resumePos.current);
             }
           }}
-          onProgress={(e) => persist(e.currentTime)}
+          onProgress={(e) => {
+            persist(e.currentTime);
+            const remaining = durationRef.current - e.currentTime;
+            // setState is a no-op re-render when the boolean is unchanged.
+            setNearEnd(durationRef.current > 0 && remaining > 0 && remaining <= NEAR_END_SECONDS);
+          }}
           onEnd={onEnd}
         />
       );
@@ -273,8 +284,8 @@ export default function WatchScreen() {
         </Pressable>
       ) : null}
 
-      {/* Next-episode button (skip forward early) */}
-      {hasUrl && hasNext && !ended ? (
+      {/* Next-episode button — only near the end (Netflix-style) */}
+      {hasUrl && hasNext && !ended && nearEnd ? (
         <Pressable
           onPress={goNext}
           style={{ position: "absolute", right: 16, bottom: insets.bottom + 64 }}
