@@ -79,10 +79,12 @@ export default function WatchScreen() {
 
   const videoRef = useRef<VideoRef>(null);
 
-  // Follow the device orientation while watching (the app is otherwise locked
-  // to portrait by the root layout); re-lock portrait when leaving.
+  // Force landscape while watching — the player only rotates between the two
+  // landscape orientations (never portrait); re-lock portrait when leaving.
   useEffect(() => {
-    ScreenOrientation.unlockAsync().catch(() => {});
+    ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.LANDSCAPE,
+    ).catch(() => {});
     return () => {
       ScreenOrientation.lockAsync(
         ScreenOrientation.OrientationLock.PORTRAIT_UP,
@@ -220,6 +222,7 @@ export default function WatchScreen() {
           muted={false}
           ignoreSilentSwitch="ignore"
           playWhenInactive
+          onReadyForDisplay={() => videoRef.current?.resume()}
           onLoad={(e) => {
             durationRef.current = e.duration;
             if (!didResume.current && resumePos.current > 5) {
