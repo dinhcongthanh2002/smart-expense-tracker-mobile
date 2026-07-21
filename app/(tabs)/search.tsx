@@ -16,8 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 
 import { Screen } from "@/components/ui/Screen";
+import { MoviePoster } from "@/components/MoviePoster";
 import {
-  availabilityOf,
   getGenres,
   getMovieList,
   imageUrl,
@@ -63,35 +63,6 @@ const SECTIONS: {
   { key: "anime", slug: "hoat-hinh", titleKey: "movies.discover.anime" },
   { key: "tv-shows", slug: "tv-shows", titleKey: "movies.discover.tvshows" },
 ];
-
-/** Small pill badge on a poster. */
-function PosterBadge({
-  label,
-  color,
-  position,
-  textColor = "#fff",
-}: {
-  label: string;
-  color: string;
-  position: "left" | "right";
-  textColor?: string;
-}) {
-  return (
-    <View
-      style={{
-        position: "absolute",
-        top: 6,
-        [position]: 6,
-        backgroundColor: color,
-        borderRadius: 6,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-      }}
-    >
-      <Text style={{ color: textColor, fontSize: 10, fontWeight: "700" }}>{label}</Text>
-    </View>
-  );
-}
 
 export default function SearchScreen() {
   const { t } = useTranslation();
@@ -209,8 +180,13 @@ export default function SearchScreen() {
     };
   }, []);
 
-  const openMovie = (slug: string) =>
-    router.push({ pathname: "/movie/[slug]", params: { slug } });
+  const openMovie = useCallback(
+    (slug: string) => router.push({ pathname: "/movie/[slug]", params: { slug } }),
+    [router],
+  );
+  // Stable strings so the memoised MoviePoster doesn't re-render on keystrokes.
+  const trailerLabel = t("movies.badgeTrailer");
+  const cinemaLabel = t("movies.badgeCinema");
   const openList = (slug: string, title: string, hot?: boolean, year?: number) =>
     router.push({
       pathname: "/movies-list",
@@ -245,41 +221,20 @@ export default function SearchScreen() {
     ]);
   };
 
-  // Poster used both in the search grid (dynamic width) and rows (fixed width).
-  const Poster = ({ item, w, h }: { item: OphimMovieListItem; w: number; h: number }) => {
-    const avail = availabilityOf(item);
-    return (
-      <Pressable onPress={() => openMovie(item.slug)} style={{ width: w }} className="active:opacity-70">
-        <View>
-          <Image
-            source={{ uri: imageUrl(item.poster_url || item.thumb_url) }}
-            style={{ width: w, height: h, borderRadius: 12, backgroundColor: colors.glassSurface }}
-            contentFit="cover"
-            transition={200}
-          />
-          {item.quality ? (
-            <PosterBadge label={item.quality} color="rgba(0,0,0,0.7)" position="left" />
-          ) : null}
-          {avail === "trailer" ? (
-            <PosterBadge label={t("movies.badgeTrailer")} color={colors.warning} position="right" textColor="#1A1A1A" />
-          ) : avail === "cinema" ? (
-            <PosterBadge label={t("movies.badgeCinema")} color={colors.primary} position="right" />
-          ) : null}
-        </View>
-        <Text className="mt-1.5 text-[13px] font-semibold text-ink" numberOfLines={2}>
-          {item.name}
-        </Text>
-        <Text className="text-[11px] text-muted" numberOfLines={1}>
-          {item.origin_name || (item.year ? String(item.year) : "")}
-        </Text>
-      </Pressable>
-    );
-  };
-
-  const renderGridItem = ({ item }: { item: OphimMovieListItem }) => (
-    <View style={{ marginBottom: 16 }}>
-      <Poster item={item} w={posterW} h={posterH} />
-    </View>
+  const renderGridItem = useCallback(
+    ({ item }: { item: OphimMovieListItem }) => (
+      <View style={{ marginBottom: 16 }}>
+        <MoviePoster
+          item={item}
+          w={posterW}
+          h={posterH}
+          onPress={openMovie}
+          trailerLabel={trailerLabel}
+          cinemaLabel={cinemaLabel}
+        />
+      </View>
+    ),
+    [posterW, posterH, openMovie, trailerLabel, cinemaLabel],
   );
 
   return (
@@ -324,6 +279,10 @@ export default function SearchScreen() {
             contentContainerStyle={{ paddingBottom: 100 }}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
+            removeClippedSubviews
+            initialNumToRender={9}
+            maxToRenderPerBatch={9}
+            windowSize={7}
             ListFooterComponent={loadingMore ? <ActivityIndicator className="my-4" color={colors.primary} /> : null}
           />
         )
@@ -418,12 +377,25 @@ export default function SearchScreen() {
                     </View>
                   </Pressable>
                   <FlatList
-                    data={items}
+                    data={items.slice(0, 12)}
                     keyExtractor={(m, i) => m.slug + i}
-                    renderItem={({ item }) => <Poster item={item} w={CARD_W} h={CARD_H} />}
+                    renderItem={({ item }) => (
+                      <MoviePoster
+                        item={item}
+                        w={CARD_W}
+                        h={CARD_H}
+                        onPress={openMovie}
+                        trailerLabel={trailerLabel}
+                        cinemaLabel={cinemaLabel}
+                      />
+                    )}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+                    removeClippedSubviews
+                    initialNumToRender={4}
+                    maxToRenderPerBatch={4}
+                    windowSize={5}
                   />
                 </View>
               );

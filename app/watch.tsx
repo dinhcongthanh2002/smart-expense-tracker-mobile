@@ -224,11 +224,8 @@ export default function WatchScreen() {
           preventsDisplaySleepDuringVideoPlayback
           enterPictureInPictureOnLeave
           playInBackground
-          paused={false}
-          muted={false}
           ignoreSilentSwitch="ignore"
           playWhenInactive
-          onReadyForDisplay={() => videoRef.current?.resume()}
           onLoad={(e) => {
             durationRef.current = e.duration;
             if (!didResume.current && resumePos.current > 5) {

@@ -11,7 +11,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -20,14 +19,13 @@ import {
 } from "@gorhom/bottom-sheet";
 
 import { Screen } from "@/components/ui/Screen";
+import { MoviePoster } from "@/components/MoviePoster";
 import { useThemePalette } from "@/lib/theme";
 import {
-  availabilityOf,
   getCountries,
   getGenreMovies,
   getGenres,
   getMovieList,
-  imageUrl,
   sortByNewest,
   type ListFilters,
   type MovieSort,
@@ -99,6 +97,13 @@ export default function MoviesListScreen() {
   const posterW = (width - 40 - GAP * (COLS - 1)) / COLS;
   const posterH = posterW * 1.5;
 
+  const openMovie = useCallback(
+    (s: string) => router.push({ pathname: "/movie/[slug]", params: { slug: s } }),
+    [router],
+  );
+  const trailerLabel = t("movies.badgeTrailer");
+  const cinemaLabel = t("movies.badgeCinema");
+
   const fetchPage = useCallback(
     (p: number) =>
       isGenreSource
@@ -144,43 +149,21 @@ export default function MoviesListScreen() {
     setYear(0);
   };
 
-  const renderItem = ({ item }: { item: OphimMovieListItem }) => {
-    const avail = availabilityOf(item);
-    return (
-      <Pressable
-        onPress={() => router.push({ pathname: "/movie/[slug]", params: { slug: item.slug } })}
-        style={{ width: posterW, marginBottom: 16 }}
-        className="active:opacity-70"
-      >
-        <View>
-          <Image
-            source={{ uri: imageUrl(item.poster_url || item.thumb_url) }}
-            style={{ width: posterW, height: posterH, borderRadius: 12, backgroundColor: colors.glassSurface }}
-            contentFit="cover"
-            transition={200}
-          />
-          {item.quality ? (
-            <View style={{ position: "absolute", top: 6, left: 6, backgroundColor: "rgba(0,0,0,0.7)", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-              <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{item.quality}</Text>
-            </View>
-          ) : null}
-          {avail !== "available" ? (
-            <View style={{ position: "absolute", top: 6, right: 6, backgroundColor: avail === "trailer" ? colors.warning : colors.primary, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-              <Text style={{ color: avail === "trailer" ? "#1A1A1A" : "#fff", fontSize: 10, fontWeight: "700" }}>
-                {avail === "trailer" ? t("movies.badgeTrailer") : t("movies.badgeCinema")}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <Text className="mt-1.5 text-[13px] font-semibold text-ink" numberOfLines={2}>
-          {item.name}
-        </Text>
-        <Text className="text-[11px] text-muted" numberOfLines={1}>
-          {item.origin_name || (item.year ? String(item.year) : "")}
-        </Text>
-      </Pressable>
-    );
-  };
+  const renderItem = useCallback(
+    ({ item }: { item: OphimMovieListItem }) => (
+      <View style={{ marginBottom: 16 }}>
+        <MoviePoster
+          item={item}
+          w={posterW}
+          h={posterH}
+          onPress={openMovie}
+          trailerLabel={trailerLabel}
+          cinemaLabel={cinemaLabel}
+        />
+      </View>
+    ),
+    [posterW, posterH, openMovie, trailerLabel, cinemaLabel],
+  );
 
   return (
     <Screen className="px-5" orbs={false}>
@@ -225,6 +208,10 @@ export default function MoviesListScreen() {
           contentContainerStyle={{ paddingBottom: 100 }}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
+          removeClippedSubviews
+          initialNumToRender={9}
+          maxToRenderPerBatch={9}
+          windowSize={7}
           ListFooterComponent={loadingMore ? <ActivityIndicator className="my-4" color={colors.primary} /> : null}
         />
       )}
