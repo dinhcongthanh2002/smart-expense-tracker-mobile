@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, Text, View, useWindowDimensions } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -70,6 +70,7 @@ function episodeLabel(name: string | undefined, epWord: string): string {
 
 export default function WatchScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { url, embed, slug, name, poster, epName } = useLocalSearchParams<{
     title?: string;
@@ -101,6 +102,11 @@ export default function WatchScreen() {
   const [idx, setIdx] = useState(0);
   const [ended, setEnded] = useState(false);
   const [nearEnd, setNearEnd] = useState(false); // within last ~90s → show "next"
+  // Controlled play/pause: starts false (autoplay) and follows the native
+  // controls so a manual pause sticks (doesn't resume on background / PiP).
+  const [paused, setPaused] = useState(false);
+  const [error, setError] = useState(false); // playback failed (e.g. dead URL)
+  const [retryKey, setRetryKey] = useState(0); // bump to remount the player
   const [epThumb, setEpThumb] = useState<string | undefined>(
     poster ? imageUrl(poster) : undefined,
   );
@@ -164,6 +170,8 @@ export default function WatchScreen() {
     lastSaved.current = 0;
     setEnded(false);
     setNearEnd(false);
+    setPaused(false); // autoplay each new episode
+    setError(false);
     if (!hasUrl || !slug) return;
     getEntry(slug, current.name || undefined).then((e) => {
       if (e?.position && e.position > 5) resumePos.current = e.position;
@@ -212,15 +220,19 @@ export default function WatchScreen() {
     if (hasUrl) {
       return (
         <Video
+          key={`${current.url}-${retryKey}`}
           ref={videoRef}
           source={{ uri: current.url! }}
           style={{ flex: 1 }}
           controls
+          onError={() => setError(true)}
           resizeMode={ResizeMode.CONTAIN}
           fullscreenAutorotate
           fullscreenOrientation="all"
           controlsStyles={{ seekIncrementMS: 10000 }}
           progressUpdateInterval={1000}
+          paused={paused}
+          onPlaybackStateChanged={(e) => setPaused(!e.isPlaying)}
           preventsDisplaySleepDuringVideoPlayback
           enterPictureInPictureOnLeave
           playInBackground
@@ -232,6 +244,9 @@ export default function WatchScreen() {
               didResume.current = true;
               videoRef.current?.seek(resumePos.current);
             }
+            // Single movies don't get a source-replacement "kick" like series
+            // (whose playlist is swapped after getMovie), so nudge playback.
+            if (!paused) videoRef.current?.resume();
           }}
           onProgress={(e) => {
             persist(e.currentTime);
@@ -268,6 +283,38 @@ export default function WatchScreen() {
       <View className="flex-1 bg-black">
       <StatusBar style="light" hidden />
       {renderPlayer()}
+
+      {/* Always-available back button (native controls can hide; a load error
+          leaves them absent, so this is the guaranteed way out). */}
+      <Pressable
+        onPress={() => router.back()}
+        hitSlop={12}
+        style={{ position: "absolute", top: insets.top + 4, left: 10 }}
+        className="h-10 w-10 items-center justify-center rounded-full bg-black/45"
+      >
+        <Ionicons name="chevron-back" size={24} color="#fff" />
+      </Pressable>
+
+      {/* Error overlay with retry */}
+      {hasUrl && error ? (
+        <View
+          style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }}
+          className="items-center justify-center gap-3 px-8"
+        >
+          <Ionicons name="alert-circle-outline" size={44} color="#fff" />
+          <Text className="text-center text-sm text-white/80">{t("movies.playError")}</Text>
+          <Pressable
+            onPress={() => {
+              setError(false);
+              setRetryKey((k) => k + 1);
+            }}
+            className="flex-row items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 active:opacity-70"
+          >
+            <Ionicons name="refresh" size={18} color="#fff" />
+            <Text className="text-sm font-semibold text-white">{t("movies.replay")}</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       {/* Episodes button (series only) */}
       {hasUrl && isSeries ? (
