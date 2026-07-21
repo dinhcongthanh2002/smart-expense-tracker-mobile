@@ -105,7 +105,8 @@ export default function WatchScreen() {
   // Controlled play/pause: starts false (autoplay) and follows the native
   // controls so a manual pause sticks (doesn't resume on background / PiP).
   const [paused, setPaused] = useState(false);
-  const [error, setError] = useState(false); // playback failed (e.g. dead URL)
+  const [error, setError] = useState(false); // playback failed with no fallback
+  const [useEmbed, setUseEmbed] = useState(false); // m3u8 failed → embed WebView
   const [retryKey, setRetryKey] = useState(0); // bump to remount the player
   const [epThumb, setEpThumb] = useState<string | undefined>(
     poster ? imageUrl(poster) : undefined,
@@ -172,6 +173,7 @@ export default function WatchScreen() {
     setNearEnd(false);
     setPaused(false); // autoplay each new episode
     setError(false);
+    setUseEmbed(false);
     if (!hasUrl || !slug) return;
     getEntry(slug, current.name || undefined).then((e) => {
       if (e?.position && e.position > 5) resumePos.current = e.position;
@@ -217,7 +219,9 @@ export default function WatchScreen() {
   }, [hasNext, goNext]);
 
   const renderPlayer = () => {
-    if (hasUrl) {
+    // Prefer the direct HLS stream; if it errors and an embed exists, fall back
+    // to the OPhim embed player (WebView) instead of showing a dead black screen.
+    if (hasUrl && !useEmbed) {
       return (
         <Video
           key={`${current.url}-${retryKey}`}
@@ -225,7 +229,7 @@ export default function WatchScreen() {
           source={{ uri: current.url! }}
           style={{ flex: 1 }}
           controls
-          onError={() => setError(true)}
+          onError={() => (current.embed ? setUseEmbed(true) : setError(true))}
           resizeMode={ResizeMode.CONTAIN}
           fullscreenAutorotate
           fullscreenOrientation="all"
@@ -306,6 +310,7 @@ export default function WatchScreen() {
           <Pressable
             onPress={() => {
               setError(false);
+              setUseEmbed(false);
               setRetryKey((k) => k + 1);
             }}
             className="flex-row items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 active:opacity-70"
