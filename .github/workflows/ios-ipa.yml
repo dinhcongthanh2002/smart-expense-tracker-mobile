@@ -52,6 +52,10 @@ jobs:
           WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
           echo "Workspace: $WORKSPACE | Scheme: $SCHEME"
+          # Keep CODE_SIGN_ENTITLEMENTS so the App Group entitlement stays in the
+          # .ipa — the re-signer (Sideloadly / SideStore / AltStore) needs it to
+          # patch the shared App Group so the app and the home-screen widget can
+          # share data. Stripping it isolates the widget (it shows placeholder).
           xcodebuild \
             -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
@@ -62,7 +66,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGN_ENTITLEMENTS="" \
             DEVELOPMENT_TEAM="" \
             AD_HOC_CODE_SIGNING_ALLOWED=YES
 

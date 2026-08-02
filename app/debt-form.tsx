@@ -82,6 +82,14 @@ export default function DebtFormScreen() {
   }, [debt.data]);
 
   const wallets = wallet.pagination?.content ?? [];
+
+  // On a new debt, pre-select the default wallet (falls back to the first).
+  useEffect(() => {
+    if (isEdit || walletId || wallets.length === 0) return;
+    setWalletId((wallets.find((w) => w.isDefault) ?? wallets[0]).id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallet.pagination, isEdit, walletId]);
+
   const walletOptions = useMemo(
     () =>
       wallets.map((w) => ({
@@ -236,7 +244,7 @@ export default function DebtFormScreen() {
 
         {/* start date */}
         <Text className="mb-2 ml-1 mt-4 text-sm font-medium text-muted">{t("debts.startDate")}</Text>
-        <DateField value={startDate} onChange={setStartDate} />
+        <DateField value={startDate} onChange={setStartDate} maximumDate={new Date()} />
 
         {/* due date */}
         <View className="mb-2 ml-1 mt-4 flex-row items-center justify-between">
