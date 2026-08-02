@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from "react-native-reanimated";
 
 // expo-speech-recognition calls requireNativeModule() at import time, which THROWS
 // when the native module isn't in the binary (Expo Go, or a dev-client built before
@@ -30,6 +35,9 @@ export interface VoiceInput {
   transcript: string;
   /** Error code/message from the last attempt, if any. */
   error?: string;
+  /** Live mic input level, 0..1 (driven by the native `volumechange` event).
+   *  A Reanimated shared value so UI can animate it at 60fps without re-rendering. */
+  level: SharedValue<number>;
   /** Request permission (if needed) and begin listening. Returns false if it couldn't start. */
   start: () => Promise<boolean>;
   /** Stop listening — the final result still fires via onFinalResult. */
@@ -51,6 +59,8 @@ export function useVoiceInput({
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | undefined>();
+  // Mic input level (0..1) for the "listening" animation.
+  const level = useSharedValue(0);
   // Latest transcript seen (interim or final) — emitted when the session ends.
   const latestRef = useRef("");
   // Keep the callback in a ref so the native listeners subscribe only once.
@@ -63,8 +73,15 @@ export function useVoiceInput({
       SpeechModule.addListener("start", () => setRecording(true)),
       SpeechModule.addListener("end", () => {
         setRecording(false);
+        level.value = withTiming(0, { duration: 200 });
         const text = latestRef.current.trim();
         if (text) onFinalResultRef.current?.(text);
+      }),
+      // Native mic level (-2..10; <0 is inaudible). Normalise to 0..1 and smooth.
+      SpeechModule.addListener("volumechange", (event: any) => {
+        const v = typeof event?.value === "number" ? event.value : 0;
+        const n = Math.min(1, Math.max(0, v) / 6);
+        level.value = withTiming(n, { duration: 90 });
       }),
       SpeechModule.addListener("result", (event: any) => {
         const text = event?.results?.[0]?.transcript ?? "";
@@ -76,6 +93,7 @@ export function useVoiceInput({
       SpeechModule.addListener("error", (event: any) => {
         setError(event?.error ?? "unknown");
         setRecording(false);
+        level.value = withTiming(0, { duration: 200 });
       }),
     ];
     return () => subs.forEach((s) => s?.remove?.());
@@ -102,6 +120,8 @@ export function useVoiceInput({
         // Allow the cloud recognizer as a fallback when on-device VI isn't installed.
         requiresOnDeviceRecognition: false,
         addsPunctuation: false,
+        // Emit mic-level events (~10/sec) to drive the "listening" animation.
+        volumeChangeEventOptions: { enabled: true, intervalMillis: 100 },
       });
       return true;
     } catch (err) {
@@ -126,7 +146,8 @@ export function useVoiceInput({
       // ignore
     }
     setRecording(false);
-  }, []);
+    level.value = withTiming(0, { duration: 200 });
+  }, [level]);
 
-  return { supported: isVoiceSupported, recording, transcript, error, start, stop, abort };
+  return { supported: isVoiceSupported, recording, transcript, error, level, start, stop, abort };
 }

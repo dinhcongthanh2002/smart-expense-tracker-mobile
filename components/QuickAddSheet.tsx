@@ -25,6 +25,7 @@ import {
   View,
 } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -123,17 +124,32 @@ export const QuickAddSheet = forwardRef<QuickAddSheetRef, Props>(
       onFinalResult: (text) => runParse(text),
     });
 
-    // Pulsing mic ring while listening.
-    const pulse = useSharedValue(1);
+    // "Listening" animation: a gentle idle breathe + concentric rings that react
+    // to the real mic level (voice.level, 0..1) — so it feels alive on silence and
+    // pulses with the user's voice.
+    const idle = useSharedValue(0);
     useEffect(() => {
       if (voice.recording) {
-        pulse.value = withRepeat(withTiming(1.25, { duration: 700 }), -1, true);
+        idle.value = withRepeat(
+          withTiming(1, { duration: 1300, easing: Easing.inOut(Easing.ease) }),
+          -1,
+          true,
+        );
       } else {
-        pulse.value = withTiming(1, { duration: 200 });
+        idle.value = withTiming(0, { duration: 200 });
       }
-    }, [voice.recording, pulse]);
-    const pulseStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: pulse.value }],
+    }, [voice.recording, idle]);
+
+    const micStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: 1 + idle.value * 0.04 + voice.level.value * 0.12 }],
+    }));
+    const ringInner = useAnimatedStyle(() => ({
+      transform: [{ scale: 1 + idle.value * 0.12 + voice.level.value * 0.55 }],
+      opacity: 0.18 + voice.level.value * 0.5,
+    }));
+    const ringOuter = useAnimatedStyle(() => ({
+      transform: [{ scale: 1 + idle.value * 0.2 + voice.level.value * 0.9 }],
+      opacity: 0.1 + voice.level.value * 0.3,
     }));
 
     const reset = useCallback(() => {
@@ -258,34 +274,66 @@ export const QuickAddSheet = forwardRef<QuickAddSheetRef, Props>(
 
           {phase !== "review" ? (
             <View className="items-center py-4">
-              {/* Mic */}
-              <Animated.View style={pulseStyle}>
-                <Pressable
-                  onPress={() =>
-                    voice.recording ? voice.stop() : voice.start()
-                  }
-                  disabled={phase === "parsing" || !voice.supported}
-                  className={`h-24 w-24 items-center justify-center rounded-full active:opacity-70 ${
-                    voice.supported ? "bg-primary/20" : "bg-glass-light"
-                  }`}
-                >
-                  {phase === "parsing" ? (
-                    <ActivityIndicator color={colors.primary} />
-                  ) : (
-                    <Ionicons
-                      name={
-                        !voice.supported
-                          ? "mic-off-outline"
-                          : voice.recording
-                            ? "mic"
-                            : "mic-outline"
-                      }
-                      size={40}
-                      color={voice.supported ? colors.primary : colors.muted}
+              {/* Mic + voice-reactive rings */}
+              <View className="h-24 w-24 items-center justify-center">
+                {voice.recording ? (
+                  <>
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[
+                        {
+                          position: "absolute",
+                          width: 96,
+                          height: 96,
+                          borderRadius: 48,
+                          backgroundColor: colors.primary,
+                        },
+                        ringOuter,
+                      ]}
                     />
-                  )}
-                </Pressable>
-              </Animated.View>
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[
+                        {
+                          position: "absolute",
+                          width: 96,
+                          height: 96,
+                          borderRadius: 48,
+                          backgroundColor: colors.primary,
+                        },
+                        ringInner,
+                      ]}
+                    />
+                  </>
+                ) : null}
+                <Animated.View style={micStyle}>
+                  <Pressable
+                    onPress={() =>
+                      voice.recording ? voice.stop() : voice.start()
+                    }
+                    disabled={phase === "parsing" || !voice.supported}
+                    className={`h-24 w-24 items-center justify-center rounded-full active:opacity-70 ${
+                      voice.supported ? "bg-primary/20" : "bg-glass-light"
+                    }`}
+                  >
+                    {phase === "parsing" ? (
+                      <ActivityIndicator color={colors.primary} />
+                    ) : (
+                      <Ionicons
+                        name={
+                          !voice.supported
+                            ? "mic-off-outline"
+                            : voice.recording
+                              ? "mic"
+                              : "mic-outline"
+                        }
+                        size={40}
+                        color={voice.supported ? colors.primary : colors.muted}
+                      />
+                    )}
+                  </Pressable>
+                </Animated.View>
+              </View>
 
               <Text className="mt-4 text-center text-base text-ink">
                 {phase === "parsing"
