@@ -10,6 +10,7 @@
     "web": "expo start --web --port 3000",
     "build:dev:ios": "eas build --profile development --platform ios",
     "build:dev:android": "eas build --profile development --platform android",
+    "release:ipa": "node scripts/release-ipa.js",
     "typecheck": "tsc --noEmit",
     "postinstall": "patch-package"
   },
