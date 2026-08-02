@@ -72,8 +72,8 @@
       [
         "expo-audio",
         {
-          "microphonePermission": false,
-          "recordAudioAndroid": false
+          "microphonePermission": "Cho phép $(PRODUCT_NAME) dùng micro để nhập giao dịch bằng giọng nói.",
+          "recordAudioAndroid": true
         }
       ],
       [

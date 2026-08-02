@@ -29,6 +29,9 @@ struct Summary {
     // Daily budget: limit for today (monthly budget ÷ days) and today's spend.
     var dailyLimit: Double
     var spentToday: Double
+    // False when we fell back to an empty state (App Group had no data) — the
+    // views then show an "open the app" hint instead of misleading zeros.
+    var hasData: Bool = true
 
     var remainingToday: Double { max(0, dailyLimit - spentToday) }
     var dailyRatio: Double { dailyLimit > 0 ? min(spentToday / dailyLimit, 1.5) : 0 }
@@ -42,6 +45,12 @@ struct Summary {
             RecentItem(name: "Đi chợ", amount: 250_000, type: 0),
         ],
         dailyLimit: 300_000, spentToday: 150_000)
+
+    // Neutral empty state shown on the home screen when there is no shared data
+    // yet (or the App Group isn't accessible, e.g. free-account sideloading).
+    static let empty = Summary(
+        balance: 0, income: 0, expense: 0, currency: "VND",
+        recent: [], dailyLimit: 0, spentToday: 0, hasData: false)
 }
 
 func loadSummary() -> Summary {
@@ -50,7 +59,7 @@ func loadSummary() -> Summary {
     guard let data = defaults?.data(forKey: SUMMARY_KEY),
           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
     else {
-        return .placeholder
+        return .empty
     }
 
     var summary = Summary(
@@ -217,6 +226,21 @@ struct LargeView: View {
     }
 }
 
+struct EmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "arrow.clockwise.circle")
+                .font(.system(size: 26, weight: .regular))
+                .foregroundStyle(.secondary)
+            Text("Mở app để cập nhật")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 struct WidgetEntryView: View {
     @Environment(\.widgetFamily) var family
     @Environment(\.colorScheme) var scheme
@@ -224,10 +248,14 @@ struct WidgetEntryView: View {
 
     var body: some View {
         Group {
-            switch family {
-            case .systemSmall: SmallView(s: entry.summary)
-            case .systemLarge: LargeView(s: entry.summary)
-            default: MediumView(s: entry.summary)
+            if entry.summary.hasData {
+                switch family {
+                case .systemSmall: SmallView(s: entry.summary)
+                case .systemLarge: LargeView(s: entry.summary)
+                default: MediumView(s: entry.summary)
+                }
+            } else {
+                EmptyStateView()
             }
         }
         .padding(16)
