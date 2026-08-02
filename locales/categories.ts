@@ -9,6 +9,10 @@ export default {
     childCount: "{{count}} danh mục con",
     noChildren: "Chưa có danh mục con",
     addChild: "Thêm danh mục con",
+    reorder: "Sắp xếp",
+    reorderDone: "Xong",
+    reorderHint: "Giữ và kéo để đổi thứ tự",
+    default: "Mặc định",
 
     // form
     newTitle: "Danh mục mới",
@@ -40,6 +44,10 @@ export default {
     childCount_plural: "{{count}} subcategories",
     noChildren: "No subcategories",
     addChild: "Add subcategory",
+    reorder: "Reorder",
+    reorderDone: "Done",
+    reorderHint: "Press and drag to reorder",
+    default: "Default",
 
     // form
     newTitle: "New category",

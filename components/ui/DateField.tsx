@@ -19,6 +19,23 @@ import { useThemePalette } from "@/lib/theme";
 import { colors } from "@/theme/colors";
 import { GlassSurface } from "./GlassSurface";
 
+// A stale/uninitialised date can arrive as the Unix epoch (which renders as
+// 1/1/1970) or an Invalid Date. This app never has legitimate dates before 2000,
+// so anything older is treated as "unset" (year check is timezone-proof, unlike
+// comparing getTime() to 0 which flips sign across UTC offsets).
+function isRealDate(d?: Date): d is Date {
+  return d instanceof Date && !Number.isNaN(d.getTime()) && d.getFullYear() >= 2000;
+}
+
+// Fall back to "now" so the picker never opens on 1/1/1970.
+function normalizeDate(d?: Date): Date {
+  return isRealDate(d) ? d : new Date();
+}
+
+// Hard floor for the wheel — iOS clamps to this, so it can never land on 1970
+// even if the native picker retained a stale internal value.
+const MIN_DATE = new Date(2000, 0, 1);
+
 interface DateFieldProps {
   value: Date;
   onChange: (d: Date) => void;
@@ -38,24 +55,32 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
   const insets = useSafeAreaInsets();
   const { scheme } = useThemePalette();
   const sheetRef = useRef<BottomSheetModal>(null);
+  // Guard against a stale/epoch value or bound that would open the picker on
+  // 1/1/1970 (iOS clamps the wheel to maximumDate, so a bad max drags it there).
+  const safeValue = normalizeDate(value);
+  const safeMax = isRealDate(maximumDate) ? maximumDate : undefined;
   // Android runs date then time as separate dialogs; hold the in-progress value.
   const [androidStep, setAndroidStep] = useState<null | "date" | "time">(null);
-  const pendingRef = useRef<Date>(value);
+  const pendingRef = useRef<Date>(safeValue);
   // iOS: local value while the wheel is spinning — committed on close. Feeding
   // onChange on every tick re-renders the parent mid-spin and makes the wheel
   // jump back to the old date, so we isolate it here.
-  const [tempDate, setTempDate] = useState<Date>(value);
+  const [tempDate, setTempDate] = useState<Date>(safeValue);
+  // Bumped on each open to force the native wheel to remount and re-read `value`
+  // (the iOS spinner otherwise keeps its own internal date and can stick on 1970).
+  const [openSeq, setOpenSeq] = useState(0);
 
   const isDateTime = mode === "datetime";
   const locale = i18n.language === "vi" ? "vi-VN" : "en-US";
 
   const openAndroid = () => {
-    pendingRef.current = value;
+    pendingRef.current = safeValue;
     setAndroidStep("date");
   };
 
   const openIOS = () => {
-    setTempDate(value);
+    setTempDate(safeValue);
+    setOpenSeq((n) => n + 1);
     sheetRef.current?.present();
   };
 
@@ -105,8 +130,8 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
         <View className="h-14 flex-row items-center justify-between px-4">
           {createElement("input", {
             type: isDateTime ? "datetime-local" : "date",
-            value: dayjs(value).format(fmt),
-            max: maximumDate ? dayjs(maximumDate).format(fmt) : undefined,
+            value: dayjs(safeValue).format(fmt),
+            max: safeMax ? dayjs(safeMax).format(fmt) : undefined,
             onChange: (e: { target: { value: string } }) => {
               const v = e?.target?.value;
               if (v) onChange(dayjs(v).toDate());
@@ -136,7 +161,7 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
         <GlassSurface radius={16}>
           <View className="h-14 flex-row items-center justify-between px-4">
             <Text className="text-base text-ink">
-              {isDateTime ? formatDateTime(value) : formatDate(value)}
+              {isDateTime ? formatDateTime(safeValue) : formatDate(safeValue)}
             </Text>
             <Ionicons name="calendar-outline" size={20} color={colors.muted} />
           </View>
@@ -145,11 +170,11 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
 
       {Platform.OS === "android" && androidStep ? (
         <DateTimePicker
-          value={androidStep === "time" ? pendingRef.current : value}
+          value={androidStep === "time" ? pendingRef.current : safeValue}
           mode={androidStep}
           display="default"
           is24Hour
-          maximumDate={androidStep === "date" ? maximumDate : undefined}
+          maximumDate={androidStep === "date" ? safeMax : undefined}
           onChange={onAndroidChange}
         />
       ) : null}
@@ -159,6 +184,9 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
           key={scheme}
           ref={sheetRef}
           enableDynamicSizing
+          // Push onto the stack (don't dismiss/replace) so opening this from inside
+          // another bottom sheet — e.g. the transaction filter — keeps that sheet open.
+          stackBehavior="push"
           // Only pan from the handle so the wheel keeps its vertical gestures.
           enableContentPanningGesture={false}
           onDismiss={() => onChange(tempDate)}
@@ -177,12 +205,14 @@ export function DateField({ value, onChange, maximumDate, mode = "date" }: DateF
             </View>
             <View className="items-center pb-4">
               <DateTimePicker
+                key={openSeq}
                 value={tempDate}
                 mode={mode}
                 display="spinner"
                 themeVariant={scheme}
                 locale={locale}
-                maximumDate={maximumDate}
+                minimumDate={MIN_DATE}
+                maximumDate={safeMax}
                 onChange={(_, d) => {
                   if (d) setTempDate(d);
                 }}

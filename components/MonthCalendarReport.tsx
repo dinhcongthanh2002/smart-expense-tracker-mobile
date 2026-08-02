@@ -104,20 +104,20 @@ export function MonthCalendarReport({ hidden }: Props) {
       <View className="flex-row items-center justify-between">
         <Text className="text-lg font-bold text-ink">{t("dashboard.calendarTitle")}</Text>
         <View className="flex-row items-center gap-1">
-          <Pressable onPress={() => shift(-1)} hitSlop={8} className="h-8 w-8 items-center justify-center">
+          <Pressable onPress={() => shift(-1)} hitSlop={8} className="items-center justify-center w-8 h-8">
             <Ionicons name="chevron-back" size={20} color={colors.ink} />
           </Pressable>
-          <Text className="w-24 text-center text-sm font-semibold text-ink">
+          <Text className="text-sm font-semibold text-center w-28 text-ink">
             {t("common.monthYear", { month, year })}
           </Text>
-          <Pressable onPress={() => shift(1)} hitSlop={8} className="h-8 w-8 items-center justify-center">
+          <Pressable onPress={() => shift(1)} hitSlop={8} className="items-center justify-center w-8 h-8">
             <Ionicons name="chevron-forward" size={20} color={colors.ink} />
           </Pressable>
         </View>
       </View>
 
       {/* month totals */}
-      <View className="mt-3 flex-row gap-3">
+      <View className="flex-row gap-3 mt-3">
         <View className="flex-1 flex-row items-center gap-1.5 rounded-xl bg-income/10 px-3 py-2">
           <Ionicons name="arrow-down" size={14} color={colors.income} />
           <Text className="text-sm font-semibold text-income" numberOfLines={1}>
@@ -133,9 +133,9 @@ export function MonthCalendarReport({ hidden }: Props) {
       </View>
 
       {/* weekday header */}
-      <View className="mt-4 flex-row">
+      <View className="flex-row mt-4">
         {weekdays.map((w, i) => (
-          <View key={w} className="flex-1 items-center">
+          <View key={w} className="items-center flex-1">
             <Text
               className={`text-xs font-medium ${i >= 5 ? "text-expense" : "text-muted"}`}
               style={i >= 5 ? { opacity: 0.7 } : undefined}
@@ -152,7 +152,7 @@ export function MonthCalendarReport({ hidden }: Props) {
           <View key={wi} className="flex-row">
             {week.map((day, di) => {
               if (day === null) {
-                return <View key={`b${wi}-${di}`} className="h-12 flex-1" />;
+                return <View key={`b${wi}-${di}`} className="flex-1 h-12" />;
               }
               const data = byDay.get(day);
               const isSelected = day === selectedDay;
@@ -168,7 +168,7 @@ export function MonthCalendarReport({ hidden }: Props) {
                       params: { date: `${year}-${pad2(month)}-${pad2(day)}` },
                     });
                   }}
-                  className="h-12 flex-1 items-center justify-center active:opacity-60"
+                  className="items-center justify-center flex-1 h-12 active:opacity-60"
                 >
                   <View
                     className={`h-8 w-8 items-center justify-center rounded-full ${
@@ -185,10 +185,10 @@ export function MonthCalendarReport({ hidden }: Props) {
                   </View>
                   <View className="mt-0.5 h-1 flex-row items-center gap-0.5">
                     {data && data.income > 0 ? (
-                      <View className="h-1 w-1 rounded-full" style={{ backgroundColor: colors.income }} />
+                      <View className="w-1 h-1 rounded-full" style={{ backgroundColor: colors.income }} />
                     ) : null}
                     {data && data.expense > 0 ? (
-                      <View className="h-1 w-1 rounded-full" style={{ backgroundColor: colors.expense }} />
+                      <View className="w-1 h-1 rounded-full" style={{ backgroundColor: colors.expense }} />
                     ) : null}
                   </View>
                 </Pressable>
@@ -200,7 +200,7 @@ export function MonthCalendarReport({ hidden }: Props) {
 
       {/* selected day detail */}
       {selectedDay ? (
-        <View className="mt-3 rounded-2xl bg-glass-light p-4">
+        <View className="p-4 mt-3 rounded-2xl bg-glass-light">
           <Text className="text-sm font-semibold text-ink">
             {t("dashboard.dayTitle", {
               day: pad2(selectedDay),
@@ -209,7 +209,7 @@ export function MonthCalendarReport({ hidden }: Props) {
             })}
           </Text>
           {selected ? (
-            <View className="mt-2 flex-row">
+            <View className="flex-row mt-2">
               <View className="flex-1">
                 <Text className="text-xs text-muted">{t("common.income")}</Text>
                 <Text className="mt-0.5 text-base font-bold text-income">

@@ -18,6 +18,14 @@ export interface TransactionViewModel extends CommonEntity {
   receipt?: AttachmentViewModel;
 }
 
+/** Totals for the current transaction filter (GET /transactions/summary). */
+export interface TransactionSummary {
+  totalIncome: number;
+  totalExpense: number;
+  /** totalIncome − totalExpense (transfers excluded). */
+  net: number;
+}
+
 /** Body for POST /transactions/parse — `text` is the speech-to-text result. */
 export interface TransactionParseRequest {
   text: string;

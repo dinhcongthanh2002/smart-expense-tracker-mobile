@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -17,14 +17,19 @@ import { GlassSurface } from "@/components/ui/GlassSurface";
 import { SwipeableTransactionRow } from "@/components/SwipeableTransactionRow";
 import {
   TransactionFilterSheet,
+  type TransactionFilterSheetRef,
   type TxFilter,
   emptyTxFilter,
   resolveDateRange,
   activeFilterCount,
 } from "@/components/TransactionFilterSheet";
-import { TransactionFacade } from "@/store/transaction";
+import { TransactionFacade, getTransactionSummary } from "@/store/transaction";
 import { CategoryFacade } from "@/store/category";
-import type { TransactionViewModel } from "@/store/transaction/model";
+import type {
+  TransactionSummary,
+  TransactionViewModel,
+} from "@/store/transaction/model";
+import { formatCurrency } from "@/lib/format";
 import { TransactionType } from "@/models/enums";
 import type { QueryParams } from "@/models/api.model";
 import { colors } from "@/theme/colors";
@@ -56,7 +61,7 @@ export default function TransactionsScreen() {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [applied, setApplied] = useState<TxFilter>(emptyTxFilter());
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const filterRef = useRef<TransactionFilterSheetRef>(null);
 
   const [items, setItems] = useState<TransactionViewModel[]>([]);
   const [page, setPage] = useState(1);
@@ -64,6 +69,7 @@ export default function TransactionsScreen() {
   const [total, setTotal] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [summary, setSummary] = useState<TransactionSummary | null>(null);
 
   const categories = category.pagination?.content ?? [];
   const activeCount = activeFilterCount(applied);
@@ -80,7 +86,8 @@ export default function TransactionsScreen() {
     return () => clearTimeout(id);
   }, [search]);
 
-  const fetchPage = async (targetPage: number) => {
+  // The applied filter shared by the list and the totals endpoint.
+  const buildFilterObj = () => {
     const filterObj: Record<string, unknown> = {};
     if (applied.type !== undefined) filterObj.type = applied.type;
     if (applied.categoryId) filterObj.categoryId = applied.categoryId;
@@ -88,6 +95,11 @@ export default function TransactionsScreen() {
     const { from, to } = resolveDateRange(applied);
     if (from && to) filterObj.transactionDateRange = [from, to];
     if (debounced) filterObj.fullTextSearch = debounced;
+    return filterObj;
+  };
+
+  const fetchPage = async (targetPage: number) => {
+    const filterObj = buildFilterObj();
     const params: QueryParams = { page: targetPage, size: PAGE_SIZE, sort: "-transactionDate" };
     if (Object.keys(filterObj).length) params.filter = filterObj;
     const res = await tx.get(params).unwrap();
@@ -97,11 +109,17 @@ export default function TransactionsScreen() {
   const loadFirst = useCallback(async () => {
     setRefreshing(true);
     try {
-      const data = await fetchPage(1);
+      // List + totals share the same filter; totals are best-effort so a summary
+      // failure never blocks the list.
+      const [data, sum] = await Promise.all([
+        fetchPage(1),
+        getTransactionSummary(buildFilterObj()).catch(() => undefined),
+      ]);
       setItems(data?.content ?? []);
       setTotalPages(data?.totalPages ?? 1);
       setTotal(data?.totalElements ?? 0);
       setPage(1);
+      setSummary(sum ?? null);
     } catch {
       // toast surfaced by API layer
     } finally {
@@ -201,7 +219,7 @@ export default function TransactionsScreen() {
           </View>
         </GlassSurface>
 
-        <Pressable onPress={() => setSheetOpen(true)}>
+        <Pressable onPress={() => filterRef.current?.present()}>
           <GlassSurface
             radius={16}
             style={
@@ -249,6 +267,59 @@ export default function TransactionsScreen() {
             <Text className="text-sm font-medium text-muted">{t("transactions.clearAll")}</Text>
           </Pressable>
         </View>
+      ) : null}
+
+      {/* income / expense totals for the current filter */}
+      {summary ? (
+        <GlassSurface radius={16} className="mb-3">
+          <View className="flex-row items-stretch">
+            <View className="flex-1 flex-row items-center gap-2.5 px-3.5 py-3">
+              <View
+                className="h-9 w-9 items-center justify-center rounded-full"
+                style={{ backgroundColor: colors.income + "22" }}
+              >
+                <Ionicons name="arrow-down-outline" size={18} color={colors.income} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[11px] text-muted">
+                  {t("transactions.totalIncome")}
+                </Text>
+                <Text
+                  className="text-[15px] font-bold"
+                  style={{ color: colors.income }}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {formatCurrency(summary.totalIncome)}
+                </Text>
+              </View>
+            </View>
+
+            <View className="my-2.5" style={{ width: 1, backgroundColor: colors.glassBorder }} />
+
+            <View className="flex-1 flex-row items-center gap-2.5 px-3.5 py-3">
+              <View
+                className="h-9 w-9 items-center justify-center rounded-full"
+                style={{ backgroundColor: colors.expense + "22" }}
+              >
+                <Ionicons name="arrow-up-outline" size={18} color={colors.expense} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[11px] text-muted">
+                  {t("transactions.totalExpense")}
+                </Text>
+                <Text
+                  className="text-[15px] font-bold"
+                  style={{ color: colors.expense }}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {formatCurrency(summary.totalExpense)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </GlassSurface>
       ) : null}
 
       <FlatList
@@ -307,14 +378,10 @@ export default function TransactionsScreen() {
       </Pressable>
 
       <TransactionFilterSheet
-        visible={sheetOpen}
+        ref={filterRef}
         value={applied}
         categories={categories}
-        onClose={() => setSheetOpen(false)}
-        onApply={(v) => {
-          setApplied(v);
-          setSheetOpen(false);
-        }}
+        onApply={setApplied}
       />
     </Screen>
   );

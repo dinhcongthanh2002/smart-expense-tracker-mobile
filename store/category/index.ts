@@ -1,10 +1,17 @@
 import { Action } from "@/store/action";
 import { Slice, type State } from "@/store/slice";
 import { useAppDispatch, useTypedSelector } from "@/store/hooks";
+import { API } from "@/lib/api";
 import type { QueryParams } from "@/models/api.model";
 import type { CategoryViewModel } from "./model";
 
 const action = new Action<CategoryViewModel>("Category");
+
+/** Persist a new category order (array of ids, top-first). Scoped to the user's
+ * own categories on the backend. */
+export async function reorderCategories(ids: string[]): Promise<void> {
+  await API.put("/categories/reorder", { ids });
+}
 export const categoryAction = action;
 export const categorySlice = new Slice<CategoryViewModel>(action);
 

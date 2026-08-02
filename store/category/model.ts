@@ -12,4 +12,6 @@ export interface CategoryViewModel extends CommonEntity {
   typeName?: string;
   isDefault?: boolean;
   parentId?: string;
+  /** Display order (lower = higher). Set by drag-to-reorder. */
+  sortOrder?: number;
 }

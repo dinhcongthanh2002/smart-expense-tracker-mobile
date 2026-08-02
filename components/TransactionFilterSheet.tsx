@@ -1,16 +1,37 @@
 import { Ionicons } from "@expo/vector-icons";
+import {
+    BottomSheetBackdrop,
+    BottomSheetFooter,
+    BottomSheetModal,
+    BottomSheetScrollView,
+    type BottomSheetBackdropProps,
+    type BottomSheetFooterProps,
+} from "@gorhom/bottom-sheet";
 import dayjs from "dayjs";
-import { useEffect, useMemo, useState } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DateField } from "@/components/ui/DateField";
+import { useThemePalette } from "@/lib/theme";
 import { TransactionType } from "@/models/enums";
 import type { CategoryViewModel } from "@/store/category/model";
 import { colors } from "@/theme/colors";
 
 const FMT = "YYYY-MM-DD";
+
+// The native tab bar (expo-router NativeTabs) is drawn on top of everything,
+// including this sheet's portal — float the sheet above it so the pinned footer
+// isn't hidden. iOS UITabBar ≈ 49pt, Android bottom nav ≈ 56pt (+ safe area).
+const TAB_BAR_HEIGHT = Platform.OS === "ios" ? 47 : 56;
 
 export type DatePreset =
   | "all"
@@ -28,6 +49,13 @@ export interface TxFilter {
   customFrom: string; // YYYY-MM-DD
   customTo: string; // YYYY-MM-DD
 }
+
+/** Replace a stale/pre-2000 day string (e.g. a "1970-01-01" left over from an
+ *  earlier picker bug) with today, so custom ranges never resolve to the epoch. */
+const sanitizeDay = (s: string): string => {
+  const d = dayjs(s);
+  return d.isValid() && d.year() >= 2000 ? s : dayjs().format(FMT);
+};
 
 /** A fresh, empty filter (dates default to today). */
 export const emptyTxFilter = (): TxFilter => ({
@@ -96,30 +124,59 @@ function Chip({
   );
 }
 
-interface Props {
-  visible: boolean;
-  value: TxFilter;
-  categories: CategoryViewModel[];
-  onClose: () => void;
-  onApply: (v: TxFilter) => void;
+export interface TransactionFilterSheetRef {
+  present: () => void;
+  dismiss: () => void;
 }
 
-export function TransactionFilterSheet({
-  visible,
-  value,
-  categories,
-  onClose,
-  onApply,
-}: Props) {
+interface Props {
+  value: TxFilter;
+  categories: CategoryViewModel[];
+  onApply: (v: TxFilter) => void;
+  onClose?: () => void;
+}
+
+/** Bottom-sheet transaction filter. Controlled imperatively via a ref:
+ *  `ref.current?.present()` / `.dismiss()`. */
+export const TransactionFilterSheet = forwardRef<TransactionFilterSheetRef, Props>(
+  function TransactionFilterSheet({ value, categories, onApply, onClose }, ref) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const { scheme } = useThemePalette();
+  const sheetRef = useRef<BottomSheetModal>(null);
   const [draft, setDraft] = useState<TxFilter>(value);
 
-  // Re-seed the draft from the applied value each time the sheet opens.
-  useEffect(() => {
-    if (visible) setDraft(value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
+  // Keep the latest applied value so present() can re-seed the draft from it.
+  const valueRef = useRef(value);
+  valueRef.current = value;
+
+  useImperativeHandle(ref, () => ({
+    present: () => {
+      const v = valueRef.current;
+      // Heal any stale custom dates so the range never resolves to 1/1/1970.
+      setDraft({
+        ...v,
+        customFrom: sanitizeDay(v.customFrom),
+        customTo: sanitizeDay(v.customTo),
+      });
+      sheetRef.current?.present();
+    },
+    dismiss: () => sheetRef.current?.dismiss(),
+  }));
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.6}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   const typeOptions: { label: string; value?: TransactionType }[] = [
     { label: t("common.all"), value: undefined },
@@ -151,146 +208,153 @@ export function TransactionFilterSheet({
 
   const count = activeFilterCount(draft);
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      <Pressable className="flex-1" style={{ backgroundColor: colors.scrim }} onPress={onClose} />
+  const apply = () => {
+    sheetRef.current?.dismiss();
+    onApply(draft);
+  };
+
+  // Pinned footer (reset / apply) that floats above the safe area.
+  const renderFooter = (props: BottomSheetFooterProps) => (
+    <BottomSheetFooter {...props} bottomInset={0}>
       <View
-        style={{ maxHeight: "88%", paddingBottom: insets.bottom + 8 }}
-        className="rounded-t-3xl bg-surface"
+        className="flex-row gap-3 px-5 pt-3 pb-3 border-t border-glass-border bg-surface"
       >
-        <View className="items-center pt-3">
-          <View className="h-1.5 w-10 rounded-full bg-glass-light" />
-        </View>
-        <View className="flex-row items-center justify-between px-5 py-3">
+        <Pressable
+          onPress={() => setDraft(emptyTxFilter())}
+          className="flex-1 items-center justify-center rounded-2xl border border-glass-border py-3.5 active:opacity-70"
+        >
+          <Text className="text-base font-semibold text-ink">{t("transactions.reset")}</Text>
+        </Pressable>
+        <Pressable
+          onPress={apply}
+          className="flex-1 items-center justify-center rounded-2xl bg-primary py-3.5 active:opacity-80"
+        >
+          <Text className="text-base font-semibold text-white">
+            {count > 0 ? t("transactions.applyCount", { count }) : t("transactions.apply")}
+          </Text>
+        </Pressable>
+      </View>
+    </BottomSheetFooter>
+  );
+
+  return (
+    <BottomSheetModal
+      key={scheme}
+      ref={sheetRef}
+      enableDynamicSizing
+      maxDynamicContentSize={height * 0.88}
+      // Float the whole sheet above the native tab bar so the pinned footer shows.
+      bottomInset={insets.bottom + TAB_BAR_HEIGHT}
+      onDismiss={onClose}
+      backdropComponent={renderBackdrop}
+      footerComponent={renderFooter}
+      backgroundStyle={{ backgroundColor: colors.surface }}
+      handleIndicatorStyle={{ backgroundColor: colors.glassBorder }}
+    >
+      <BottomSheetScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 96 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="flex-row items-center justify-between pt-1 pb-2">
           <Text className="text-lg font-bold text-ink">{t("transactions.filterTitle")}</Text>
-          <Pressable onPress={onClose} hitSlop={10}>
+          <Pressable onPress={() => sheetRef.current?.dismiss()} hitSlop={10}>
             <Ionicons name="close" size={24} color={colors.muted} />
           </Pressable>
         </View>
 
-        <ScrollView
-          className="px-5"
-          contentContainerClassName="pb-4"
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* type */}
-          <Text className="mb-2 mt-1 text-sm font-medium text-muted">
-            {t("transactions.typeLabel")}
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {typeOptions.map((o) => (
-              <Chip
-                key={String(o.value)}
-                label={o.label}
-                active={draft.type === o.value}
-                onPress={() => onPickType(o.value)}
-              />
-            ))}
-          </View>
-
-          {/* category */}
-          <Text className="mb-2 mt-5 text-sm font-medium text-muted">
-            {t("transactions.categoryLabel")}
-          </Text>
-          {categoryPickable ? (
-            parentCategories.length > 0 ? (
-              <View className="flex-row flex-wrap gap-2">
-                <Chip
-                  label={t("transactions.allCategories")}
-                  active={!draft.categoryId}
-                  onPress={() => setDraft((d) => ({ ...d, categoryId: undefined }))}
-                />
-                {parentCategories.map((c) => (
-                  <Chip
-                    key={c.id}
-                    label={c.name ?? ""}
-                    color={c.color || colors.primary}
-                    active={draft.categoryId === c.id}
-                    onPress={() =>
-                      setDraft((d) => ({
-                        ...d,
-                        categoryId: d.categoryId === c.id ? undefined : c.id,
-                      }))
-                    }
-                  />
-                ))}
-              </View>
-            ) : (
-              <Text className="text-sm text-muted">{t("transactions.noCategory")}</Text>
-            )
-          ) : (
-            <Text className="text-sm text-muted">{t("transactions.categoryHint")}</Text>
-          )}
-
-          {/* date */}
-          <Text className="mb-2 mt-5 text-sm font-medium text-muted">
-            {t("transactions.dateLabel")}
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {dateOptions.map((o) => (
-              <Chip
-                key={o.value}
-                label={o.label}
-                active={draft.datePreset === o.value}
-                onPress={() => setDraft((d) => ({ ...d, datePreset: o.value }))}
-              />
-            ))}
-          </View>
-
-          {draft.datePreset === "custom" ? (
-            <View className="mt-3 flex-row gap-2">
-              <View className="flex-1">
-                <Text className="mb-1 ml-1 text-[11px] text-muted">
-                  {t("transactions.fromDate")}
-                </Text>
-                <DateField
-                  value={dayjs(draft.customFrom).toDate()}
-                  maximumDate={dayjs(draft.customTo).toDate()}
-                  onChange={(d) =>
-                    setDraft((s) => ({ ...s, customFrom: dayjs(d).format(FMT) }))
-                  }
-                />
-              </View>
-              <View className="flex-1">
-                <Text className="mb-1 ml-1 text-[11px] text-muted">
-                  {t("transactions.toDate")}
-                </Text>
-                <DateField
-                  value={dayjs(draft.customTo).toDate()}
-                  onChange={(d) =>
-                    setDraft((s) => ({ ...s, customTo: dayjs(d).format(FMT) }))
-                  }
-                />
-              </View>
-            </View>
-          ) : null}
-        </ScrollView>
-
-        {/* footer */}
-        <View className="flex-row gap-3 border-t border-glass-border px-5 pt-3">
-          <Pressable
-            onPress={() => setDraft(emptyTxFilter())}
-            className="flex-1 items-center justify-center rounded-2xl border border-glass-border py-3.5 active:opacity-70"
-          >
-            <Text className="text-base font-semibold text-ink">{t("transactions.reset")}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => onApply(draft)}
-            className="flex-1 items-center justify-center rounded-2xl bg-primary py-3.5 active:opacity-80"
-          >
-            <Text className="text-base font-semibold text-white">
-              {count > 0 ? t("transactions.applyCount", { count }) : t("transactions.apply")}
-            </Text>
-          </Pressable>
+        {/* type */}
+        <Text className="mt-1 mb-2 text-sm font-medium text-muted">
+          {t("transactions.typeLabel")}
+        </Text>
+        <View className="flex-row flex-wrap gap-2">
+          {typeOptions.map((o) => (
+            <Chip
+              key={String(o.value)}
+              label={o.label}
+              active={draft.type === o.value}
+              onPress={() => onPickType(o.value)}
+            />
+          ))}
         </View>
-      </View>
-    </Modal>
+
+        {/* category */}
+        <Text className="mt-5 mb-2 text-sm font-medium text-muted">
+          {t("transactions.categoryLabel")}
+        </Text>
+        {categoryPickable ? (
+          parentCategories.length > 0 ? (
+            <View className="flex-row flex-wrap gap-2">
+              <Chip
+                label={t("transactions.allCategories")}
+                active={!draft.categoryId}
+                onPress={() => setDraft((d) => ({ ...d, categoryId: undefined }))}
+              />
+              {parentCategories.map((c) => (
+                <Chip
+                  key={c.id}
+                  label={c.name ?? ""}
+                  color={c.color || colors.primary}
+                  active={draft.categoryId === c.id}
+                  onPress={() =>
+                    setDraft((d) => ({
+                      ...d,
+                      categoryId: d.categoryId === c.id ? undefined : c.id,
+                    }))
+                  }
+                />
+              ))}
+            </View>
+          ) : (
+            <Text className="text-sm text-muted">{t("transactions.noCategory")}</Text>
+          )
+        ) : (
+          <Text className="text-sm text-muted">{t("transactions.categoryHint")}</Text>
+        )}
+
+        {/* date */}
+        <Text className="mt-5 mb-2 text-sm font-medium text-muted">
+          {t("transactions.dateLabel")}
+        </Text>
+        <View className="flex-row flex-wrap gap-2">
+          {dateOptions.map((o) => (
+            <Chip
+              key={o.value}
+              label={o.label}
+              active={draft.datePreset === o.value}
+              onPress={() => setDraft((d) => ({ ...d, datePreset: o.value }))}
+            />
+          ))}
+        </View>
+
+        {draft.datePreset === "custom" ? (
+          <View className="flex-row gap-2 mt-3">
+            <View className="flex-1">
+              <Text className="mb-1 ml-1 text-[11px] text-muted">
+                {t("transactions.fromDate")}
+              </Text>
+              <DateField
+                value={dayjs(draft.customFrom).toDate()}
+                maximumDate={dayjs(draft.customTo).toDate()}
+                onChange={(d) =>
+                  setDraft((s) => ({ ...s, customFrom: dayjs(d).format(FMT) }))
+                }
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="mb-1 ml-1 text-[11px] text-muted">
+                {t("transactions.toDate")}
+              </Text>
+              <DateField
+                value={dayjs(draft.customTo).toDate()}
+                onChange={(d) =>
+                  setDraft((s) => ({ ...s, customTo: dayjs(d).format(FMT) }))
+                }
+              />
+            </View>
+          </View>
+        ) : null}
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
-}
+});

@@ -6,6 +6,7 @@ import { refreshWidget } from "@/lib/widget";
 import type { QueryParams } from "@/models/api.model";
 import type {
   TransactionParseResult,
+  TransactionSummary,
   TransactionUpsertModel,
   TransactionViewModel,
 } from "./model";
@@ -27,6 +28,18 @@ export async function parseTransactionText(
   });
   return res.data;
 }
+/**
+ * Fetch total income/expense for the current filter (the same `filter` object the
+ * list sends). Totals are computed on the server across ALL matching rows, so they
+ * are correct regardless of pagination. Not a redux thunk — the list reads it directly.
+ */
+export async function getTransactionSummary(
+  filter: Record<string, unknown>,
+): Promise<TransactionSummary | undefined> {
+  const res = await API.get<TransactionSummary>("/transactions/summary", { filter });
+  return res.data;
+}
+
 export const transactionAction = action;
 export const transactionSlice = new Slice<TransactionViewModel>(action);
 

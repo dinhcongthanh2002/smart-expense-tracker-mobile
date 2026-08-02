@@ -6,6 +6,8 @@ export default {
     searchPlaceholder: "Tìm theo ghi chú, danh mục...",
     empty: "Chưa có giao dịch nào",
     emptySearch: "Không tìm thấy giao dịch",
+    totalIncome: "Tổng thu",
+    totalExpense: "Tổng chi",
     deleteTitle: "Xoá giao dịch",
     deleteConfirm: "Bạn chắc chắn muốn xoá giao dịch này?",
 
@@ -37,6 +39,8 @@ export default {
     searchPlaceholder: "Search by note, category...",
     empty: "No transactions yet",
     emptySearch: "No transactions found",
+    totalIncome: "Income",
+    totalExpense: "Expense",
     deleteTitle: "Delete transaction",
     deleteConfirm: "Are you sure you want to delete this transaction?",
 
