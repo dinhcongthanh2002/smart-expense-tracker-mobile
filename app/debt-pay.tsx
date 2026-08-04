@@ -47,6 +47,15 @@ export default function DebtPayScreen() {
   }, []);
 
   const wallets = wallet.pagination?.content ?? [];
+
+  // Pre-select the default wallet (falls back to the first), like the other
+  // transaction forms, so the user doesn't have to pick one manually.
+  useEffect(() => {
+    if (walletId || wallets.length === 0) return;
+    setWalletId((wallets.find((w) => w.isDefault) ?? wallets[0]).id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallet.pagination, walletId]);
+
   const walletOptions = useMemo(
     () =>
       wallets.map((w) => ({

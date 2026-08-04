@@ -35,26 +35,6 @@ function MenuRow({
   );
 }
 
-function Row({
-  icon,
-  label,
-  value,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value?: string;
-}) {
-  return (
-    <View className="flex-row items-center gap-3 py-3">
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-white/8">
-        <Ionicons name={icon} size={20} color={colors.primarySoft} />
-      </View>
-      <Text className="flex-1 text-muted">{label}</Text>
-      <Text className="font-medium text-ink">{value || "—"}</Text>
-    </View>
-  );
-}
-
 export default function ProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -102,17 +82,6 @@ export default function ProfileScreen() {
               <Text className="text-xs font-medium text-primarySoft">{t("profile.editProfile")}</Text>
             </View>
           </Pressable>
-        </GlassSurface>
-
-        <GlassSurface radius={24} className="px-5 py-2" style={{ marginTop: 20 }}>
-          <Row icon="person-outline" label={t("profile.username")} value={u?.userName} />
-          <Row icon="call-outline" label={t("profile.phone")} value={u?.phoneNumber} />
-          <Row icon="mail-outline" label={t("profile.email")} value={u?.email} />
-          <Row
-            icon="shield-checkmark-outline"
-            label={t("profile.emailVerification")}
-            value={u?.isEmailVerified ? t("profile.verified") : t("profile.notVerified")}
-          />
         </GlassSurface>
 
         <Text className="mb-2 ml-1 mt-6 text-sm font-medium text-muted">

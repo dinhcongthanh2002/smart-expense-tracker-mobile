@@ -35,6 +35,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useThemePalette } from "@/lib/theme";
 import { useVoiceInput } from "@/lib/useVoiceInput";
+import { playListeningCue } from "@/lib/voice-cue";
 import { formatDate, groupThousands, onlyDigits } from "@/lib/format";
 import { notify } from "@/lib/notify";
 import { TransactionType } from "@/models/enums";
@@ -124,6 +125,12 @@ export const QuickAddSheet = forwardRef<QuickAddSheetRef, Props>(
       onFinalResult: (text) => runParse(text),
     });
 
+    // Signal "now listening" (light haptic + short beep), then open the mic.
+    // The cue resolves after the beep so the tone doesn't leak into the mic.
+    const startListening = useCallback(() => {
+      playListeningCue().then(() => voice.start());
+    }, [voice]);
+
     // "Listening" animation: a gentle idle breathe + concentric rings that react
     // to the real mic level (voice.level, 0..1) — so it feels alive on silence and
     // pulses with the user's voice.
@@ -172,7 +179,7 @@ export const QuickAddSheet = forwardRef<QuickAddSheetRef, Props>(
         sheetRef.current?.present();
         // Kick off listening on the next tick so the sheet is mounted first.
         // In Expo Go / builds without the native module, stay in type-to-add mode.
-        if (voice.supported) setTimeout(() => voice.start(), 350);
+        if (voice.supported) setTimeout(startListening, 350);
       },
       dismiss: () => sheetRef.current?.dismiss(),
     }));
@@ -309,7 +316,7 @@ export const QuickAddSheet = forwardRef<QuickAddSheetRef, Props>(
                 <Animated.View style={micStyle}>
                   <Pressable
                     onPress={() =>
-                      voice.recording ? voice.stop() : voice.start()
+                      voice.recording ? voice.stop() : startListening()
                     }
                     disabled={phase === "parsing" || !voice.supported}
                     className={`h-24 w-24 items-center justify-center rounded-full active:opacity-70 ${
