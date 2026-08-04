@@ -25,11 +25,15 @@ function run(cmd, { ignoreError = false } = {}) {
   }
 }
 
+// The GitHub Actions IPA build lives on the `github` remote (origin is GitLab),
+// so the tag MUST be pushed there to trigger the workflow.
+const REMOTE = "github";
+
 // Delete any existing tag (local + remote) so the version always points at HEAD,
 // then recreate and push it. The deletes are best-effort for brand-new versions.
 run(`git tag -d ${tag}`, { ignoreError: true });
-run(`git push origin :refs/tags/${tag}`, { ignoreError: true });
+run(`git push ${REMOTE} :refs/tags/${tag}`, { ignoreError: true });
 run(`git tag ${tag}`);
-run(`git push origin ${tag}`);
+run(`git push ${REMOTE} ${tag}`);
 
 console.log(`\n✓ Tagged ${tag} → CI build started. Watch the Actions tab.`);
