@@ -26,6 +26,9 @@ jobs:
     env:
       # Inlined into the JS bundle at build time (EXPO_PUBLIC_* is public by design).
       EXPO_PUBLIC_API_BASE_URL: http://mk.geneat.pro/api/v1
+      # Google Sign-In OAuth client ids (also in the committed .env; set here to be explicit).
+      EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 925669115467-okc0l1mgbs6q7qq90cc669juu3trc9k1.apps.googleusercontent.com
+      EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: 925669115467-7b5makgohg5qfmof8kfaju2ieh0umen7.apps.googleusercontent.com
       EXPO_NO_TELEMETRY: "1"
     steps:
       - name: Checkout

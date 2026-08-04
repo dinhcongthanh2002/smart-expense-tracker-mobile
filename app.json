@@ -2,7 +2,7 @@
   "expo": {
     "name": "Smart Expense",
     "slug": "smart-expense-tracker-mobile",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "smartexpense",
@@ -114,6 +114,12 @@
         {
           "enableAndroidPictureInPicture": true,
           "enableBackgroundAudio": true
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.925669115467-7b5makgohg5qfmof8kfaju2ieh0umen7"
         }
       ]
     ],

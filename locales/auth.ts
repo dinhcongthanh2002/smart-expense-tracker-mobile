@@ -52,7 +52,9 @@ export default {
       signUp: "Đăng ký",
       sendResetCode: "Gửi mã đặt lại",
       resetPassword: "Đặt lại mật khẩu",
+      continueWithGoogle: "Tiếp tục với Google",
     },
+    or: "hoặc",
     links: {
       forgotPassword: "Quên mật khẩu?",
       noAccount: "Chưa có tài khoản?",
@@ -124,7 +126,9 @@ export default {
       signUp: "Sign up",
       sendResetCode: "Send reset code",
       resetPassword: "Reset password",
+      continueWithGoogle: "Continue with Google",
     },
+    or: "or",
     links: {
       forgotPassword: "Forgot password?",
       noAccount: "Don't have an account?",

@@ -3,6 +3,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 
 import { API, ApiError } from "@/lib/api";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { signOutGoogle } from "@/lib/google-auth";
 import i18n, { applyLanguage, type AppLanguage } from "@/lib/i18n";
 import { notify } from "@/lib/notify";
 import { routerLinks } from "@/lib/router-links";
@@ -68,6 +69,9 @@ export enum EStatusGlobal {
   loginPending = "login.pending",
   loginFulfilled = "login.fulfilled",
   loginRejected = "login.rejected",
+  googleLoginPending = "googleLogin.pending",
+  googleLoginFulfilled = "googleLogin.fulfilled",
+  googleLoginRejected = "googleLogin.rejected",
   registerPending = "register.pending",
   registerFulfilled = "register.fulfilled",
   registerRejected = "register.rejected",
@@ -133,6 +137,28 @@ export const login = createAsyncThunk(
   async (values: LoginModel, { rejectWithValue }) => {
     try {
       const res = await API.post<Auth>(`${AUTH}/jwt/login`, values);
+      const data = res.data;
+      if (data?.tokenString) {
+        await setAuthTokens({
+          tokenString: data.tokenString,
+          refreshToken: data.refreshToken,
+        });
+        if (data.userModel) await setUser(data.userModel);
+      }
+      if (res.message) notify.success(res.message);
+      return data ?? null;
+    } catch (e) {
+      const err = e as ApiError;
+      return rejectWithValue({ message: err.message, status: err.status });
+    }
+  },
+);
+
+export const googleLogin = createAsyncThunk(
+  "Auth/googleLogin",
+  async (values: { idToken: string }, { rejectWithValue }) => {
+    try {
+      const res = await API.post<Auth>(`${AUTH}/google-login`, values);
       const data = res.data;
       if (data?.tokenString) {
         await setAuthTokens({
@@ -285,6 +311,8 @@ export const logout = createAsyncThunk("Auth/logout", async () => {
   } catch {
     // ignore network/logout errors — clear locally regardless
   }
+  // Drop the Google session too so the next sign-in re-shows the account picker.
+  await signOutGoogle();
   await clearAuthStorage();
 });
 
@@ -349,6 +377,23 @@ const slice = createSlice({
         s.isSubmitting = false;
         s.errorMessage = (payload as { message?: string })?.message;
         s.status = EStatusGlobal.loginRejected;
+      })
+      .addCase(googleLogin.pending, (s) => {
+        s.isSubmitting = true;
+        s.errorMessage = undefined;
+        s.status = EStatusGlobal.googleLoginPending;
+      })
+      .addCase(googleLogin.fulfilled, (s, { payload }) => {
+        s.isSubmitting = false;
+        s.user = payload;
+        s.biometricLocked = false;
+        s.pendingAuth = null;
+        s.status = EStatusGlobal.googleLoginFulfilled;
+      })
+      .addCase(googleLogin.rejected, (s, { payload }) => {
+        s.isSubmitting = false;
+        s.errorMessage = (payload as { message?: string })?.message;
+        s.status = EStatusGlobal.googleLoginRejected;
       })
       .addCase(register.pending, (s) => {
         s.isSubmitting = true;
@@ -423,6 +468,7 @@ export const GlobalFacade = () => {
     ...state,
     isAuthenticated: !!state.user?.tokenString,
     login: (values: LoginModel) => dispatch(login(values)),
+    googleLogin: (idToken: string) => dispatch(googleLogin({ idToken })),
     register: (values: SignUpModel) => dispatch(register(values)),
     confirmEmail: (values: { email: string; token: string }) =>
       dispatch(confirmEmail(values)),

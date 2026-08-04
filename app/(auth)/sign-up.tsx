@@ -15,6 +15,7 @@ import { Screen } from "@/components/ui/Screen";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { GlobalFacade } from "@/store/global";
 import { colors } from "@/theme/colors";
 
@@ -150,6 +151,8 @@ export default function SignUpScreen() {
               className="mt-2"
             />
           </GlassCard>
+
+          <GoogleSignInButton />
 
           <View className="mt-6 flex-row items-center justify-center gap-1">
             <Text className="text-muted">{t("auth.links.hasAccount")}</Text>
