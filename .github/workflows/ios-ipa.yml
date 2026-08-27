@@ -22,7 +22,11 @@ concurrency:
 
 jobs:
   build-ipa:
-    runs-on: macos-15
+    # macos-26 ships Xcode 26 (iOS 26 SDK) by default — required for the app to
+    # link against the iOS 26 SDK so native UI (e.g. the UITabBar) renders with
+    # Liquid Glass on iOS 26. Older runners build against iOS 18 SDK, which makes
+    # iOS 26 fall back to the legacy, non-Liquid-Glass appearance.
+    runs-on: macos-26
     env:
       # Inlined into the JS bundle at build time (EXPO_PUBLIC_* is public by design).
       EXPO_PUBLIC_API_BASE_URL: http://mk.geneat.pro/api/v1
