@@ -1,7 +1,8 @@
-// OPhim public movie API client (no auth). https://ophim1.com
-const BASE = "https://ophim1.com";
-// Relative image paths from the API get this CDN prefix.
-const CDN_IMAGE = "https://img.ophim.live";
+// OPhim-compatible public movie API client (no auth). KKPhim/phimapi.com serves
+// the exact same JSON shape as OPhim; the old ophim1.com API was retired (404).
+const BASE = "https://phimapi.com";
+// Relative image paths from the API get this CDN prefix (phimapi hosts on phimimg).
+const CDN_IMAGE = "https://phimimg.com";
 
 export interface OphimMovieListItem {
   _id?: string;

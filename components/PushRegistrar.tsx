@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 
@@ -25,7 +26,11 @@ export function PushRegistrar() {
   }, [isAuthenticated]);
 
   // OS notification listeners (independent of auth state).
+  // expo-notifications native methods (listeners, getLastNotificationResponse)
+  // aren't implemented on web and throw — skip the whole wiring there.
   useEffect(() => {
+    if (Platform.OS === "web") return;
+
     const openNotifications = () => router.push("/notifications");
 
     const receivedSub = Notifications.addNotificationReceivedListener(() => {
