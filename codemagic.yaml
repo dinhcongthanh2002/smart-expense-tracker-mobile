@@ -1,0 +1,74 @@
+# Codemagic CI — build an UNSIGNED iOS .ipa on free macOS minutes (500 min/month).
+# Independent of GitHub Actions billing. Install the artifact with Sideloadly
+# (re-signs with your free Apple ID), AltStore, SideStore, or TrollStore.
+#
+# Setup (one-time):
+#   1. Sign up at https://codemagic.io with your GitHub account (free).
+#   2. Add this repository (dinhcongthanh2002/smart-expense-tracker-mobile).
+#   3. Run the "ios-unsigned-ipa" workflow (manually or on tag push).
+#   4. Download SmartExpense-unsigned.ipa from the build artifacts.
+#
+# No Apple Developer account and no code-signing certificates are required
+# because the archive is built with signing disabled (same as the old GitHub
+# Actions workflow). The App Group entitlement is kept so the widget + Siri
+# App Intent can share the session after the re-signer patches it.
+
+workflows:
+  ios-unsigned-ipa:
+    name: Unsigned iOS IPA
+    # Free tier runs on Apple-silicon mac minis. macos-m-series ships a recent
+    # Xcode so the app links against the current iOS SDK.
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      node: 20
+      vars:
+        # Inlined into the JS bundle at build time (EXPO_PUBLIC_* is public).
+        EXPO_PUBLIC_API_BASE_URL: "http://mk.geneat.pro/api/v1"
+        EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "925669115467-okc0l1mgbs6q7qq90cc669juu3trc9k1.apps.googleusercontent.com"
+        EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: "925669115467-7b5makgohg5qfmof8kfaju2ieh0umen7.apps.googleusercontent.com"
+        EXPO_NO_TELEMETRY: "1"
+    # Build on every version tag push, and allow manual runs from the UI.
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: "v*"
+          include: true
+    scripts:
+      - name: Install JS dependencies
+        script: npm ci
+      - name: Prebuild iOS project
+        # Runs config plugins, including ./plugins/withSiriAppIntents (Siri).
+        script: npx expo prebuild -p ios --clean
+      - name: Install CocoaPods
+        script: npx pod-install ios
+      - name: Archive (no code signing)
+        script: |
+          set -eo pipefail
+          WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "Workspace: $WORKSPACE | Scheme: $SCHEME"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$CM_BUILD_DIR/app.xcarchive" \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+      - name: Package unsigned IPA
+        script: |
+          set -eo pipefail
+          APP=$(ls -d "$CM_BUILD_DIR/app.xcarchive/Products/Applications/"*.app | head -1)
+          echo "App: $APP"
+          mkdir -p "$CM_BUILD_DIR/Payload"
+          cp -R "$APP" "$CM_BUILD_DIR/Payload/"
+          (cd "$CM_BUILD_DIR" && zip -qry SmartExpense-unsigned.ipa Payload)
+          ls -lh "$CM_BUILD_DIR/SmartExpense-unsigned.ipa"
+    artifacts:
+      - $CM_BUILD_DIR/SmartExpense-unsigned.ipa
