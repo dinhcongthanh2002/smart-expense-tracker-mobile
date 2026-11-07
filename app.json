@@ -61,6 +61,7 @@
         }
       ],
       "./plugins/withGradleMemory",
+      "./plugins/withSiriAppIntents",
       [
         "expo-build-properties",
         {

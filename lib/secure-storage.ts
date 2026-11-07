@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { STORAGE_KEYS } from "./constants";
+import { clearSiriAuth, publishSiriAuth } from "./siri-bridge";
 import type { UserViewModel } from "@/store/user/model";
 
 // SecureStore is unavailable on web; fall back to AsyncStorage there.
@@ -51,6 +52,9 @@ export const getAuthTokenSync = (): string | null => tokenCache;
 /** Load persisted token into the in-memory cache (call once on app start). */
 export async function bootstrapToken(): Promise<string | null> {
   tokenCache = await secureGet(STORAGE_KEYS.accessToken);
+  // Re-publish to the App Group so the Siri App Intent has a token after a
+  // cold start (login may have happened in a previous launch).
+  publishSiriAuth(tokenCache);
   return tokenCache;
 }
 
@@ -61,6 +65,8 @@ export async function setAuthTokens(tokens: {
   if (tokens.tokenString) {
     tokenCache = tokens.tokenString;
     await secureSet(STORAGE_KEYS.accessToken, tokens.tokenString);
+    // Share the fresh token with the Siri App Intent.
+    publishSiriAuth(tokens.tokenString);
   }
   if (tokens.refreshToken) {
     await secureSet(STORAGE_KEYS.refreshToken, tokens.refreshToken);
@@ -82,6 +88,8 @@ export async function getUser(): Promise<UserViewModel | null> {
 
 export async function clearAuthStorage(): Promise<void> {
   tokenCache = null;
+  // Revoke the Siri App Intent's shared session.
+  clearSiriAuth();
   await Promise.all([
     secureDelete(STORAGE_KEYS.accessToken),
     secureDelete(STORAGE_KEYS.refreshToken),
