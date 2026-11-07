@@ -335,15 +335,19 @@ struct AddLoanIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct ExpenseAppShortcuts: AppShortcutsProvider {
+    // App Shortcut phrases may ONLY embed AppEnum/AppEntity parameters — a free
+    // text String (content/person) is NOT allowed inside a phrase. So the
+    // phrases are static; after Siri triggers the intent it asks for the details
+    // via each parameter's requestValueDialog ("Bạn muốn ghi giao dịch gì?"…).
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: AddTransactionIntent(),
             phrases: [
-                "Thêm giao dịch \(\.$content) vào \(.applicationName)",
-                "Thêm giao dịch \(\.$content) trong \(.applicationName)",
-                "Ghi giao dịch \(\.$content) vào \(.applicationName)",
-                "\(.applicationName) thêm giao dịch \(\.$content)",
-                "Thêm chi tiêu \(\.$content) vào \(.applicationName)",
+                "Thêm giao dịch vào \(.applicationName)",
+                "Thêm giao dịch trong \(.applicationName)",
+                "Ghi giao dịch vào \(.applicationName)",
+                "Ghi chi tiêu vào \(.applicationName)",
+                "\(.applicationName) thêm giao dịch",
             ],
             shortTitle: "Thêm giao dịch",
             systemImageName: "plus.circle.fill"
@@ -351,9 +355,9 @@ struct ExpenseAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: AddBorrowDebtIntent(),
             phrases: [
-                "Ghi khoản vay của \(\.$person) trong \(.applicationName)",
-                "Thêm khoản nợ \(\.$person) vào \(.applicationName)",
-                "\(.applicationName) ghi khoản đi vay của \(\.$person)",
+                "Ghi khoản đi vay vào \(.applicationName)",
+                "Thêm khoản nợ vào \(.applicationName)",
+                "\(.applicationName) ghi khoản đi vay",
             ],
             shortTitle: "Ghi khoản đi vay",
             systemImageName: "arrow.down.circle.fill"
@@ -361,9 +365,9 @@ struct ExpenseAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: AddLoanIntent(),
             phrases: [
-                "Ghi cho \(\.$person) vay trong \(.applicationName)",
-                "Thêm khoản cho vay \(\.$person) vào \(.applicationName)",
-                "\(.applicationName) ghi khoản cho \(\.$person) vay",
+                "Ghi khoản cho vay vào \(.applicationName)",
+                "Thêm khoản cho vay vào \(.applicationName)",
+                "\(.applicationName) ghi khoản cho vay",
             ],
             shortTitle: "Ghi khoản cho vay",
             systemImageName: "arrow.up.circle.fill"
